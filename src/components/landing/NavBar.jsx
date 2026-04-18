@@ -35,20 +35,20 @@ export default function NavBar() {
         role="banner"
       >
         <nav
-          className="max-w-7xl mx-auto px-6 flex items-center justify-between"
+          className="max-w-7xl mx-auto px-6 grid grid-cols-3 items-center"
           aria-label="Main navigation"
         >
-          {/* Logo */}
+          {/* Logo — left */}
           <a
             href="/"
-            className="text-white font-black text-2xl tracking-tighter select-none"
+            className="text-white font-black text-2xl tracking-tighter select-none justify-self-start"
             style={{ fontFamily: 'Cormorant Garamond, serif', letterSpacing: '-0.02em' }}
             aria-label="Slique — go to homepage"
           >
             SLIQUE
           </a>
 
-          {/* Desktop links */}
+          {/* Desktop links — true center */}
           <ul className="hidden md:flex items-center justify-center gap-10" role="list">
             {navLinks.map((link) => (
               <li key={link.label}>
@@ -62,10 +62,10 @@ export default function NavBar() {
             ))}
           </ul>
 
-          {/* Desktop CTA */}
+          {/* Desktop CTA — right */}
           <a
             href="tel:+16122751722"
-            className="hidden md:flex items-center gap-2 border border-white/30 text-white text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-medium"
+            className="hidden md:flex items-center gap-2 border border-white/30 text-white text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-medium justify-self-end"
             aria-label="Call Slique at (612) 275-1722"
           >
             <Phone className="w-3 h-3" aria-hidden="true" />
@@ -75,7 +75,7 @@ export default function NavBar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-white p-2 -mr-2 focus:outline-none focus:ring-2 focus:ring-white/50 rounded"
+            className="md:hidden text-white p-2 -mr-2 focus:outline-none focus:ring-2 focus:ring-white/50 rounded justify-self-end"
             aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
