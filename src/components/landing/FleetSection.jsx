@@ -32,7 +32,8 @@ const vehicles = [
     type: "luxury_sprinter"
   },
   {
-    name: "Stretch Limousine - Black",
+    name: "Stretch Limousine -",
+    nameLine2: "Black",
     subtitle: "Executive Class",
     image: null,
     passengers: "Up to 10",
@@ -91,7 +92,10 @@ export default function FleetSection() {
               <div className="space-y-4">
                 <div>
                   <p className="text-gray-500 text-xs tracking-[0.2em] uppercase mb-2">{vehicle.subtitle}</p>
-                  <h3 className="font-gothic text-3xl md:text-4xl text-white">{vehicle.name}</h3>
+                  <h3 className="font-gothic text-3xl md:text-4xl text-white">
+                    <span className="block">{vehicle.name}</span>
+                    {vehicle.nameLine2 && <span className="block">{vehicle.nameLine2}</span>}
+                  </h3>
                 </div>
 
                 <div className="flex gap-8 text-sm">

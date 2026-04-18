@@ -49,7 +49,7 @@ export default function NavBar() {
           </a>
 
           {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-10" role="list">
+          <ul className="hidden md:flex items-center justify-center gap-10" role="list">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <button

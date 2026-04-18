@@ -17,15 +17,15 @@ const features = [
   },
   {
     type: "review",
-    name: "Kray",
-    date: "December 7 2025",
+    name: "Brandon",
+    date: "April 2026",
     rating: 5,
     text: "Really nice car and excellent service. The best experience I've had in my entire career. Highly recommended."
   },
   {
     type: "review",
     name: "Abdi",
-    date: "January 11 2026",
+    date: "March 2026",
     rating: 5,
     text: "Need a good day? This is the perfect car. Smooth pick up and drop off. The owner is a very friendly young gentleman with a great personality."
   }
