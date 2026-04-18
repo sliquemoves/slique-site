@@ -5,15 +5,6 @@ import { Button } from '@/components/ui/button';
 
 const vehicles = [
   {
-    name: "Mercedes-Benz AMG Sedan - Black",
-    subtitle: "Premium Class",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/b6bf72161_sliqueAMG.png",
-    passengers: "Up to 3",
-    luggage: "2 Large Bags",
-    features: ["Ambient Lighting", "Premium Leather", "Climate Control", "Tinted Windows"],
-    type: "luxury_sedan"
-  },
-  {
     name: "Cadillac Escalade SUV - Black",
     subtitle: "Executive Class",
     image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/3a79fb852_sliqueescalade.png",
@@ -40,6 +31,15 @@ const vehicles = [
     luggage: "10 Large Bags",
     features: ["Presidential Seats", "Drink Refrigerator", "Ambient Lighting", "Tinted Windows"],
     type: "luxury_limo"
+  },
+  {
+    name: "Mercedes-Benz AMG Sedan - Black",
+    subtitle: "Premium Class",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/b6bf72161_sliqueAMG.png",
+    passengers: "Up to 3",
+    luggage: "2 Large Bags",
+    features: ["Ambient Lighting", "Premium Leather", "Climate Control", "Tinted Windows"],
+    type: "luxury_sedan"
   }
 ];
 
