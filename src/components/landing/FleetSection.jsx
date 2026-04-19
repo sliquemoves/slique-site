@@ -23,7 +23,7 @@ const vehicles = [
     type: "stretch_limo"
   },
   {
-    name: "Mercedes Benz Sprinter Van - Black",
+    name: "Mercedes Benz Sprinter - Black",
     subtitle: "Premium Class",
     image: "/slique_van.png",
     passengers: "Up to 15",
@@ -32,7 +32,7 @@ const vehicles = [
     type: "sprinter_van"
   },
   {
-    name: "Mercedes Benz AMG Sedan - Black",
+    name: "Mercedes Benz AMG - Black",
     subtitle: "Premium Class",
     image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/b6bf72161_sliqueAMG.png",
     passengers: "Up to 2",
