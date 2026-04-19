@@ -59,11 +59,11 @@ export default function FleetSection() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center justify-items-center">
           {vehicles.map((vehicle, index) => (
             <motion.div
               key={vehicle.name}
-              className="group mx-auto w-full lg:mx-0 lg:max-w-none"
+              className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full"
               style={{ maxWidth: '88%' }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
