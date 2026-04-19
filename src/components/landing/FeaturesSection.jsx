@@ -17,15 +17,15 @@ const features = [
   },
   {
     type: "review",
-    name: "Brandon",
-    date: "April 2026",
+    name: "Kray",
+    date: "December 7 2025",
     rating: 5,
     text: "Really nice car and excellent service. The best experience I've had in my entire career. Highly recommended."
   },
   {
     type: "review",
     name: "Abdi",
-    date: "March 2026",
+    date: "January 11 2026",
     rating: 5,
     text: "Need a good day? This is the perfect car. Smooth pick up and drop off. The owner is a very friendly young gentleman with a great personality."
   }
@@ -33,7 +33,7 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section id="why-us" className="bg-[#0a0a0a] py-32 px-6 relative overflow-hidden">
+    <section className="bg-[#0a0a0a] py-12 px-6 relative overflow-hidden">
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -41,19 +41,19 @@ export default function FeaturesSection() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div 
-          className="text-center mb-20"
+          className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
           <p className="text-gray-500 tracking-[0.3em] uppercase text-xs mb-4">Why Choose Us</p>
-          <h2 className="font-gothic text-5xl md:text-7xl text-white">
-            The Difference
+          <h2 className="text-4xl md:text-5xl font-light text-white tracking-tight">
+            THE <span className="font-semibold">DIFFERENCE</span>
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-px bg-white/10">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title || feature.name}
@@ -78,7 +78,7 @@ export default function FeaturesSection() {
                 </>
               ) : (
                 <>
-                  <feature.icon className="w-8 h-8 text-white/50 mx-auto mb-6" aria-hidden="true" />
+                  <feature.icon className="w-8 h-8 text-white/50 mx-auto mb-6" />
                   <p className="text-4xl md:text-5xl font-light text-white mb-2">{feature.stat}</p>
                   <h3 className="text-white text-sm font-medium tracking-wide mb-3">
                     {feature.title}

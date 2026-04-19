@@ -47,7 +47,7 @@ export default function FleetSection() {
     <section id="fleet" className="bg-black py-12 md:py-32 px-0 md:px-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
-          className="text-center mb-12 md:mb-20"
+          className="text-center mb-10 md:mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

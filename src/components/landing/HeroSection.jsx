@@ -65,7 +65,7 @@ export default function HeroSection({ onBookNow }) {
         <div className="hidden md:flex relative z-10 flex-col items-center justify-center text-center px-6"
           style={{ minHeight: '100svh' }}>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: 'easeOut' }}>
-            <p className="text-gray-400 tracking-[0.4em] uppercase text-sm mb-6">Premium Chauffeur Services</p>
+            <p className="text-gray-200 tracking-[0.4em] uppercase text-sm mb-6 font-medium">Premium Chauffeur Services</p>
             <h1 className="text-7xl lg:text-8xl font-light text-white tracking-tight leading-none mb-0">
               <span className="block">ELEVATE YOUR</span>
               <span className="block font-semibold">JOURNEY</span>
@@ -73,7 +73,7 @@ export default function HeroSection({ onBookNow }) {
 
             {/* Desktop trust strip inline */}
             <div className="overflow-hidden my-8">
-              <style>{`@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}.tmd{display:flex;width:max-content;animation:mq 22s linear infinite}.tmd:hover{animation-play-state:paused}`}</style>
+              <style>{`@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.tmd{display:flex;width:max-content;animation:mq 20s linear infinite}.tmd:hover{animation-play-state:paused}`}</style>
               <div className="tmd">
                 {[...trustItems, ...trustItems].map((item, i) => (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 28px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap' }}>
@@ -83,15 +83,21 @@ export default function HeroSection({ onBookNow }) {
                 ))}
               </div>
             </div>
-
-            <div className="flex gap-4 justify-center mb-8">
-              <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-10 py-6 text-sm tracking-widest uppercase font-medium bg-transparent"
-                onClick={() => scrollTo('fleet')}>View Fleet</Button>
-              <Button onClick={onBookNow} className="bg-white text-black hover:bg-gray-100 px-10 py-6 text-sm tracking-widest uppercase font-medium">Reserve Now</Button>
-            </div>
-            <div className="w-24 h-[1px] bg-white/30 mx-auto" />
           </motion.div>
         </div>
+
+        {/* ── DESKTOP buttons pinned above scroll arrow ── */}
+        <motion.div
+          className="hidden md:flex flex-col items-center gap-4 absolute z-10 left-1/2 -translate-x-1/2"
+          style={{ bottom: '88px' }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.6 }}>
+          <div className="flex gap-4">
+            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-10 py-6 text-sm tracking-widest uppercase font-medium bg-transparent"
+              onClick={() => scrollTo('fleet')}>View Fleet</Button>
+            <Button onClick={onBookNow} className="bg-white text-black hover:bg-gray-100 px-10 py-6 text-sm tracking-widest uppercase font-medium">Reserve Now</Button>
+          </div>
+          <div className="w-24 h-[1px] bg-white/30" />
+        </motion.div>
 
         {/* ── MOBILE layout ── */}
         <div className="md:hidden relative z-10 flex flex-col justify-between"
@@ -100,13 +106,13 @@ export default function HeroSection({ onBookNow }) {
           {/* Top: eyebrow + title + trust strip */}
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.2 }}>
-              <p style={{ fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#a3a3a3', marginBottom: 16 }}>Premium Chauffeur Services</p>
+              <p style={{ fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d4d4d4', marginBottom: 16, fontWeight: 500 }}>Premium Chauffeur Services</p>
               <h1 className="font-light text-white leading-none" style={{ fontSize: 'clamp(46px,13vw,62px)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
                 Elevate Your<strong className="font-semibold block">Journey</strong>
               </h1>
               {/* Mobile trust strip */}
               <div className="overflow-hidden mt-5">
-                <style>{`@keyframes mqm{from{transform:translateX(0)}to{transform:translateX(-50%)}}.tmob{display:flex;width:max-content;animation:mqm 18s linear infinite}`}</style>
+                <style>{`@keyframes mqm{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.tmob{display:flex;width:max-content;animation:mqm 16s linear infinite}`}</style>
                 <div className="tmob">
                   {[...trustItems, ...trustItems].map((item, i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 20px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap' }}>
