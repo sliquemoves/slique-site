@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/manifest.json" />
     <title>Base44 APP</title>
-    <style>html, body { background: #000; overscroll-behavior: none; }</style>
+    <style>
+      html, body, #root { background: #000; }
+      html { overscroll-behavior: none; }
+      body { overscroll-behavior: none; min-height: 100vh; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

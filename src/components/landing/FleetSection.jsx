@@ -64,7 +64,7 @@ export default function FleetSection() {
             <motion.div
               key={vehicle.name}
               className="group mx-auto w-full lg:mx-0 lg:max-w-none"
-              style={{ maxWidth: '75%' }}
+              style={{ maxWidth: '88%' }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
