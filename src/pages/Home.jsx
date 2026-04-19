@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroSection from '@/components/landing/HeroSection';
+import ServicesSection from '@/components/landing/ServicesSection';
 import FleetSection from '@/components/landing/FleetSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import BookingSection from '@/components/landing/BookingSection';
@@ -13,6 +14,7 @@ export default function Home() {
   return (
     <main className="bg-black">
       <HeroSection onBookNow={scrollToBooking} />
+      <ServicesSection />
       <FleetSection />
       <FeaturesSection />
       <BookingSection />
