@@ -19,7 +19,7 @@ const vehicles = [
     image: "/slique_limo.png",
     passengers: "Up to 10",
     luggage: "10 Large Bags",
-    features: ["VIP Lounge Interior", "Mood Lighting", "Premium Bar", "Tinted Windows"],
+    features: ["VIP Lounge Interior", "Premium Bar", "Ambient Lighting", "Tinted Windows"],
     type: "stretch_limo"
   },
   {
@@ -28,7 +28,7 @@ const vehicles = [
     image: "/slique_van.png",
     passengers: "Up to 15",
     luggage: "15 Large Bags",
-    features: ["Ambient Lighting", "Business Seats", "Noise Insulation", "Tinted Windows"],
+    features: ["VIP Lounge Interior", "Noise Insulation", "Ambient Lighting", "Tinted Windows"],
     type: "sprinter_van"
   },
   {
@@ -37,7 +37,7 @@ const vehicles = [
     image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/b6bf72161_sliqueAMG.png",
     passengers: "Up to 2",
     luggage: "2 Large Bags",
-    features: ["Ambient Lighting", "Premium Leather", "Climate Control", "Tinted Windows"],
+    features: ["Premium Leather", "Climate Control", "Ambient Lighting", "Tinted Windows"],
     type: "luxury_sedan"
   }
 ];
