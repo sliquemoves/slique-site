@@ -14,7 +14,7 @@ const vehicles = [
     type: "luxury_suv"
   },
   {
-    name: "Mercedes-Benz Stretch Limousine - Black",
+    name: "Mercedes-Benz Limousine - Black",
     subtitle: "Executive Class",
     image: "/slique_limo.png",
     passengers: "Up to 10",
@@ -63,14 +63,15 @@ export default function FleetSection() {
           {vehicles.map((vehicle, index) => (
             <motion.div
               key={vehicle.name}
-              className="group"
+              className="group mx-auto w-full lg:mx-0 lg:max-w-none"
+              style={{ maxWidth: '75%' }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
             >
               <div className="relative overflow-hidden mb-8">
-                <div className="aspect-[4/3] md:aspect-[16/10] overflow-hidden">
+                <div className="aspect-[16/10] overflow-hidden">
                   <img 
                     src={vehicle.image} 
                     alt={vehicle.name}
@@ -80,13 +81,13 @@ export default function FleetSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
 
-              <div className="space-y-4 text-center md:text-left">
+              <div className="space-y-4 text-center">
                 <div>
                   <p className="text-gray-500 text-xs tracking-[0.2em] uppercase mb-2">{vehicle.subtitle}</p>
                   <h3 className="text-3xl md:text-3xl text-white font-light tracking-wide">{vehicle.name}</h3>
                 </div>
 
-                <div className="flex gap-8 text-sm justify-center md:justify-start">
+                <div className="flex gap-8 text-sm justify-center">
                   <div className="flex items-center gap-2 text-gray-400">
                     <Users className="w-4 h-4" />
                     <span>{vehicle.passengers}</span>
@@ -97,7 +98,7 @@ export default function FleetSection() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3 pt-4 justify-center md:justify-start">
+                <div className="flex flex-wrap gap-3 pt-4 justify-center">
                   {vehicle.features.map((feature) => (
                     <span
                       key={feature}
