@@ -70,27 +70,39 @@ export default function HeroSection({ onBookNow }) {
               <span className="block">ELEVATE YOUR</span>
               <span className="block font-semibold">JOURNEY</span>
             </h1>
-
-            {/* Desktop trust strip inline */}
-            <div className="overflow-hidden my-8">
-              <style>{`@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.tmd{display:flex;width:max-content;animation:mq 20s linear infinite}.tmd:hover{animation-play-state:paused}`}</style>
-              <div className="tmd">
-                {[...trustItems, ...trustItems].map((item, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 28px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap' }}>
-                    <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.3)', flexShrink:0 }} />
-                    <span style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)' }}>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </motion.div>
         </div>
 
-        {/* ── DESKTOP buttons pinned above scroll arrow ── */}
+        {/* ── DESKTOP buttons + trust strip pinned above scroll arrow ── */}
         <motion.div
           className="hidden md:flex flex-col items-center gap-4 absolute z-10 left-1/2 -translate-x-1/2"
-          style={{ bottom: '88px' }}
+          style={{ bottom: '88px', width: '100vw' }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.6 }}>
+
+          {/* Seamless trust strip */}
+          <style>{`
+            @keyframes marquee-desktop {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .marquee-track-d {
+              display: flex;
+              width: max-content;
+              animation: marquee-desktop 18s linear infinite;
+              will-change: transform;
+            }
+          `}</style>
+          <div style={{ overflow: 'hidden', width: '100%', marginBottom: 20 }}>
+            <div className="marquee-track-d">
+              {[...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 32px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
+                  <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.35)', flexShrink:0 }} />
+                  <span style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-4">
             <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-10 py-6 text-sm tracking-widest uppercase font-medium bg-transparent"
               onClick={() => scrollTo('fleet')}>View Fleet</Button>
@@ -110,12 +122,23 @@ export default function HeroSection({ onBookNow }) {
               <h1 className="font-light text-white leading-none" style={{ fontSize: 'clamp(46px,13vw,62px)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
                 Elevate Your<strong className="font-semibold block">Journey</strong>
               </h1>
-              {/* Mobile trust strip */}
-              <div className="overflow-hidden mt-5">
-                <style>{`@keyframes mqm{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.tmob{display:flex;width:max-content;animation:mqm 16s linear infinite}`}</style>
-                <div className="tmob">
-                  {[...trustItems, ...trustItems].map((item, i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 20px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap' }}>
+              {/* Mobile seamless trust strip */}
+              <style>{`
+                @keyframes marquee-mobile {
+                  0%   { transform: translateX(0); }
+                  100% { transform: translateX(-50%); }
+                }
+                .marquee-track-m {
+                  display: flex;
+                  width: max-content;
+                  animation: marquee-mobile 14s linear infinite;
+                  will-change: transform;
+                }
+              `}</style>
+              <div style={{ overflow: 'hidden', marginTop: 20 }}>
+                <div className="marquee-track-m">
+                  {[...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 20px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
                       <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.3)', flexShrink:0 }} />
                       <span style={{ fontSize:9, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>
                     </div>
