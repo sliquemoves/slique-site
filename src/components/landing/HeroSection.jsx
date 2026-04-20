@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Phone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 const trustItems = [
@@ -16,6 +16,41 @@ export default function HeroSection({ onBookNow }) {
 
   return (
     <div className="bg-black">
+
+      {/* ── Mobile Nav (hidden on md+) ── */}
+      <nav
+        className="md:hidden fixed top-0 left-0 right-0 z-50 grid"
+        style={{
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          padding: 'calc(env(safe-area-inset-top) + 12px) 14px 12px',
+          background: 'rgba(0,0,0,0.88)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+        }}>
+        {/* Logo — left */}
+        <a href="#" style={{ fontFamily: 'Georgia,serif', fontWeight: 900, fontSize: 20, letterSpacing: '-0.04em', color: '#fff', textDecoration: 'none', textTransform: 'uppercase' }}>
+          SLIQUE
+        </a>
+        {/* Fleet + Reserve — center */}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
+            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none' }}>
+            Fleet
+          </a>
+          <a href="#booking" onClick={e => { e.preventDefault(); scrollTo('booking'); }}
+            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#000', background: '#fff', padding: '8px 12px', textDecoration: 'none', border: 'none' }}>
+            Reserve
+          </a>
+        </div>
+        {/* Call — right */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <a href="tel:+16122751722"
+            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 400, color: '#fff', padding: '8px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Phone size={11} /> Call
+          </a>
+        </div>
+      </nav>
 
       {/* ── Hero Section ── */}
       <section className="relative overflow-hidden bg-black" style={{ minHeight: '100svh' }}>
@@ -53,13 +88,13 @@ export default function HeroSection({ onBookNow }) {
             .marquee-track-d {
               display: flex;
               width: max-content;
-              animation: marquee-desktop 18s linear infinite;
+              animation: marquee-desktop 32s linear infinite;
               will-change: transform;
             }
           `}</style>
           <div style={{ overflow: 'hidden', width: '100%', marginBottom: 20 }}>
             <div className="marquee-track-d">
-              {[...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
+              {[...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 32px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
                   <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.35)', flexShrink:0 }} />
                   <span style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>

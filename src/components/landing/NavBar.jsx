@@ -157,11 +157,10 @@ export default function NavBar() {
           {/* Mobile CALL — right, no border, hidden on desktop */}
           <a
             href="tel:+16122751722"
-            className="md:hidden"
+            className="md:hidden inline-flex items-center gap-1"
             style={{
               fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
               fontWeight: 400, color: '#fff', textDecoration: 'none',
-              display: 'inline-flex', alignItems: 'center', gap: 4,
               padding: '8px 0 8px 12px',
             }}
             aria-label="Call Slique"
