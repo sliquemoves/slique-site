@@ -53,7 +53,7 @@ export default function HeroSection({ onBookNow }) {
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden bg-black" style={{ minHeight: '100svh' }}>
+      <section id="hero" className="relative overflow-hidden bg-black" style={{ minHeight: '100svh' }}>
 
         {/* Background */}
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -88,13 +88,13 @@ export default function HeroSection({ onBookNow }) {
             .marquee-track-d {
               display: flex;
               width: max-content;
-              animation: marquee-desktop 32s linear infinite;
+              animation: marquee-desktop 18s linear infinite;
               will-change: transform;
             }
           `}</style>
           <div style={{ overflow: 'hidden', width: '100%', marginBottom: 20 }}>
             <div className="marquee-track-d">
-              {[...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
+              {[...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
                 <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 32px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
                   <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.35)', flexShrink:0 }} />
                   <span style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>
