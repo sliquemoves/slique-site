@@ -83,12 +83,12 @@ export default function HeroSection({ onBookNow }) {
           <style>{`
             @keyframes marquee-desktop {
               0%   { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
+              100% { transform: translateX(-25%); }
             }
             .marquee-track-d {
               display: flex;
               width: max-content;
-              animation: marquee-desktop 18s linear infinite;
+              animation: marquee-desktop 24s linear infinite;
               will-change: transform;
             }
           `}</style>
@@ -109,6 +109,14 @@ export default function HeroSection({ onBookNow }) {
             <Button onClick={onBookNow} className="bg-white text-black hover:bg-gray-100 px-10 py-6 text-sm tracking-widest uppercase font-medium">Reserve Now</Button>
           </div>
           <div className="w-24 h-[1px] bg-white/30" />
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <svg width="14" height="9" viewBox="0 0 14 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1L7 7L13 1" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.div>
         </motion.div>
 
         {/* ── MOBILE layout ── */}
@@ -126,12 +134,12 @@ export default function HeroSection({ onBookNow }) {
               <style>{`
                 @keyframes marquee-mobile {
                   0%   { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
+                  100% { transform: translateX(-25%); }
                 }
                 .marquee-track-m {
                   display: flex;
                   width: max-content;
-                  animation: marquee-mobile 14s linear infinite;
+                  animation: marquee-mobile 20s linear infinite;
                   will-change: transform;
                 }
               `}</style>
@@ -159,6 +167,15 @@ export default function HeroSection({ onBookNow }) {
               Reserve Now
             </a>
             <div style={{ width:96, height:1, background:'rgba(255,255,255,0.3)', marginTop:8 }} />
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}
+            >
+              <svg width="14" height="9" viewBox="0 0 14 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1L7 7L13 1" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </motion.div>
           </motion.div>
         </div>
 

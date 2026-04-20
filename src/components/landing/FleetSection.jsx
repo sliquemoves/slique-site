@@ -64,7 +64,12 @@ export default function FleetSection() {
             <motion.div
               key={vehicle.name}
               className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full"
-              style={{ maxWidth: '88%' }}
+              style={{
+                maxWidth: '88%',
+                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.02)',
+                padding: '0 0 28px 0',
+              }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -81,7 +86,7 @@ export default function FleetSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
 
-              <div className="space-y-4 text-center">
+              <div className="space-y-4 text-center px-6">
                 <div>
                   <p className="text-gray-500 text-xs tracking-[0.2em] uppercase mb-2">{vehicle.subtitle}</p>
                   <h3 className="text-3xl md:text-3xl text-white font-light tracking-wide">{vehicle.name}</h3>
