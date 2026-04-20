@@ -73,14 +73,13 @@ export default function NavBar() {
         role="banner"
       >
         <nav
-          className="max-w-7xl mx-auto px-6 grid items-center md:grid-cols-3"
-          style={{ gridTemplateColumns: '1fr 1fr 1fr' }}
+          className="relative max-w-7xl mx-auto px-6 flex items-center justify-between"
           aria-label="Main navigation"
         >
           {/* Logo — left */}
           <a
             href="/"
-            className="text-white font-black text-2xl tracking-tighter select-none justify-self-start"
+            className="text-white font-black text-2xl tracking-tighter select-none"
             style={{ fontFamily: 'Cormorant Garamond, serif', letterSpacing: '-0.02em' }}
             aria-label="Slique — go to homepage"
           >
@@ -88,7 +87,7 @@ export default function NavBar() {
           </a>
 
           {/* Desktop links — center */}
-          <ul className="hidden md:flex items-center justify-center gap-10" role="list">
+          <ul className="hidden md:flex items-center justify-center gap-10 absolute left-1/2 -translate-x-1/2" role="list">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <button
@@ -101,8 +100,8 @@ export default function NavBar() {
             ))}
           </ul>
 
-          {/* Mobile center — scroll-aware Fleet / Reserve buttons */}
-          <div className="md:hidden flex gap-2 justify-center" style={{ minWidth: 0 }}>
+          {/* Mobile center — scroll-aware Fleet / Reserve buttons (absolutely centered) */}
+          <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex gap-2">
             <AnimatePresence mode="popLayout">
               {showFleet && (
                 <motion.a
@@ -148,7 +147,7 @@ export default function NavBar() {
           {/* Desktop CTA — right */}
           <a
             href="tel:+16122751722"
-            className="hidden md:flex items-center gap-2 border border-white/30 text-white text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-medium justify-self-end"
+            className="hidden md:flex items-center gap-2 border border-white/30 text-white text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-medium"
             aria-label="Call Slique at (612) 275-1722"
           >
             <Phone className="w-3 h-3" aria-hidden="true" />
@@ -158,12 +157,12 @@ export default function NavBar() {
           {/* Mobile CALL — right, no border */}
           <a
             href="tel:+16122751722"
-            className="md:hidden justify-self-end"
+            className="md:hidden"
             style={{
               fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
               fontWeight: 400, color: '#fff', textDecoration: 'none',
               display: 'inline-flex', alignItems: 'center', gap: 4,
-              padding: '8px 4px 8px 12px',
+              padding: '8px 0 8px 12px',
             }}
             aria-label="Call Slique"
           >

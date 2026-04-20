@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, Phone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 const trustItems = [
@@ -16,41 +15,6 @@ export default function HeroSection({ onBookNow }) {
 
   return (
     <div className="bg-black">
-
-      {/* ── Mobile Nav (hidden on md+) ── */}
-      <nav
-        className="md:hidden fixed top-0 left-0 right-0 z-50 grid"
-        style={{
-          gridTemplateColumns: '1fr auto 1fr',
-          alignItems: 'center',
-          padding: 'calc(env(safe-area-inset-top) + 12px) 14px 12px',
-          background: 'rgba(0,0,0,0.88)',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
-        }}>
-        {/* Logo — left */}
-        <a href="#" style={{ fontFamily: 'Georgia,serif', fontWeight: 900, fontSize: 20, letterSpacing: '-0.04em', color: '#fff', textDecoration: 'none', textTransform: 'uppercase' }}>
-          SLIQUE
-        </a>
-        {/* Fleet + Reserve — center */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none' }}>
-            Fleet
-          </a>
-          <a href="#booking" onClick={e => { e.preventDefault(); scrollTo('booking'); }}
-            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#000', background: '#fff', padding: '8px 12px', textDecoration: 'none', border: 'none' }}>
-            Reserve
-          </a>
-        </div>
-        {/* Call — right */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <a href="tel:+16122751722"
-            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 400, color: '#fff', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Phone size={11} /> Call
-          </a>
-        </div>
-      </nav>
 
       {/* ── Hero Section ── */}
       <section className="relative overflow-hidden bg-black" style={{ minHeight: '100svh' }}>
@@ -109,14 +73,6 @@ export default function HeroSection({ onBookNow }) {
             <Button onClick={onBookNow} className="bg-white text-black hover:bg-gray-100 px-10 py-6 text-sm tracking-widest uppercase font-medium">Reserve Now</Button>
           </div>
           <div className="w-24 h-[1px] bg-white/30" />
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <svg width="14" height="9" viewBox="0 0 14 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 1L7 7L13 1" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </motion.div>
         </motion.div>
 
         {/* ── MOBILE layout ── */}
