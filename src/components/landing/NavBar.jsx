@@ -147,14 +147,14 @@ export default function NavBar() {
           {/* Desktop CTA — right */}
           <a
             href="tel:+16122751722"
-            className="hidden md:flex items-center gap-2 border border-white/30 text-white text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-medium"
+            className="hidden md:flex items-center gap-2 border border-white/30 text-white text-xs tracking-widest uppercase px-5 py-2.5 hover:bg-white hover:text-black transition-all duration-300 font-medium ml-auto"
             aria-label="Call Slique at (612) 275-1722"
           >
             <Phone className="w-3 h-3" aria-hidden="true" />
             (612) 275-1722
           </a>
 
-          {/* Mobile CALL — right, no border */}
+          {/* Mobile CALL — right, no border, hidden on desktop */}
           <a
             href="tel:+16122751722"
             className="md:hidden"
