@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, Phone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,38 @@ const trustItems = [
   'Accounts Available',
 ];
 
+function useActiveSection() {
+  const [section, setSection] = useState('hero');
+
+  useEffect(() => {
+    const sectionIds = ['hero', 'fleet', 'features', 'booking'];
+
+    const observe = () => {
+      const scrollY = window.scrollY + window.innerHeight * 0.35;
+      let active = 'hero';
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+          active = id;
+        }
+      }
+      setSection(active);
+    };
+
+    window.addEventListener('scroll', observe, { passive: true });
+    observe();
+    return () => window.removeEventListener('scroll', observe);
+  }, []);
+
+  return section;
+}
+
 export default function HeroSection({ onBookNow }) {
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  const activeSection = useActiveSection();
+
+  const showFleet   = activeSection !== 'fleet';
+  const showReserve = activeSection !== 'booking';
 
   return (
     <div className="bg-black">
@@ -32,16 +62,20 @@ export default function HeroSection({ onBookNow }) {
         <a href="#" style={{ fontFamily: 'Georgia,serif', fontWeight: 900, fontSize: 20, letterSpacing: '-0.04em', color: '#fff', textDecoration: 'none', textTransform: 'uppercase' }}>
           SLIQUE
         </a>
-        {/* Fleet + Reserve — center */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none' }}>
-            Fleet
-          </a>
-          <a href="#booking" onClick={e => { e.preventDefault(); scrollTo('booking'); }}
-            style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#000', background: '#fff', padding: '8px 12px', textDecoration: 'none', border: 'none' }}>
-            Reserve
-          </a>
+        {/* Fleet + Reserve — center, scroll-aware */}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', minHeight: 34 }}>
+          {showFleet && (
+            <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
+              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none', transition: 'opacity 0.25s' }}>
+              Fleet
+            </a>
+          )}
+          {showReserve && (
+            <a href="#booking" onClick={e => { e.preventDefault(); scrollTo('booking'); }}
+              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#000', background: '#fff', padding: '8px 12px', textDecoration: 'none', border: 'none', transition: 'opacity 0.25s' }}>
+              Reserve
+            </a>
+          )}
         </div>
         {/* Call — right */}
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
