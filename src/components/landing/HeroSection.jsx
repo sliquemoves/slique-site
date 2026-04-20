@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 const trustItems = [
@@ -47,12 +48,12 @@ export default function HeroSection({ onBookNow }) {
           <style>{`
             @keyframes marquee-desktop {
               0%   { transform: translateX(0); }
-              100% { transform: translateX(-25%); }
+              100% { transform: translateX(-50%); }
             }
             .marquee-track-d {
               display: flex;
               width: max-content;
-              animation: marquee-desktop 24s linear infinite;
+              animation: marquee-desktop 18s linear infinite;
               will-change: transform;
             }
           `}</style>
@@ -90,18 +91,18 @@ export default function HeroSection({ onBookNow }) {
               <style>{`
                 @keyframes marquee-mobile {
                   0%   { transform: translateX(0); }
-                  100% { transform: translateX(-25%); }
+                  100% { transform: translateX(-50%); }
                 }
                 .marquee-track-m {
                   display: flex;
                   width: max-content;
-                  animation: marquee-mobile 20s linear infinite;
+                  animation: marquee-mobile 32s linear infinite;
                   will-change: transform;
                 }
               `}</style>
               <div style={{ overflow: 'hidden', marginTop: 20 }}>
                 <div className="marquee-track-m">
-                  {[...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
+                  {[...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 20px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
                       <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.3)', flexShrink:0 }} />
                       <span style={{ fontSize:9, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>
@@ -126,11 +127,9 @@ export default function HeroSection({ onBookNow }) {
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}
+              style={{ display:'flex', justifyContent:'center', marginTop:6 }}
             >
-              <svg width="14" height="9" viewBox="0 0 14 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1L7 7L13 1" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <ChevronDown className="w-4 h-4 text-white/30" />
             </motion.div>
           </motion.div>
         </div>
