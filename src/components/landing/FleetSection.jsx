@@ -44,7 +44,7 @@ const vehicles = [
 
 export default function FleetSection() {
   return (
-    <section id="fleet" className="bg-black py-12 md:py-32 px-0 md:px-6">
+    <section id="fleet" className="bg-black pb-12 md:pb-32 px-0 md:px-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
           className="text-center mb-10 md:mb-16"
