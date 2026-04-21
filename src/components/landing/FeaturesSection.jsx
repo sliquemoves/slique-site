@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Clock, Award, Users, Star } from 'lucide-react';
+import { Users, Star } from 'lucide-react';
 
 const features = [
   {
@@ -11,7 +11,11 @@ const features = [
     text: "Really nice car and excellent service. The best experience I've had in my entire career. Highly recommended."
   },
   {
-    type: "stats"
+    type: "stat",
+    icon: Users,
+    stat: "10+",
+    title: "Professional Chauffeurs",
+    description: "Years of combined experience in luxury transportation. Punctuality is our promise, tracked and measured relentlessly."
   },
   {
     type: "review",
@@ -24,14 +28,13 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="bg-[#0a0a0a] py-12 px-6 relative overflow-hidden">
-      {/* Subtle pattern overlay */}
+    <section id="features" className="bg-[#0a0a0a] py-12 px-6 relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
       }} />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div 
+        <motion.div
           className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -63,27 +66,14 @@ export default function FeaturesSection() {
                   </div>
                   <p className="text-white text-sm font-medium mb-2">{feature.name}</p>
                   <p className="text-gray-500 text-xs italic mb-4">{feature.date}</p>
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    "{feature.text}"
-                  </p>
+                  <p className="text-gray-400 text-sm leading-relaxed">"{feature.text}"</p>
                 </>
               ) : (
                 <>
-                  <div className="flex flex-col items-center gap-8">
-                    <div className="flex flex-col items-center">
-                      <Users className="w-7 h-7 text-white/40 mb-3" />
-                      <p className="text-4xl font-light text-white mb-1">10+</p>
-                      <p className="text-white text-xs font-medium tracking-wide mb-1">Professional Chauffeurs</p>
-                      <p className="text-gray-600 text-xs leading-relaxed">Years of combined experience in luxury transportation</p>
-                    </div>
-                    <div className="w-12 h-[1px] bg-white/10" />
-                    <div className="flex flex-col items-center">
-                      <Clock className="w-7 h-7 text-white/40 mb-3" />
-                      <p className="text-4xl font-light text-white mb-1">100%</p>
-                      <p className="text-white text-xs font-medium tracking-wide mb-1">On-Time Guarantee</p>
-                      <p className="text-gray-600 text-xs leading-relaxed">Punctuality is our promise, tracked and measured relentlessly</p>
-                    </div>
-                  </div>
+                  <feature.icon className="w-8 h-8 text-white/50 mx-auto mb-6" />
+                  <p className="text-4xl font-light text-white mb-2">{feature.stat}</p>
+                  <h3 className="text-white text-sm font-medium tracking-wide mb-3">{feature.title}</h3>
+                  <p className="text-gray-600 text-xs leading-relaxed">{feature.description}</p>
                 </>
               )}
             </motion.div>
