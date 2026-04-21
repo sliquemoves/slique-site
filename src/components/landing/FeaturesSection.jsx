@@ -4,23 +4,14 @@ import { Shield, Clock, Award, Users, Star } from 'lucide-react';
 
 const features = [
   {
-    icon: Users,
-    title: "Professional Chauffeurs",
-    stat: "10+",
-    description: "Years of combined experience in luxury transportation"
-  },
-  {
-    icon: Clock,
-    title: "On-Time Guarantee",
-    stat: "100%",
-    description: "Punctuality is our promise, tracked and measured relentlessly"
-  },
-  {
     type: "review",
     name: "Sydney",
     date: "April 2026",
     rating: 5,
     text: "Really nice car and excellent service. The best experience I've had in my entire career. Highly recommended."
+  },
+  {
+    type: "stats"
   },
   {
     type: "review",
@@ -33,7 +24,7 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="bg-[#0a0a0a] py-12 px-6 relative overflow-hidden">
+    <section className="bg-[#0a0a0a] py-12 px-6 relative overflow-hidden">
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -53,10 +44,10 @@ export default function FeaturesSection() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-px bg-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-white/10">
           {features.map((feature, index) => (
             <motion.div
-              key={feature.title || feature.name}
+              key={index}
               className="bg-[#0a0a0a] p-10 text-center"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -78,14 +69,21 @@ export default function FeaturesSection() {
                 </>
               ) : (
                 <>
-                  <feature.icon className="w-8 h-8 text-white/50 mx-auto mb-6" />
-                  <p className="text-4xl md:text-5xl font-light text-white mb-2">{feature.stat}</p>
-                  <h3 className="text-white text-sm font-medium tracking-wide mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 text-xs leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <div className="flex flex-col items-center gap-8">
+                    <div className="flex flex-col items-center">
+                      <Users className="w-7 h-7 text-white/40 mb-3" />
+                      <p className="text-4xl font-light text-white mb-1">10+</p>
+                      <p className="text-white text-xs font-medium tracking-wide mb-1">Professional Chauffeurs</p>
+                      <p className="text-gray-600 text-xs leading-relaxed">Years of combined experience in luxury transportation</p>
+                    </div>
+                    <div className="w-12 h-[1px] bg-white/10" />
+                    <div className="flex flex-col items-center">
+                      <Clock className="w-7 h-7 text-white/40 mb-3" />
+                      <p className="text-4xl font-light text-white mb-1">100%</p>
+                      <p className="text-white text-xs font-medium tracking-wide mb-1">On-Time Guarantee</p>
+                      <p className="text-gray-600 text-xs leading-relaxed">Punctuality is our promise, tracked and measured relentlessly</p>
+                    </div>
+                  </div>
                 </>
               )}
             </motion.div>
