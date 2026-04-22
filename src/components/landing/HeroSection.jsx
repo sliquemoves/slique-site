@@ -28,12 +28,22 @@ function TrustStrip({ variant = 'desktop' }) {
   const itemPadding  = isMobile ? '8px 20px' : '10px 32px';
   const itemGap      = isMobile ? 8 : 10;
   const fontSize     = isMobile ? 9 : 10;
-  const duration     = isMobile ? 40 : 45; // slower = smoother perception
+  // Duration scales with REPEATS_PER_HALF so scroll speed feels constant
+  // regardless of how many items are packed into each half.
+  const duration     = isMobile ? 160 : 180; // 40×4 / 45×4
   const animName     = isMobile ? 'trust-marquee-m' : 'trust-marquee-d';
   const trackClass   = isMobile ? 'trust-track-m'   : 'trust-track-d';
 
+  // Repeat items inside each half enough times to guarantee the half
+  // is wider than any realistic viewport. This is what kills the
+  // "strip runs out mid-screen" gap: each half on its own overflows
+  // the viewport, so as copy A exits left, copy B is already filling
+  // the right edge with no empty space between them.
+  const REPEATS_PER_HALF = 4; // 4 × 5 items = 20 items per half
+  const halfItems = Array.from({ length: REPEATS_PER_HALF }).flatMap(() => trustItems);
+
   const renderSet = (ariaHidden) =>
-    trustItems.map((item, i) => (
+    halfItems.map((item, i) => (
       <div
         key={`${ariaHidden ? 'b' : 'a'}-${i}`}
         aria-hidden={ariaHidden || undefined}
