@@ -11,6 +11,92 @@ const trustItems = [
   'Accounts Available',
 ];
 
+/* ────────────────────────────────────────────────────────────────
+   TrustStrip — a truly seamless, infinitely-flowing marquee.
+
+   How it loops without a visible jump:
+     • The track contains the items duplicated EXACTLY TWICE (A + A).
+     • We animate translateX from 0 → -50%.
+     • At -50%, the second copy sits exactly where the first copy
+       started, so the reset from -50% back to 0 is pixel-identical.
+     • The second copy is aria-hidden so screen readers don't
+       announce the list twice.
+   ──────────────────────────────────────────────────────────────── */
+function TrustStrip({ variant = 'desktop' }) {
+  const isMobile = variant === 'mobile';
+
+  const itemPadding  = isMobile ? '8px 20px' : '10px 32px';
+  const itemGap      = isMobile ? 8 : 10;
+  const fontSize     = isMobile ? 9 : 10;
+  const duration     = isMobile ? 40 : 45; // slower = smoother perception
+  const animName     = isMobile ? 'trust-marquee-m' : 'trust-marquee-d';
+  const trackClass   = isMobile ? 'trust-track-m'   : 'trust-track-d';
+
+  const renderSet = (ariaHidden) =>
+    trustItems.map((item, i) => (
+      <div
+        key={`${ariaHidden ? 'b' : 'a'}-${i}`}
+        aria-hidden={ariaHidden || undefined}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: itemGap,
+          padding: itemPadding,
+          borderRight: '1px solid rgba(255,255,255,0.08)',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.35)', flexShrink: 0 }} />
+        <span style={{ fontSize, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>
+          {item}
+        </span>
+      </div>
+    ));
+
+  return (
+    <>
+      <style>{`
+        @keyframes ${animName} {
+          from { transform: translate3d(0, 0, 0); }
+          to   { transform: translate3d(-50%, 0, 0); }
+        }
+        .${trackClass} {
+          display: flex;
+          width: max-content;
+          animation: ${animName} ${duration}s linear infinite;
+          will-change: transform;
+        }
+        /* Pause on hover for desktop users who want to read */
+        @media (hover: hover) {
+          .${trackClass}:hover { animation-play-state: paused; }
+        }
+        /* Respect reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          .${trackClass} { animation: none; }
+        }
+      `}</style>
+
+      <div
+        style={{
+          overflow: 'hidden',
+          width: '100%',
+          // Fade edges so items flow in/out rather than hard-clipping
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
+          maskImage:
+            'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
+        }}
+      >
+        <div className={trackClass}>
+          {renderSet(false)}
+          {renderSet(true)}
+        </div>
+      </div>
+    </>
+  );
+}
+
 function useActiveSection() {
   const [section, setSection] = useState('hero');
 
@@ -113,28 +199,9 @@ export default function HeroSection({ onBookNow }) {
           style={{ bottom: '88px', width: '100vw' }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.6 }}>
 
-          {/* Seamless trust strip */}
-          <style>{`
-            @keyframes marquee-desktop {
-              0%   { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
-            }
-            .marquee-track-d {
-              display: flex;
-              width: max-content;
-              animation: marquee-desktop 18s linear infinite;
-              will-change: transform;
-            }
-          `}</style>
-          <div style={{ overflow: 'hidden', width: '100%', marginBottom: 20 }}>
-            <div className="marquee-track-d">
-              {[...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 32px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
-                  <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.35)', flexShrink:0 }} />
-                  <span style={{ fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>
-                </div>
-              ))}
-            </div>
+          {/* Full-bleed seamless trust strip */}
+          <div style={{ width: '100%', marginBottom: 20 }}>
+            <TrustStrip variant="desktop" />
           </div>
 
           <div className="flex gap-4">
@@ -151,33 +218,15 @@ export default function HeroSection({ onBookNow }) {
 
           {/* Top: eyebrow + title + trust strip */}
           <div className="flex flex-col items-center justify-center flex-1 text-center">
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.2 }}>
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.2 }} style={{ width: '100%' }}>
               <p style={{ fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d4d4d4', marginBottom: 16, fontWeight: 500 }}>Premium Chauffeur Services</p>
               <h1 className="font-light text-white leading-none" style={{ fontSize: 'clamp(46px,13vw,62px)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
                 Elevate Your<strong className="font-semibold block">Journey</strong>
               </h1>
-              {/* Mobile seamless trust strip */}
-              <style>{`
-                @keyframes marquee-mobile {
-                  0%   { transform: translateX(0); }
-                  100% { transform: translateX(-50%); }
-                }
-                .marquee-track-m {
-                  display: flex;
-                  width: max-content;
-                  animation: marquee-mobile 32s linear infinite;
-                  will-change: transform;
-                }
-              `}</style>
-              <div style={{ overflow: 'hidden', marginTop: 20 }}>
-                <div className="marquee-track-m">
-                  {[...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems, ...trustItems].map((item, i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 20px', borderRight:'1px solid rgba(255,255,255,0.08)', whiteSpace:'nowrap', flexShrink:0 }}>
-                      <span style={{ width:4, height:4, borderRadius:'50%', background:'rgba(255,255,255,0.3)', flexShrink:0 }} />
-                      <span style={{ fontSize:9, letterSpacing:'0.3em', textTransform:'uppercase', color:'rgba(255,255,255,0.5)' }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
+
+              {/* Full-bleed seamless trust strip — extends past the padded container */}
+              <div style={{ marginTop: 20, marginLeft: -20, marginRight: -20 }}>
+                <TrustStrip variant="mobile" />
               </div>
             </motion.div>
           </div>
