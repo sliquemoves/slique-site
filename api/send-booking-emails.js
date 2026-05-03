@@ -49,10 +49,10 @@ function format12Hour(time24) {
 // Reusable detail "bubble" cell for trip info
 const bubble = (label, value) => `
   <td style="padding:6px;width:50%;vertical-align:top">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0f0f0f;border:1px solid rgba(255,255,255,0.12)">
-      <tr><td style="padding:14px 18px">
-        <div style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px">${label}</div>
-        <div style="font-size:16px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;color:#ffffff;letter-spacing:0.02em">${value}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18)">
+      <tr><td style="padding:16px 20px">
+        <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">${label}</div>
+        <div style="font-size:17px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;color:#ffffff;letter-spacing:0.02em">${value}</div>
       </td></tr>
     </table>
   </td>
@@ -60,12 +60,17 @@ const bubble = (label, value) => `
 
 // Full-width bubble (for long values like address)
 const wideBubble = (label, value) => `
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0f0f0f;border:1px solid rgba(255,255,255,0.12);margin-bottom:8px">
-    <tr><td style="padding:14px 18px">
-      <div style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px">${label}</div>
-      <div style="font-size:16px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;color:#ffffff;letter-spacing:0.02em">${value}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18);margin-bottom:8px">
+    <tr><td style="padding:16px 20px">
+      <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">${label}</div>
+      <div style="font-size:17px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;color:#ffffff;letter-spacing:0.02em">${value}</div>
     </td></tr>
   </table>
+`;
+
+// Section heading — bright white, prominent
+const sectionHeading = (text) => `
+  <div style="font-size:11px;letter-spacing:0.4em;text-transform:uppercase;color:#ffffff;margin-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-weight:700;border-left:2px solid #ffffff;padding-left:10px">${text}</div>
 `;
 
 // ─── Customer email ──────────────────────────────────────────────────────────
@@ -208,31 +213,31 @@ function teamHtml(booking, refCode, adminUrl) {
     </td></tr>
 
     <!-- Ref -->
-    <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(255,255,255,0.08)">
-      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px">Reference</div>
+    <tr><td style="padding:28px 40px;border-bottom:1px solid rgba(255,255,255,0.12)">
+      ${sectionHeading('Reference')}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>${bubble('Booking ID', `<span style="font-family:'Courier New',monospace;font-size:14px;letter-spacing:0.2em">${refCode}</span>`)}${bubble('Submitted', submittedAt)}</tr>
+        <tr>${bubble('Booking ID', `<span style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:0.2em">${refCode}</span>`)}${bubble('Submitted', submittedAt)}</tr>
       </table>
     </td></tr>
 
     <!-- Guest -->
-    <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(255,255,255,0.08)">
-      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px">Guest Information</div>
+    <tr><td style="padding:28px 40px;border-bottom:1px solid rgba(255,255,255,0.12)">
+      ${sectionHeading('Guest Information')}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>${bubble('Name', booking.customer_name)}${bubble('Phone', `<a href="tel:${booking.phone}" style="color:#ffffff;text-decoration:none">${booking.phone}</a>`)}</tr>
       </table>
-      <div style="padding:6px">${wideBubble('Email', `<a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a>`)}</div>
+      <div style="padding:6px 0">${wideBubble('Email', `<a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a>`)}</div>
     </td></tr>
 
     <!-- Journey -->
-    <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(255,255,255,0.08)">
-      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px">Journey Details</div>
+    <tr><td style="padding:28px 40px;border-bottom:1px solid rgba(255,255,255,0.12)">
+      ${sectionHeading('Journey Details')}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>${bubble('Date', formatDate(booking.pickup_date))}${bubble('Time', format12Hour(booking.pickup_time))}</tr>
         <tr>${bubble('Service', SERVICE_LABELS[booking.service_type] || booking.service_type)}${bubble('Vehicle', VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type)}</tr>
         <tr>${bubble('Passengers', booking.passengers)}${bubble('Status', 'Pending')}</tr>
       </table>
-      <div style="padding:6px">
+      <div style="padding:6px 0">
         ${wideBubble('Pickup', booking.pickup_location)}
         ${dropBubble}
         ${notesBubble}
