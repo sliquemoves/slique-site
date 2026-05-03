@@ -27,6 +27,11 @@ const SERVICE_LABELS = {
 };
 
 const VEHICLE_LABELS = {
+  escalade_suv: 'Escalade SUV',
+  mercedes_limo: 'Mercedes Limo',
+  mercedes_sprinter: 'Sprinter Van',
+  mercedes_amg: 'AMG Sedan',
+  // legacy fallbacks
   luxury_sedan: 'Luxury Sedan',
   luxury_suv: 'Luxury SUV',
 };
@@ -330,8 +335,10 @@ export default function Admin() {
                   <SelectValue placeholder="Select vehicle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="luxury_sedan">Luxury Sedan</SelectItem>
-                  <SelectItem value="luxury_suv">Luxury SUV</SelectItem>
+                  <SelectItem value="escalade_suv">Escalade SUV</SelectItem>
+                  <SelectItem value="mercedes_limo">Mercedes Limousine</SelectItem>
+                  <SelectItem value="mercedes_sprinter">Mercedes Sprinter Van</SelectItem>
+                  <SelectItem value="mercedes_amg">Mercedes AMG Sedan</SelectItem>
                 </SelectContent>
               </Select>
             </div>

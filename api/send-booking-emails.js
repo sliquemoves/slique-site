@@ -20,6 +20,11 @@ const SERVICE_LABELS = {
 };
 
 const VEHICLE_LABELS = {
+  escalade_suv: 'Escalade SUV',
+  mercedes_limo: 'Mercedes Limousine',
+  mercedes_sprinter: 'Mercedes Sprinter Van',
+  mercedes_amg: 'Mercedes AMG Sedan',
+  // legacy fallbacks
   luxury_sedan: 'Black Luxury Sedan',
   luxury_suv: 'Black Luxury SUV',
 };

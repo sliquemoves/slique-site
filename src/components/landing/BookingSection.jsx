@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
 const serviceTypes = [
   { value: "hourly_charter", label: "Hourly Charter" },
@@ -18,10 +18,166 @@ const serviceTypes = [
 ];
 
 const vehicleTypes = [
-  { value: "luxury_sedan", label: "Black Luxury Sedan" },
-  { value: "luxury_suv", label: "Black Luxury SUV" }
+  { value: "escalade_suv",     label: "Escalade SUV" },
+  { value: "mercedes_limo",    label: "Mercedes Limousine" },
+  { value: "mercedes_sprinter",label: "Mercedes Sprinter Van" },
+  { value: "mercedes_amg",     label: "Mercedes AMG Sedan" },
 ];
 
+// ─── Custom Date Picker ────────────────────────────────────────────────────────
+function DatePicker({ value, onChange, minDate }) {
+  const [open, setOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(() => {
+    if (value) return new Date(value + 'T00:00:00');
+    return new Date();
+  });
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    if (open) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const min = minDate ? new Date(minDate + 'T00:00:00') : today;
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDayOfWeek = firstDay.getDay();
+
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const formatDisplay = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatValue = (d) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleSelect = (day) => {
+    const selected = new Date(year, month, day);
+    if (selected < min) return;
+    onChange(formatValue(selected));
+    setOpen(false);
+  };
+
+  const days = [];
+  for (let i = 0; i < startDayOfWeek; i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(d);
+
+  const selectedDate = value ? new Date(value + 'T00:00:00') : null;
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full border border-gray-200 hover:border-black focus:border-black focus:outline-none rounded-none h-12 px-3 flex items-center justify-between text-left transition-colors bg-white"
+      >
+        <span className={value ? 'text-black text-sm' : 'text-gray-400 text-sm'}>
+          {value ? formatDisplay(value) : 'Select date'}
+        </span>
+        <CalendarIcon className="w-4 h-4 text-gray-400" />
+      </button>
+
+      {/* Calendar popover */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 z-50 bg-white border border-gray-200 shadow-2xl"
+            style={{ width: 340, padding: 20 }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <button
+                type="button"
+                onClick={() => setViewDate(new Date(year, month - 1, 1))}
+                className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="text-sm font-medium tracking-wide">
+                {monthNames[month]} {year}
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewDate(new Date(year, month + 1, 1))}
+                className="w-9 h-9 flex items-center justify-center hover:bg-gray-100 transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Weekday labels */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {weekdays.map(w => (
+                <div key={w} className="text-center text-[10px] tracking-widest uppercase text-gray-400 py-1">
+                  {w}
+                </div>
+              ))}
+            </div>
+
+            {/* Days grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day, i) => {
+                if (day === null) return <div key={`empty-${i}`} />;
+                const dayDate = new Date(year, month, day);
+                const isPast = dayDate < min;
+                const isSelected = selectedDate &&
+                  dayDate.getDate() === selectedDate.getDate() &&
+                  dayDate.getMonth() === selectedDate.getMonth() &&
+                  dayDate.getFullYear() === selectedDate.getFullYear();
+                const isToday =
+                  dayDate.getDate() === today.getDate() &&
+                  dayDate.getMonth() === today.getMonth() &&
+                  dayDate.getFullYear() === today.getFullYear();
+
+                return (
+                  <button
+                    type="button"
+                    key={day}
+                    disabled={isPast}
+                    onClick={() => handleSelect(day)}
+                    className={`
+                      aspect-square text-sm transition-all
+                      ${isPast ? 'text-gray-200 cursor-not-allowed' : 'cursor-pointer'}
+                      ${isSelected ? 'bg-black text-white font-medium' : ''}
+                      ${!isSelected && !isPast ? 'hover:bg-gray-100 text-gray-800' : ''}
+                      ${isToday && !isSelected ? 'border border-gray-300 font-medium' : ''}
+                    `}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Main Booking Section ──────────────────────────────────────────────────────
 export default function BookingSection() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +216,6 @@ export default function BookingSection() {
     });
   };
 
-  // Check availability when date and vehicle are selected
   useEffect(() => {
     const checkAvailability = async () => {
       if (formData.pickup_date && formData.vehicle_type) {
@@ -91,7 +246,6 @@ export default function BookingSection() {
     setIsSubmitting(true);
 
     try {
-      // 1. Create the booking
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert([{
@@ -104,7 +258,6 @@ export default function BookingSection() {
 
       if (bookingError) throw bookingError;
 
-      // 2. Mark the corresponding availability slot as taken
       const { data: slots } = await supabase
         .from('availability')
         .select('id')
@@ -121,14 +274,13 @@ export default function BookingSection() {
           .eq('id', slots[0].id);
       }
 
-      // 3. Fire off confirmation emails (don't block on this)
+      // Fire off confirmation emails (don't block on this)
       fetch('/api/send-booking-emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ booking, appUrl: window.location.origin }),
       }).catch(err => console.error('Email send failed:', err));
 
-      // 4. Navigate to luxury confirmation page
       navigate(`/BookingConfirmation?id=${booking.id}`);
     } catch (err) {
       console.error('Booking error:', err);
@@ -136,6 +288,8 @@ export default function BookingSection() {
       setIsSubmitting(false);
     }
   };
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   return (
     <section id="booking" className="bg-white py-32 px-6">
@@ -199,7 +353,11 @@ export default function BookingSection() {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label className="text-xs tracking-widest uppercase text-gray-500">Pickup Date *</Label>
-              <Input required type="date" min={new Date().toISOString().split('T')[0]} value={formData.pickup_date} onChange={(e) => handleChange('pickup_date', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" />
+              <DatePicker
+                value={formData.pickup_date}
+                onChange={(v) => handleChange('pickup_date', v)}
+                minDate={todayStr}
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-xs tracking-widest uppercase text-gray-500">Pickup Time *</Label>
