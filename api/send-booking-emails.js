@@ -68,9 +68,11 @@ const wideBubble = (label, value) => `
   </table>
 `;
 
-// Section heading — bright white, prominent
+// Section heading — centered, bright white, with bars on both sides
 const sectionHeading = (text) => `
-  <div style="font-size:11px;letter-spacing:0.4em;text-transform:uppercase;color:#ffffff;margin-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-weight:700;border-left:2px solid #ffffff;padding-left:10px">${text}</div>
+  <div style="text-align:center;margin-bottom:16px">
+    <span style="display:inline-block;font-size:11px;letter-spacing:0.4em;text-transform:uppercase;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-weight:700;border-left:2px solid #ffffff;border-right:2px solid #ffffff;padding:0 14px">${text}</span>
+  </div>
 `;
 
 // ─── Customer email ──────────────────────────────────────────────────────────
@@ -193,8 +195,6 @@ function teamHtml(booking, refCode, adminUrl) {
   const submittedAt = new Date().toLocaleString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
   });
-  const dropBubble = booking.dropoff_location ? wideBubble('Dropoff', booking.dropoff_location) : '';
-  const notesBubble = booking.special_requests ? wideBubble('Special Notes', booking.special_requests) : '';
 
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>New Booking</title></head>
@@ -207,7 +207,7 @@ function teamHtml(booking, refCode, adminUrl) {
     <tr><td style="height:3px;background:#ffffff;line-height:3px;font-size:0">&nbsp;</td></tr>
 
     <tr><td style="padding:32px 40px 24px;border-bottom:1px solid rgba(255,255,255,0.1)">
-      <div style="font-size:9px;letter-spacing:0.5em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px">Slique Moves · Internal</div>
+      <div style="font-size:9px;letter-spacing:0.5em;text-transform:uppercase;color:#ffffff;margin-bottom:6px">Slique Moves · Internal</div>
       <h1 style="font-size:24px;font-weight:300;color:#ffffff;letter-spacing:0.04em;margin:0">New <em style="font-style:italic">Booking</em></h1>
       <div style="margin-top:10px"><span style="display:inline-block;padding:5px 14px;background:#ffffff;color:#000000;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;font-weight:600">Action Required</span></div>
     </td></tr>
@@ -225,8 +225,8 @@ function teamHtml(booking, refCode, adminUrl) {
       ${sectionHeading('Guest Information')}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>${bubble('Name', booking.customer_name)}${bubble('Phone', `<a href="tel:${booking.phone}" style="color:#ffffff;text-decoration:none">${booking.phone}</a>`)}</tr>
+        <tr>${bubble('Email', `<a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a>`)}<td style="padding:6px;width:50%"></td></tr>
       </table>
-      <div style="padding:6px 0">${wideBubble('Email', `<a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a>`)}</div>
     </td></tr>
 
     <!-- Journey -->
@@ -236,22 +236,19 @@ function teamHtml(booking, refCode, adminUrl) {
         <tr>${bubble('Date', formatDate(booking.pickup_date))}${bubble('Time', format12Hour(booking.pickup_time))}</tr>
         <tr>${bubble('Service', SERVICE_LABELS[booking.service_type] || booking.service_type)}${bubble('Vehicle', VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type)}</tr>
         <tr>${bubble('Passengers', booking.passengers)}${bubble('Status', 'Pending')}</tr>
+        <tr>${bubble('Pickup', booking.pickup_location)}${booking.dropoff_location ? bubble('Dropoff', booking.dropoff_location) : '<td style="padding:6px;width:50%"></td>'}</tr>
+        ${booking.special_requests ? `<tr>${bubble('Special Notes', booking.special_requests)}<td style="padding:6px;width:50%"></td></tr>` : ''}
       </table>
-      <div style="padding:6px 0">
-        ${wideBubble('Pickup', booking.pickup_location)}
-        ${dropBubble}
-        ${notesBubble}
-      </div>
     </td></tr>
 
     <!-- Actions -->
     <tr><td style="padding:28px 40px;text-align:center">
       <a href="${adminUrl}" style="display:inline-block;margin:0 6px;padding:12px 28px;background:#ffffff;color:#000000;border:1px solid #ffffff;font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none;font-weight:600">Open Admin</a>
-      <a href="mailto:${booking.email}" style="display:inline-block;margin:0 6px;padding:12px 28px;background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.2);font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none">Reply to Guest</a>
+      <a href="mailto:${booking.email}" style="display:inline-block;margin:0 6px;padding:12px 28px;background:transparent;color:#ffffff;border:1px solid rgba(255,255,255,0.4);font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none">Reply to Guest</a>
     </td></tr>
 
     <tr><td style="padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.08)">
-      <p style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:0">Slique Moves Internal Notification</p>
+      <p style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:#ffffff;margin:0">Slique Moves Internal Notification</p>
     </td></tr>
 
   </table>
