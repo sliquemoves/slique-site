@@ -216,22 +216,31 @@ export default function BookingSection() {
     });
   };
 
+  // Check availability when date and vehicle are selected
+  // NEW LOGIC: All times are open by default. Only times with a blocking row
+  // (is_available=false, either an admin block or an existing booking) are unavailable.
   useEffect(() => {
     const checkAvailability = async () => {
       if (formData.pickup_date && formData.vehicle_type) {
         setCheckingAvailability(true);
+        const allTimeSlots = [
+          '06:00','07:00','08:00','09:00','10:00','11:00',
+          '12:00','13:00','14:00','15:00','16:00','17:00',
+          '18:00','19:00','20:00','21:00','22:00','23:00'
+        ];
         const { data, error } = await supabase
           .from('availability')
           .select('time_slot')
           .eq('date', formData.pickup_date)
           .eq('vehicle_type', formData.vehicle_type)
-          .eq('is_available', true);
+          .eq('is_available', false);
 
         if (error) {
           console.error('Availability fetch error:', error);
-          setAvailableSlots([]);
+          setAvailableSlots(allTimeSlots);
         } else {
-          setAvailableSlots((data || []).map(slot => slot.time_slot).sort());
+          const blocked = new Set((data || []).map(r => r.time_slot));
+          setAvailableSlots(allTimeSlots.filter(t => !blocked.has(t)));
         }
         setCheckingAvailability(false);
       } else {
@@ -258,21 +267,14 @@ export default function BookingSection() {
 
       if (bookingError) throw bookingError;
 
-      const { data: slots } = await supabase
-        .from('availability')
-        .select('id')
-        .eq('date', formData.pickup_date)
-        .eq('time_slot', formData.pickup_time)
-        .eq('vehicle_type', formData.vehicle_type)
-        .eq('is_available', true)
-        .limit(1);
-
-      if (slots && slots.length > 0) {
-        await supabase
-          .from('availability')
-          .update({ is_available: false, booking_id: booking.id })
-          .eq('id', slots[0].id);
-      }
+      // 2. Insert a blocking row in availability so this slot can't be double-booked
+      await supabase.from('availability').insert([{
+        date: formData.pickup_date,
+        time_slot: formData.pickup_time,
+        vehicle_type: formData.vehicle_type,
+        is_available: false,
+        booking_id: booking.id,
+      }]);
 
       // Fire off confirmation emails (don't block on this)
       fetch('/api/send-booking-emails', {

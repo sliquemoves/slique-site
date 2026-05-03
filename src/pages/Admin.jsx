@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Trash2, Plus, Loader2, Clock, Users, MapPin, Car, Phone, Mail, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Plus, Loader2, Clock, Users, MapPin, Car, Phone, Mail, ChevronDown, ChevronUp, RefreshCw, X, Lock, Unlock } from 'lucide-react';
 
 const timeSlots = [
   '06:00','07:00','08:00','09:00','10:00','11:00',
@@ -12,11 +13,12 @@ const timeSlots = [
   '18:00','19:00','20:00','21:00','22:00','23:00'
 ];
 
+// Black & white gothic palette
 const STATUS_CONFIG = {
-  pending:   { label: 'Pending',   color: '#C9A84C', bg: 'rgba(201,168,76,0.1)',   border: 'rgba(201,168,76,0.25)' },
-  confirmed: { label: 'Confirmed', color: '#7EC8A4', bg: 'rgba(126,200,164,0.1)',  border: 'rgba(126,200,164,0.25)' },
-  completed: { label: 'Completed', color: '#a0a0a0', bg: 'rgba(160,160,160,0.08)', border: 'rgba(160,160,160,0.2)' },
-  cancelled: { label: 'Cancelled', color: '#e07070', bg: 'rgba(224,112,112,0.08)', border: 'rgba(224,112,112,0.2)' },
+  pending:   { label: 'Pending',   color: '#d4d4d4', bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.25)' },
+  confirmed: { label: 'Confirmed', color: '#ffffff', bg: 'rgba(255,255,255,0.12)', border: 'rgba(255,255,255,0.4)' },
+  completed: { label: 'Completed', color: '#888888', bg: 'rgba(255,255,255,0.03)', border: 'rgba(255,255,255,0.12)' },
+  cancelled: { label: 'Cancelled', color: '#666666', bg: 'rgba(255,255,255,0.02)', border: 'rgba(255,255,255,0.08)' },
 };
 
 const SERVICE_LABELS = {
@@ -28,13 +30,27 @@ const SERVICE_LABELS = {
 
 const VEHICLE_LABELS = {
   escalade_suv: 'Escalade SUV',
-  mercedes_limo: 'Mercedes Limo',
+  mercedes_limo: 'Mercedes Limousine',
   mercedes_sprinter: 'Sprinter Van',
   mercedes_amg: 'AMG Sedan',
   // legacy fallbacks
   luxury_sedan: 'Luxury Sedan',
   luxury_suv: 'Luxury SUV',
 };
+
+const VEHICLE_OPTIONS = [
+  { value: 'escalade_suv',     label: 'Escalade SUV' },
+  { value: 'mercedes_limo',    label: 'Mercedes Limousine' },
+  { value: 'mercedes_sprinter',label: 'Mercedes Sprinter Van' },
+  { value: 'mercedes_amg',     label: 'Mercedes AMG Sedan' },
+];
+
+const SERVICE_OPTIONS = [
+  { value: 'hourly_charter',  label: 'Hourly Charter' },
+  { value: 'airport_transfer',label: 'Airport Transfer' },
+  { value: 'corporate',       label: 'Corporate Travel' },
+  { value: 'special_event',   label: 'Special Event' },
+];
 
 function generateRef(id) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -50,11 +66,12 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function StatCard({ label, value, accent }) {
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+function StatCard({ label, value }) {
   return (
-    <div style={{ background: '#0d0c0a', border: '1px solid rgba(201,168,76,0.12)', padding: '24px 28px' }}>
-      <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 10 }}>{label}</p>
-      <p style={{ fontSize: 32, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: accent || '#e8e0d0' }}>{value}</p>
+    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px' }}>
+      <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>{label}</p>
+      <p style={{ fontSize: 32, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#ffffff' }}>{value}</p>
     </div>
   );
 }
@@ -62,35 +79,36 @@ function StatCard({ label, value, accent }) {
 function DetailItem({ icon, label, value }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4, color: 'rgba(201,168,76,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4, color: 'rgba(255,255,255,0.4)' }}>
         {icon}
         <span style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase' }}>{label}</span>
       </div>
-      <p style={{ fontSize: 12, color: '#c8bfb0', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' }}>{value}</p>
+      <p style={{ fontSize: 12, color: '#e0e0e0', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' }}>{value}</p>
     </div>
   );
 }
 
+// ─── Booking Card ─────────────────────────────────────────────────────────────
 function BookingCard({ booking, onStatusChange, updating }) {
   const [expanded, setExpanded] = useState(false);
   const status = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
   const ref = generateRef(booking.id);
 
   return (
-    <motion.div layout style={{ background: '#0d0c0a', border: '1px solid rgba(201,168,76,0.1)', marginBottom: 8, overflow: 'hidden' }}>
+    <motion.div layout style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 8, overflow: 'hidden' }}>
       <div style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ width: 3, height: 36, background: status.color, flexShrink: 0, borderRadius: 2 }} />
+        <div style={{ width: 3, height: 36, background: status.color, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontFamily: "'Cormorant Garamond', Georgia, serif", color: '#e8e0d0', fontWeight: 400, letterSpacing: '0.02em' }}>
+          <p style={{ fontSize: 14, fontFamily: "'Cormorant Garamond', Georgia, serif", color: '#ffffff', fontWeight: 400, letterSpacing: '0.02em' }}>
             {booking.customer_name}
           </p>
-          <p style={{ fontSize: 9, letterSpacing: '0.3em', color: 'rgba(201,168,76,0.4)', fontFamily: "'Courier New', monospace", marginTop: 2 }}>
+          <p style={{ fontSize: 9, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.35)', fontFamily: "'Courier New', monospace", marginTop: 2 }}>
             {ref}
           </p>
         </div>
         <div style={{ textAlign: 'right', marginRight: 16 }}>
-          <p style={{ fontSize: 11, color: '#d4c9b0', letterSpacing: '0.04em' }}>{formatDate(booking.pickup_date)}</p>
-          <p style={{ fontSize: 10, color: 'rgba(201,168,76,0.5)', marginTop: 2 }}>{booking.pickup_time}</p>
+          <p style={{ fontSize: 11, color: '#e0e0e0', letterSpacing: '0.04em' }}>{formatDate(booking.pickup_date)}</p>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{booking.pickup_time}</p>
         </div>
         <span style={{
           fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase',
@@ -99,13 +117,13 @@ function BookingCard({ booking, onStatusChange, updating }) {
         }}>
           {status.label}
         </span>
-        <div style={{ color: 'rgba(201,168,76,0.3)', flexShrink: 0 }}>
+        <div style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
           {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </div>
       </div>
 
       {expanded && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ borderTop: '1px solid rgba(201,168,76,0.08)', padding: '20px 20px 20px 39px' }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '20px 20px 20px 39px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
             <DetailItem icon={<Mail size={11} />} label="Email" value={booking.email} />
             <DetailItem icon={<Phone size={11} />} label="Phone" value={booking.phone} />
@@ -117,16 +135,16 @@ function BookingCard({ booking, onStatusChange, updating }) {
           </div>
 
           {booking.special_requests && (
-            <div style={{ marginBottom: 20, padding: '12px 14px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.08)' }}>
-              <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 6 }}>Special Notes</p>
-              <p style={{ fontSize: 12, color: '#b0a898', fontFamily: "'Cormorant Garamond', Georgia, serif", lineHeight: 1.7 }}>{booking.special_requests}</p>
+            <div style={{ marginBottom: 20, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Special Notes</p>
+              <p style={{ fontSize: 12, color: '#cccccc', fontFamily: "'Cormorant Garamond', Georgia, serif", lineHeight: 1.7 }}>{booking.special_requests}</p>
             </div>
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>Update Status</p>
+            <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Update Status</p>
             <Select value={booking.status} onValueChange={(s) => onStatusChange(booking.id, s)} disabled={updating}>
-              <SelectTrigger style={{ width: 160, height: 34, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 0, fontSize: 11, color: '#d4c9b0' }}>
+              <SelectTrigger style={{ width: 160, height: 34, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0, fontSize: 11, color: '#e0e0e0' }}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -135,7 +153,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
                 ))}
               </SelectContent>
             </Select>
-            {updating && <Loader2 size={14} className="animate-spin" style={{ color: 'rgba(201,168,76,0.5)' }} />}
+            {updating && <Loader2 size={14} className="animate-spin" style={{ color: 'rgba(255,255,255,0.5)' }} />}
           </div>
         </motion.div>
       )}
@@ -143,15 +161,355 @@ function BookingCard({ booking, onStatusChange, updating }) {
   );
 }
 
+// ─── Manual Booking Modal ─────────────────────────────────────────────────────
+function NewBookingModal({ open, onClose, onCreated }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({
+    customer_name: '', email: '', phone: '',
+    service_type: '', vehicle_type: '',
+    pickup_date: '', pickup_time: '',
+    pickup_location: '', dropoff_location: '',
+    passengers: 1, special_requests: '',
+    status: 'confirmed',
+  });
+
+  const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const reset = () => setForm({
+    customer_name: '', email: '', phone: '',
+    service_type: '', vehicle_type: '',
+    pickup_date: '', pickup_time: '',
+    pickup_location: '', dropoff_location: '',
+    passengers: 1, special_requests: '',
+    status: 'confirmed',
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      // 1. Create the booking
+      const { data: booking, error } = await supabase
+        .from('bookings')
+        .insert([{
+          ...form,
+          passengers: Number(form.passengers),
+        }])
+        .select()
+        .single();
+      if (error) throw error;
+
+      // 2. Mark the slot as taken (creates a blocking row in availability)
+      await supabase.from('availability').insert([{
+        date: form.pickup_date,
+        time_slot: form.pickup_time,
+        vehicle_type: form.vehicle_type,
+        is_available: false,
+        booking_id: booking.id,
+      }]);
+
+      toast.success(`Booking created for ${form.customer_name}`);
+      reset();
+      onCreated();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to create booking');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }}
+          />
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+              width: 'min(640px, 92vw)', maxHeight: '90vh', overflow: 'auto',
+              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.15)',
+              padding: 36, zIndex: 101,
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 20 }}>
+              <div>
+                <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Slique Moves</p>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>
+                  New <span style={{ fontStyle: 'italic' }}>Reservation</span>
+                </h2>
+              </div>
+              <button onClick={onClose} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 8 }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Guest */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Full Name" required>
+                  <input required value={form.customer_name} onChange={e => upd('customer_name', e.target.value)} style={inputStyle} placeholder="Jane Doe" />
+                </Field>
+                <Field label="Phone" required>
+                  <input required type="tel" value={form.phone} onChange={e => upd('phone', e.target.value)} style={inputStyle} placeholder="(612) 555-0100" />
+                </Field>
+              </div>
+              <Field label="Email" required>
+                <input required type="email" value={form.email} onChange={e => upd('email', e.target.value)} style={inputStyle} placeholder="jane@example.com" />
+              </Field>
+
+              {/* Service & vehicle */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Service" required>
+                  <Select value={form.service_type} onValueChange={v => upd('service_type', v)}>
+                    <SelectTrigger style={selectStyle}><SelectValue placeholder="Select service" /></SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Vehicle" required>
+                  <Select value={form.vehicle_type} onValueChange={v => upd('vehicle_type', v)}>
+                    <SelectTrigger style={selectStyle}><SelectValue placeholder="Select vehicle" /></SelectTrigger>
+                    <SelectContent>
+                      {VEHICLE_OPTIONS.map(v => <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+
+              {/* Date & time & passengers */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                <Field label="Date" required>
+                  <input required type="date" value={form.pickup_date} onChange={e => upd('pickup_date', e.target.value)} style={inputStyle} />
+                </Field>
+                <Field label="Time" required>
+                  <Select value={form.pickup_time} onValueChange={v => upd('pickup_time', v)}>
+                    <SelectTrigger style={selectStyle}><SelectValue placeholder="Time" /></SelectTrigger>
+                    <SelectContent>
+                      {timeSlots.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Passengers">
+                  <input type="number" min="1" max="20" value={form.passengers} onChange={e => upd('passengers', e.target.value)} style={inputStyle} />
+                </Field>
+              </div>
+
+              {/* Locations */}
+              <Field label="Pickup Location" required>
+                <input required value={form.pickup_location} onChange={e => upd('pickup_location', e.target.value)} style={inputStyle} placeholder="Address or terminal" />
+              </Field>
+              <Field label="Dropoff Location">
+                <input value={form.dropoff_location} onChange={e => upd('dropoff_location', e.target.value)} style={inputStyle} placeholder="Destination" />
+              </Field>
+
+              {/* Notes */}
+              <Field label="Notes">
+                <textarea value={form.special_requests} onChange={e => upd('special_requests', e.target.value)} style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} placeholder="Special requests, flight numbers, etc." />
+              </Field>
+
+              {/* Status */}
+              <Field label="Status">
+                <Select value={form.status} onValueChange={v => upd('status', v)}>
+                  <SelectTrigger style={selectStyle}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STATUS_CONFIG).map(([val, cfg]) => (
+                      <SelectItem key={val} value={val}>{cfg.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                <button type="button" onClick={onClose}
+                  style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting}
+                  style={{ flex: 2, padding: '14px', background: '#ffffff', color: '#000000', border: '1px solid #ffffff', fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, opacity: submitting ? 0.5 : 1 }}>
+                  {submitting ? 'Creating…' : 'Create Booking'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+const inputStyle = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.15)',
+  color: '#ffffff',
+  padding: '10px 12px',
+  fontSize: 13,
+  fontFamily: 'inherit',
+  outline: 'none',
+};
+
+const selectStyle = {
+  width: '100%',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.15)',
+  borderRadius: 0,
+  color: '#e0e0e0',
+  height: 40,
+};
+
+function Field({ label, required, children }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+        {label} {required && <span style={{ color: 'rgba(255,255,255,0.7)' }}>*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+// ─── Availability Block Manager ───────────────────────────────────────────────
+function AvailabilityPanel({ refresh }) {
+  const [date, setDate] = useState('');
+  const [vehicle, setVehicle] = useState('');
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!date || !vehicle) { setBlockedSlots([]); setBookedSlots([]); return; }
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('availability')
+      .select('*')
+      .eq('date', date)
+      .eq('vehicle_type', vehicle)
+      .eq('is_available', false);
+    if (error) console.error(error);
+    const all = data || [];
+    setBlockedSlots(all.filter(a => !a.booking_id).map(a => ({ ...a })));
+    setBookedSlots(all.filter(a => a.booking_id).map(a => ({ ...a })));
+    setLoading(false);
+  }, [date, vehicle]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggleBlock = async (timeSlot) => {
+    const existing = blockedSlots.find(b => b.time_slot === timeSlot);
+    if (existing) {
+      // Unblock
+      await supabase.from('availability').delete().eq('id', existing.id);
+      toast.success(`${timeSlot} unblocked`);
+    } else {
+      // Block
+      await supabase.from('availability').insert([{
+        date, vehicle_type: vehicle, time_slot: timeSlot, is_available: false
+      }]);
+      toast.success(`${timeSlot} blocked`);
+    }
+    load();
+    refresh();
+  };
+
+  return (
+    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: 28 }}>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#ffffff', letterSpacing: '0.05em', marginBottom: 6 }}>
+        Block Times
+      </h2>
+      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginBottom: 20, letterSpacing: '0.05em' }}>
+        All times are open by default. Use this to mark vehicles unavailable on specific dates.
+      </p>
+
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Date</label>
+        <Input type="date" min={new Date().toISOString().split('T')[0]} value={date} onChange={e => setDate(e.target.value)}
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0, color: '#e0e0e0', height: 40, colorScheme: 'dark' }} />
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Vehicle</label>
+        <Select value={vehicle} onValueChange={setVehicle}>
+          <SelectTrigger style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0, color: '#e0e0e0', height: 40 }}>
+            <SelectValue placeholder="Select vehicle" />
+          </SelectTrigger>
+          <SelectContent>
+            {VEHICLE_OPTIONS.map(v => <SelectItem key={v.value} value={v.value}>{v.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {date && vehicle && (
+        loading ? (
+          <div style={{ textAlign: 'center', padding: 30 }}>
+            <Loader2 size={16} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)', margin: '0 auto' }} />
+          </div>
+        ) : (
+          <div>
+            <p style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 10 }}>
+              Tap to toggle availability
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+              {timeSlots.map(t => {
+                const isBooked = bookedSlots.some(b => b.time_slot === t);
+                const isBlocked = blockedSlots.some(b => b.time_slot === t);
+                const isOpen = !isBooked && !isBlocked;
+
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    disabled={isBooked}
+                    onClick={() => !isBooked && toggleBlock(t)}
+                    style={{
+                      padding: '8px 6px',
+                      background: isBooked ? 'rgba(255,255,255,0.02)' : isBlocked ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
+                      border: '1px solid',
+                      borderColor: isBooked ? 'rgba(255,255,255,0.06)' : isBlocked ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.12)',
+                      color: isBooked ? 'rgba(255,255,255,0.25)' : isBlocked ? 'rgba(255,255,255,0.45)' : '#ffffff',
+                      fontSize: 11,
+                      cursor: isBooked ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                      textDecoration: isBlocked ? 'line-through' : 'none',
+                    }}
+                    title={isBooked ? 'Booked' : isBlocked ? 'Click to unblock' : 'Click to block'}
+                  >
+                    {isBooked ? <Lock size={9} /> : isBlocked ? <Lock size={9} /> : <Unlock size={9} />}
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: 16, display: 'flex', gap: 16, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+              <span>○ Open</span>
+              <span>● Blocked</span>
+              <span style={{ opacity: 0.5 }}>✕ Booked</span>
+            </div>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
+// ─── Main Admin Component ─────────────────────────────────────────────────────
 export default function Admin() {
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
-  const [availability, setAvailability] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedVehicle, setSelectedVehicle] = useState('');
-  const [selectedSlot, setSelectedSlot] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [updatingId, setUpdatingId] = useState(null);
+  const [newBookingOpen, setNewBookingOpen] = useState(false);
 
   const fetchBookings = useCallback(async () => {
     setBookingsLoading(true);
@@ -165,23 +523,11 @@ export default function Admin() {
     setBookingsLoading(false);
   }, []);
 
-  const fetchAvailability = useCallback(async () => {
-    if (!selectedDate || !selectedVehicle) { setAvailability([]); return; }
-    const { data, error } = await supabase
-      .from('availability')
-      .select('*')
-      .eq('date', selectedDate)
-      .eq('vehicle_type', selectedVehicle);
-    if (error) console.error('Availability fetch error:', error);
-    setAvailability(data || []);
-  }, [selectedDate, selectedVehicle]);
-
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
   useEffect(() => {
     const interval = setInterval(fetchBookings, 60000);
     return () => clearInterval(interval);
   }, [fetchBookings]);
-  useEffect(() => { fetchAvailability(); }, [fetchAvailability]);
 
   const handleStatusChange = async (id, status) => {
     setUpdatingId(id);
@@ -195,48 +541,7 @@ export default function Admin() {
     setUpdatingId(null);
   };
 
-  const handleAddSlot = async () => {
-    if (!selectedDate || !selectedVehicle || !selectedSlot) { toast.error('Select date, vehicle, and time'); return; }
-    const { error } = await supabase.from('availability').insert([{
-      date: selectedDate, vehicle_type: selectedVehicle, time_slot: selectedSlot, is_available: true
-    }]);
-    if (error) {
-      toast.error('Failed to add slot');
-    } else {
-      toast.success('Time slot added');
-      setSelectedSlot('');
-      fetchAvailability();
-    }
-  };
-
-  const handleBulkAdd = async () => {
-    if (!selectedDate || !selectedVehicle) { toast.error('Select date and vehicle'); return; }
-    const existing = availability.map(a => a.time_slot);
-    const newSlots = timeSlots.filter(s => !existing.includes(s)).map(s => ({
-      date: selectedDate, vehicle_type: selectedVehicle, time_slot: s, is_available: true
-    }));
-    if (newSlots.length === 0) { toast.info('All slots already added'); return; }
-    const { error } = await supabase.from('availability').insert(newSlots);
-    if (error) {
-      toast.error('Failed to add slots');
-    } else {
-      toast.success(`Added ${newSlots.length} slots`);
-      fetchAvailability();
-    }
-  };
-
-  const handleDeleteSlot = async (id) => {
-    const { error } = await supabase.from('availability').delete().eq('id', id);
-    if (error) {
-      toast.error('Failed to remove slot');
-    } else {
-      toast.success('Slot removed');
-      fetchAvailability();
-    }
-  };
-
   const stats = {
-    total: bookings.length,
     pending: bookings.filter(b => b.status === 'pending').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     completed: bookings.filter(b => b.status === 'completed').length,
@@ -247,40 +552,51 @@ export default function Admin() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at 50% 0%, #110e07 0%, #080706 60%, #050505 100%)',
+      background: '#000000',
       fontFamily: 'system-ui, sans-serif',
       padding: '40px 24px',
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(201,168,76,0.1)', paddingBottom: 24 }}
+          style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 24 }}
         >
           <div>
-            <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 6 }}>Slique Moves</p>
-            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: '#e8e0d0', letterSpacing: '0.04em' }}>
-              Command <span style={{ fontStyle: 'italic', color: '#C9A84C' }}>Dashboard</span>
+            <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Slique Moves</p>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>
+              Bookings
             </h1>
           </div>
-          <button
-            onClick={fetchBookings}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'transparent', border: '1px solid rgba(201,168,76,0.2)', color: 'rgba(201,168,76,0.5)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer' }}
-          >
-            <RefreshCw size={11} /> Refresh
-          </button>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setNewBookingOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#ffffff', border: '1px solid #ffffff', color: '#000000', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600 }}
+            >
+              <Plus size={11} /> New Booking
+            </button>
+            <button
+              onClick={fetchBookings}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer' }}
+            >
+              <RefreshCw size={11} /> Refresh
+            </button>
+          </div>
         </motion.div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 40 }}>
-          <StatCard label="Total Bookings" value={stats.total} />
-          <StatCard label="Pending" value={stats.pending} accent="#C9A84C" />
-          <StatCard label="Confirmed" value={stats.confirmed} accent="#7EC8A4" />
-          <StatCard label="Completed" value={stats.completed} accent="#a0a0a0" />
+        {/* Stats — total removed, 3 remain */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 40 }}>
+          <StatCard label="Pending" value={stats.pending} />
+          <StatCard label="Confirmed" value={stats.confirmed} />
+          <StatCard label="Completed" value={stats.completed} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'start' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#d4c9b0', letterSpacing: '0.05em' }}>
+              <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#e0e0e0', letterSpacing: '0.05em' }}>
                 Reservations
               </h2>
               <div style={{ display: 'flex', gap: 4 }}>
@@ -291,9 +607,9 @@ export default function Admin() {
                     style={{
                       padding: '5px 12px', fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
                       border: '1px solid',
-                      borderColor: statusFilter === f ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.06)',
-                      background: statusFilter === f ? 'rgba(201,168,76,0.08)' : 'transparent',
-                      color: statusFilter === f ? '#C9A84C' : 'rgba(255,255,255,0.2)',
+                      borderColor: statusFilter === f ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.06)',
+                      background: statusFilter === f ? 'rgba(255,255,255,0.08)' : 'transparent',
+                      color: statusFilter === f ? '#ffffff' : 'rgba(255,255,255,0.3)',
                       cursor: 'pointer',
                     }}
                   >
@@ -305,10 +621,10 @@ export default function Admin() {
 
             {bookingsLoading ? (
               <div style={{ textAlign: 'center', padding: 60 }}>
-                <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(201,168,76,0.4)', margin: '0 auto' }} />
+                <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)', margin: '0 auto' }} />
               </div>
             ) : filtered.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.15)', fontSize: 12, letterSpacing: '0.1em' }}>
+              <div style={{ textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.2)', fontSize: 12, letterSpacing: '0.1em' }}>
                 No reservations found
               </div>
             ) : (
@@ -318,88 +634,15 @@ export default function Admin() {
             )}
           </div>
 
-          <div style={{ background: '#0d0c0a', border: '1px solid rgba(201,168,76,0.12)', padding: 28 }}>
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#d4c9b0', letterSpacing: '0.05em', marginBottom: 20 }}>
-              Availability
-            </h2>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 8 }}>Date</label>
-              <Input type="date" min={new Date().toISOString().split('T')[0]} value={selectedDate} onChange={e => setSelectedDate(e.target.value)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 0, color: '#d4c9b0', height: 40 }} />
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 8 }}>Vehicle</label>
-              <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                <SelectTrigger style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 0, color: '#d4c9b0', height: 40 }}>
-                  <SelectValue placeholder="Select vehicle" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="escalade_suv">Escalade SUV</SelectItem>
-                  <SelectItem value="mercedes_limo">Mercedes Limousine</SelectItem>
-                  <SelectItem value="mercedes_sprinter">Mercedes Sprinter Van</SelectItem>
-                  <SelectItem value="mercedes_amg">Mercedes AMG Sedan</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {selectedDate && selectedVehicle && (
-              <>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  <Select value={selectedSlot} onValueChange={setSelectedSlot}>
-                    <SelectTrigger style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 0, color: '#d4c9b0', height: 36 }}>
-                      <SelectValue placeholder="Time slot" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <button onClick={handleAddSlot} style={{ padding: '0 14px', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: '#C9A84C', cursor: 'pointer', height: 36 }}>
-                    <Plus size={14} />
-                  </button>
-                </div>
-
-                <button onClick={handleBulkAdd} style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(201,168,76,0.15)', color: 'rgba(201,168,76,0.5)', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', marginBottom: 20 }}>
-                  Add All Day Slots
-                </button>
-
-                {availability.filter(a => a.is_available).length > 0 && (
-                  <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(126,200,164,0.5)', marginBottom: 10 }}>
-                      Open · {availability.filter(a => a.is_available).length}
-                    </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-                      {availability.filter(a => a.is_available).sort((a,b) => a.time_slot.localeCompare(b.time_slot)).map(slot => (
-                        <div key={slot.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', background: 'rgba(126,200,164,0.06)', border: '1px solid rgba(126,200,164,0.15)' }}>
-                          <span style={{ fontSize: 11, color: '#7EC8A4' }}>{slot.time_slot}</span>
-                          <button onClick={() => handleDeleteSlot(slot.id)} style={{ background: 'none', border: 'none', color: 'rgba(224,112,112,0.5)', cursor: 'pointer', padding: 0 }}>
-                            <Trash2 size={10} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {availability.filter(a => !a.is_available).length > 0 && (
-                  <div>
-                    <p style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(224,112,112,0.4)', marginBottom: 10 }}>
-                      Booked · {availability.filter(a => !a.is_available).length}
-                    </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-                      {availability.filter(a => !a.is_available).sort((a,b) => a.time_slot.localeCompare(b.time_slot)).map(slot => (
-                        <div key={slot.id} style={{ padding: '6px 8px', background: 'rgba(224,112,112,0.05)', border: '1px solid rgba(224,112,112,0.12)', textAlign: 'center' }}>
-                          <span style={{ fontSize: 11, color: 'rgba(224,112,112,0.6)' }}>{slot.time_slot}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <AvailabilityPanel refresh={fetchBookings} />
         </div>
       </div>
+
+      <NewBookingModal
+        open={newBookingOpen}
+        onClose={() => setNewBookingOpen(false)}
+        onCreated={fetchBookings}
+      />
     </div>
   );
 }

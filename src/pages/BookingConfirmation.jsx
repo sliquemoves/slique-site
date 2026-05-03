@@ -81,10 +81,10 @@ export default function BookingConfirmation() {
       .eq('id', bookingId);
 
     if (!error && booking) {
-      // Free up the availability slot
+      // Free up the slot by deleting the blocking row
       await supabase
         .from('availability')
-        .update({ is_available: true, booking_id: null })
+        .delete()
         .eq('booking_id', bookingId);
     }
     setCancelling(false);
