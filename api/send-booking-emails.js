@@ -44,6 +44,15 @@ function formatDate(dateStr) {
   });
 }
 
+function format12Hour(time24) {
+  if (!time24) return '';
+  const [h] = time24.split(':');
+  const hour = parseInt(h, 10);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${display}:00 ${period}`;
+}
+
 // ─── Customer email (luxury, gothic, presidential) ───────────────────────────
 function customerHtml(booking, refCode, confirmationUrl) {
   const drop = booking.dropoff_location ? `
@@ -105,7 +114,7 @@ function customerHtml(booking, refCode, confirmationUrl) {
       </div>
       <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
         <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Departure Time</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${booking.pickup_time}</span>
+        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${format12Hour(booking.pickup_time)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
         <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Service</span>
@@ -219,7 +228,7 @@ function teamHtml(booking, refCode, adminUrl) {
       </div>
       <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
         <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Time</span>
-        <span style="font-size:14px;color:#1a1a1a">${booking.pickup_time}</span>
+        <span style="font-size:14px;color:#1a1a1a">${format12Hour(booking.pickup_time)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
         <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Service</span>

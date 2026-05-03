@@ -48,6 +48,15 @@ function generateRef(id) {
   return ref;
 }
 
+function format12Hour(time24) {
+  if (!time24) return '';
+  const [h] = time24.split(':');
+  const hour = parseInt(h, 10);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${display}:00 ${period}`;
+}
+
 export default function BookingConfirmation() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -198,7 +207,7 @@ export default function BookingConfirmation() {
                       {[
                         { label: 'Guest', value: booking.customer_name },
                         { label: 'Date of Journey', value: formatDate(booking.pickup_date) },
-                        { label: 'Departure Time', value: booking.pickup_time },
+                        { label: 'Departure Time', value: format12Hour(booking.pickup_time) },
                         { label: 'Service', value: serviceLabels[booking.service_type] || booking.service_type },
                         { label: 'Vehicle', value: vehicleLabels[booking.vehicle_type] || booking.vehicle_type },
                         { label: 'Passengers', value: booking.passengers },

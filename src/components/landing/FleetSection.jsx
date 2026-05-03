@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, Briefcase, Wifi, Shield } from 'lucide-react';
+import { Users, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const vehicles = [
@@ -11,7 +11,7 @@ const vehicles = [
     passengers: "Up to 6",
     luggage: "6 Large Bags",
     features: ["Presidential Seats", "Drink Refrigerator", "Ambient Lighting", "Tinted Windows"],
-    type: "luxury_suv"
+    type: "escalade_suv"
   },
   {
     name: "Mercedes Benz Limousine - Black",
@@ -20,7 +20,7 @@ const vehicles = [
     passengers: "Up to 10",
     luggage: "10 Large Bags",
     features: ["VIP Lounge Interior", "Premium Bar", "Ambient Lighting", "Tinted Windows"],
-    type: "stretch_limo"
+    type: "mercedes_limo"
   },
   {
     name: "Mercedes Benz Sprinter - Black",
@@ -29,7 +29,7 @@ const vehicles = [
     passengers: "Up to 15",
     luggage: "15 Large Bags",
     features: ["VIP Lounge Interior", "Noise Insulation", "Ambient Lighting", "Tinted Windows"],
-    type: "sprinter_van"
+    type: "mercedes_sprinter"
   },
   {
     name: "Mercedes Benz AMG - Black",
@@ -38,7 +38,7 @@ const vehicles = [
     passengers: "Up to 2",
     luggage: "2 Large Bags",
     features: ["Premium Leather", "Climate Control", "Ambient Lighting", "Tinted Windows"],
-    type: "luxury_sedan"
+    type: "mercedes_amg"
   }
 ];
 
@@ -117,7 +117,9 @@ export default function FleetSection() {
                 <Button 
                   onClick={() => {
                     window.location.hash = `vehicle=${vehicle.type}`;
-                    document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
+                    setTimeout(() => {
+                      document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 50);
                   }}
                   className="w-full mt-6 bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-6"
                 >

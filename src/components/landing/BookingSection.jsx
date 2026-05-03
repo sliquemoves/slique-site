@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
 const serviceTypes = [
   { value: "hourly_charter", label: "Hourly Charter" },
@@ -23,6 +23,24 @@ const vehicleTypes = [
   { value: "mercedes_sprinter",label: "Mercedes Sprinter Van" },
   { value: "mercedes_amg",     label: "Mercedes AMG Sedan" },
 ];
+
+// Full 24-hour range, internally stored as HH:00 (24-hour) for stable sorting
+const ALL_TIME_SLOTS = [
+  '00:00','01:00','02:00','03:00','04:00','05:00',
+  '06:00','07:00','08:00','09:00','10:00','11:00',
+  '12:00','13:00','14:00','15:00','16:00','17:00',
+  '18:00','19:00','20:00','21:00','22:00','23:00'
+];
+
+// Convert "14:00" → "2:00 PM" for display
+function format12Hour(time24) {
+  if (!time24) return '';
+  const [h] = time24.split(':');
+  const hour = parseInt(h, 10);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${display}:00 ${period}`;
+}
 
 // ─── Custom Date Picker ────────────────────────────────────────────────────────
 function DatePicker({ value, onChange, minDate }) {
@@ -83,7 +101,6 @@ function DatePicker({ value, onChange, minDate }) {
 
   return (
     <div ref={wrapperRef} className="relative">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -95,7 +112,6 @@ function DatePicker({ value, onChange, minDate }) {
         <CalendarIcon className="w-4 h-4 text-gray-400" />
       </button>
 
-      {/* Calendar popover */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -106,7 +122,6 @@ function DatePicker({ value, onChange, minDate }) {
             className="absolute top-full left-0 mt-2 z-50 bg-white border border-gray-200 shadow-2xl"
             style={{ width: 340, padding: 20 }}
           >
-            {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <button
                 type="button"
@@ -127,7 +142,6 @@ function DatePicker({ value, onChange, minDate }) {
               </button>
             </div>
 
-            {/* Weekday labels */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {weekdays.map(w => (
                 <div key={w} className="text-center text-[10px] tracking-widest uppercase text-gray-400 py-1">
@@ -136,7 +150,6 @@ function DatePicker({ value, onChange, minDate }) {
               ))}
             </div>
 
-            {/* Days grid */}
             <div className="grid grid-cols-7 gap-1">
               {days.map((day, i) => {
                 if (day === null) return <div key={`empty-${i}`} />;
@@ -197,13 +210,20 @@ export default function BookingSection() {
     special_requests: ''
   });
 
+  // Read vehicle from URL hash on mount AND whenever hash changes
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes('vehicle=')) {
-      const vehicleType = hash.split('vehicle=')[1];
-      setFormData(prev => ({ ...prev, vehicle_type: vehicleType }));
-      window.location.hash = '';
-    }
+    const applyHash = () => {
+      const hash = window.location.hash;
+      if (hash.includes('vehicle=')) {
+        const vehicleType = decodeURIComponent(hash.split('vehicle=')[1].split('&')[0]);
+        setFormData(prev => ({ ...prev, vehicle_type: vehicleType }));
+        // Clear hash so re-clicks still trigger an update
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
   }, []);
 
   const handleChange = (field, value) => {
@@ -216,18 +236,11 @@ export default function BookingSection() {
     });
   };
 
-  // Check availability when date and vehicle are selected
-  // NEW LOGIC: All times are open by default. Only times with a blocking row
-  // (is_available=false, either an admin block or an existing booking) are unavailable.
+  // All times open by default. Subtract anything in availability with is_available=false.
   useEffect(() => {
     const checkAvailability = async () => {
       if (formData.pickup_date && formData.vehicle_type) {
         setCheckingAvailability(true);
-        const allTimeSlots = [
-          '06:00','07:00','08:00','09:00','10:00','11:00',
-          '12:00','13:00','14:00','15:00','16:00','17:00',
-          '18:00','19:00','20:00','21:00','22:00','23:00'
-        ];
         const { data, error } = await supabase
           .from('availability')
           .select('time_slot')
@@ -237,10 +250,10 @@ export default function BookingSection() {
 
         if (error) {
           console.error('Availability fetch error:', error);
-          setAvailableSlots(allTimeSlots);
+          setAvailableSlots(ALL_TIME_SLOTS);
         } else {
           const blocked = new Set((data || []).map(r => r.time_slot));
-          setAvailableSlots(allTimeSlots.filter(t => !blocked.has(t)));
+          setAvailableSlots(ALL_TIME_SLOTS.filter(t => !blocked.has(t)));
         }
         setCheckingAvailability(false);
       } else {
@@ -267,7 +280,7 @@ export default function BookingSection() {
 
       if (bookingError) throw bookingError;
 
-      // 2. Insert a blocking row in availability so this slot can't be double-booked
+      // Insert blocking row in availability so the slot can't be double-booked
       await supabase.from('availability').insert([{
         date: formData.pickup_date,
         time_slot: formData.pickup_time,
@@ -276,7 +289,7 @@ export default function BookingSection() {
         booking_id: booking.id,
       }]);
 
-      // Fire off confirmation emails (don't block on this)
+      // Fire confirmation emails (don't block on this)
       fetch('/api/send-booking-emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -369,7 +382,7 @@ export default function BookingSection() {
                 ) : availableSlots.length > 0 ? (
                   <Select required value={formData.pickup_time} onValueChange={(v) => handleChange('pickup_time', v)}>
                     <SelectTrigger className="border-gray-200 focus:border-black rounded-none h-12"><SelectValue placeholder="Select available time" /></SelectTrigger>
-                    <SelectContent>{availableSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}</SelectContent>
+                    <SelectContent>{availableSlots.map(slot => <SelectItem key={slot} value={slot}>{format12Hour(slot)}</SelectItem>)}</SelectContent>
                   </Select>
                 ) : (
                   <div className="border border-red-200 bg-red-50 rounded-none h-12 flex items-center px-3 gap-2">
@@ -385,22 +398,9 @@ export default function BookingSection() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs tracking-widest uppercase text-gray-500">Passengers</Label>
-              <Input type="number" min="1" max="6" value={formData.passengers} onChange={(e) => handleChange('passengers', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" />
+              <Input type="number" min="1" max="20" value={formData.passengers} onChange={(e) => handleChange('passengers', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" />
             </div>
           </div>
-
-          {/* Availability Message */}
-          {formData.pickup_date && formData.vehicle_type && !checkingAvailability && (
-            <div className={`p-4 rounded-lg border ${availableSlots.length > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-              <div className="flex items-center gap-2">
-                {availableSlots.length > 0 ? (
-                  <><CheckCircle className="w-5 h-5 text-green-600" /><span className="text-sm text-green-800">{availableSlots.length} time slot{availableSlots.length !== 1 ? 's' : ''} available on this date</span></>
-                ) : (
-                  <><AlertCircle className="w-5 h-5 text-red-600" /><span className="text-sm text-red-800">Fully booked for this date. Please select a different date or vehicle.</span></>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Locations */}
           <div className="grid md:grid-cols-2 gap-6">

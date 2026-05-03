@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Loader2, Clock, Users, MapPin, Car, Phone, Mail, ChevronDown, ChevronUp, RefreshCw, X, Lock, Unlock } from 'lucide-react';
 
 const timeSlots = [
+  '00:00','01:00','02:00','03:00','04:00','05:00',
   '06:00','07:00','08:00','09:00','10:00','11:00',
   '12:00','13:00','14:00','15:00','16:00','17:00',
   '18:00','19:00','20:00','21:00','22:00','23:00'
@@ -66,6 +67,15 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function format12Hour(time24) {
+  if (!time24) return '';
+  const [h] = time24.split(':');
+  const hour = parseInt(h, 10);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${display}:00 ${period}`;
+}
+
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({ label, value }) {
   return (
@@ -108,7 +118,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
         </div>
         <div style={{ textAlign: 'right', marginRight: 16 }}>
           <p style={{ fontSize: 11, color: '#e0e0e0', letterSpacing: '0.04em' }}>{formatDate(booking.pickup_date)}</p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{booking.pickup_time}</p>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{format12Hour(booking.pickup_time)}</p>
         </div>
         <span style={{
           fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase',
@@ -297,7 +307,7 @@ function NewBookingModal({ open, onClose, onCreated }) {
                   <Select value={form.pickup_time} onValueChange={v => upd('pickup_time', v)}>
                     <SelectTrigger style={selectStyle}><SelectValue placeholder="Time" /></SelectTrigger>
                     <SelectContent>
-                      {timeSlots.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {timeSlots.map(t => <SelectItem key={t} value={t}>{format12Hour(t)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </Field>
@@ -486,7 +496,7 @@ function AvailabilityPanel({ refresh }) {
                     title={isBooked ? 'Booked' : isBlocked ? 'Click to unblock' : 'Click to block'}
                   >
                     {isBooked ? <Lock size={9} /> : isBlocked ? <Lock size={9} /> : <Unlock size={9} />}
-                    {t}
+                    {format12Hour(t)}
                   </button>
                 );
               })}
