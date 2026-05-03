@@ -1,16 +1,12 @@
 // api/send-booking-emails.js
-// Vercel serverless function — runs on the server, NOT in the browser.
-// This keeps your Resend API key safe.
-//
-// Setup:
-//   1. Add RESEND_API_KEY to your Vercel environment variables
-//      (Vercel Dashboard → Settings → Environment Variables)
-//   2. Set NOTIFICATION_EMAIL below to your team inbox
-//   3. Set FROM_EMAIL to your verified Resend sender
+// Sends confirmation emails via Resend.
+// Black & white gothic theme. Deliverability-tuned (plain-text fallback,
+// natural subject, clean HTML, list-unsubscribe header).
 
 const FROM_EMAIL = 'reservations@sliquemoves.com';
 const FROM_NAME = 'Slique Moves';
 const NOTIFICATION_EMAIL = 'admin@sliquemoves.com';
+const REPLY_TO = 'admin@sliquemoves.com';
 
 const SERVICE_LABELS = {
   hourly_charter: 'Hourly Charter',
@@ -24,7 +20,6 @@ const VEHICLE_LABELS = {
   mercedes_limo: 'Mercedes Limousine',
   mercedes_sprinter: 'Mercedes Sprinter Van',
   mercedes_amg: 'Mercedes AMG Sedan',
-  // legacy fallbacks
   luxury_sedan: 'Black Luxury Sedan',
   luxury_suv: 'Black Luxury SUV',
 };
@@ -39,9 +34,7 @@ function generateRef(id) {
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
+  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 function format12Hour(time24) {
@@ -53,225 +46,251 @@ function format12Hour(time24) {
   return `${display}:00 ${period}`;
 }
 
-// ─── Customer email (luxury, gothic, presidential) ───────────────────────────
+// Reusable detail "bubble" cell for trip info
+const bubble = (label, value) => `
+  <td style="padding:6px;width:50%;vertical-align:top">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0f0f0f;border:1px solid rgba(255,255,255,0.12)">
+      <tr><td style="padding:14px 18px">
+        <div style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px">${label}</div>
+        <div style="font-size:16px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;color:#ffffff;letter-spacing:0.02em">${value}</div>
+      </td></tr>
+    </table>
+  </td>
+`;
+
+// Full-width bubble (for long values like address)
+const wideBubble = (label, value) => `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0f0f0f;border:1px solid rgba(255,255,255,0.12);margin-bottom:8px">
+    <tr><td style="padding:14px 18px">
+      <div style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px">${label}</div>
+      <div style="font-size:16px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;color:#ffffff;letter-spacing:0.02em">${value}</div>
+    </td></tr>
+  </table>
+`;
+
+// ─── Customer email ──────────────────────────────────────────────────────────
 function customerHtml(booking, refCode, confirmationUrl) {
-  const drop = booking.dropoff_location ? `
-    <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-      <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Destination</span>
-      <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${booking.dropoff_location}</span>
-    </div>` : '';
-  const notes = booking.special_requests ? `
-    <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-      <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Special Notes</span>
-      <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${booking.special_requests}</span>
-    </div>` : '';
+  const dropBubble = booking.dropoff_location ? wideBubble('Destination', booking.dropoff_location) : '';
+  const notesBubble = booking.special_requests ? wideBubble('Special Notes', booking.special_requests) : '';
 
   return `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
-  body{margin:0;padding:0;background:#0a0a0a;font-family:'Cormorant Garamond',Georgia,serif;-webkit-font-smoothing:antialiased}
-</style>
-</head><body>
-<div style="background:#0a0a0a;padding:40px 16px">
-  <div style="max-width:580px;margin:0 auto;background:#080705;border:1px solid rgba(201,168,76,0.2)">
-    <div style="height:3px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.6) 30%,rgba(201,168,76,0.9) 50%,rgba(201,168,76,0.6) 70%,transparent)"></div>
-    <div style="padding:40px 48px 32px;text-align:center;border-bottom:1px solid rgba(201,168,76,0.08)">
-      <p style="font-size:10px;letter-spacing:0.5em;text-transform:uppercase;color:rgba(201,168,76,0.5);margin:0 0 24px">Slique Moves</p>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reservation Confirmed</title>
+</head>
+<body style="margin:0;padding:0;background:#000000;font-family:'Cormorant Garamond',Georgia,serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#000000">
+<tr><td align="center" style="padding:40px 16px">
+
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.2)">
+
+    <!-- Top accent bar -->
+    <tr><td style="height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6) 30%,#ffffff 50%,rgba(255,255,255,0.6) 70%,transparent);line-height:3px;font-size:0">&nbsp;</td></tr>
+
+    <!-- Header -->
+    <tr><td style="padding:40px 48px 32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <div style="font-size:10px;letter-spacing:0.5em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:24px">Slique Moves</div>
+
+      <!-- Crest -->
       <svg width="64" height="64" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 20px">
-        <circle cx="40" cy="40" r="37" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="0.8"/>
-        <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(201,168,76,0.12)" stroke-width="0.5"/>
-        <path d="M28,32 L32,22 L40,28 L48,22 L52,32" fill="none" stroke="#C9A84C" stroke-width="1" stroke-linejoin="round"/>
-        <rect x="27" y="32" width="26" height="16" rx="0.5" fill="none" stroke="#C9A84C" stroke-width="0.8"/>
-        <path d="M33,40 L38,45 L48,35" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M32,50 Q40,56 48,50" fill="none" stroke="rgba(201,168,76,0.35)" stroke-width="0.6"/>
+        <circle cx="40" cy="40" r="37" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+        <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.5"/>
+        <path d="M28,32 L32,22 L40,28 L48,22 L52,32" fill="none" stroke="#ffffff" stroke-width="1" stroke-linejoin="round"/>
+        <rect x="27" y="32" width="26" height="16" rx="0.5" fill="none" stroke="#ffffff" stroke-width="0.8"/>
+        <path d="M33,40 L38,45 L48,35" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32,50 Q40,56 48,50" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.6"/>
       </svg>
-      <h1 style="font-size:28px;font-weight:300;color:#e8e0d0;letter-spacing:0.04em;margin:0;line-height:1.3">Reservation <em style="font-style:italic;color:#C9A84C">Confirmed</em></h1>
-      <p style="margin:8px 0 0;font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(201,168,76,0.4)">Your journey has been arranged</p>
-    </div>
 
-    <div style="text-align:center;padding:24px 48px 4px">
-      <svg viewBox="0 0 400 24" xmlns="http://www.w3.org/2000/svg" style="max-width:240px">
-        <line x1="0" y1="12" x2="150" y2="12" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>
-        <polygon points="195,6 210,12 195,18 180,12" fill="#C9A84C" opacity="0.7"/>
-        <line x1="240" y1="12" x2="400" y2="12" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>
-      </svg>
-    </div>
+      <h1 style="font-size:28px;font-weight:300;color:#ffffff;letter-spacing:0.04em;margin:0;line-height:1.3">Reservation <em style="font-style:italic">Confirmed</em></h1>
+      <p style="margin:8px 0 0;font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5)">Your journey has been arranged</p>
+    </td></tr>
 
-    <div style="text-align:center;padding:4px 48px 28px">
-      <p style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(201,168,76,0.4);margin:0 0 8px">Confirmation Reference</p>
-      <p style="font-family:'Courier New',monospace;font-size:24px;letter-spacing:0.25em;color:#C9A84C;margin:0">${refCode}</p>
-    </div>
+    <!-- Reference -->
+    <tr><td style="padding:28px 48px;text-align:center">
+      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px">Confirmation Reference</div>
+      <div style="font-family:'Courier New',monospace;font-size:24px;letter-spacing:0.25em;color:#ffffff">${refCode}</div>
+    </td></tr>
 
-    <div style="padding:0 48px 32px">
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Guest</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${booking.customer_name}</span>
+    <!-- Trip details — bubbles -->
+    <tr><td style="padding:0 42px 24px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>${bubble('Guest', booking.customer_name)}${bubble('Service', SERVICE_LABELS[booking.service_type] || booking.service_type)}</tr>
+        <tr>${bubble('Date', formatDate(booking.pickup_date))}${bubble('Time', format12Hour(booking.pickup_time))}</tr>
+        <tr>${bubble('Vehicle', VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type)}${bubble('Passengers', booking.passengers)}</tr>
+      </table>
+      <div style="padding:6px">
+        ${wideBubble('Pickup Location', booking.pickup_location)}
+        ${dropBubble}
+        ${notesBubble}
       </div>
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Date of Journey</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${formatDate(booking.pickup_date)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Departure Time</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${format12Hour(booking.pickup_time)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Service</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${SERVICE_LABELS[booking.service_type] || booking.service_type}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Vehicle</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Passengers</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${booking.passengers}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(201,168,76,0.07)">
-        <span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.45)">Origin</span>
-        <span style="font-size:13px;font-weight:300;color:#d4c9b0;letter-spacing:0.02em;text-align:right;max-width:60%">${booking.pickup_location}</span>
-      </div>
-      ${drop}
-      ${notes}
-    </div>
+    </td></tr>
 
-    <div style="padding:0 48px 32px;text-align:center">
-      <span style="display:inline-block;padding:8px 24px;border:1px solid rgba(201,168,76,0.25);font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(201,168,76,0.6);background:rgba(201,168,76,0.04)">· Awaiting Confirmation</span>
-    </div>
+    <!-- CONFIRMED badge -->
+    <tr><td style="padding:8px 48px 32px;text-align:center">
+      <span style="display:inline-block;padding:8px 24px;border:1px solid rgba(255,255,255,0.3);font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:#ffffff;background:rgba(255,255,255,0.06)">✦ Confirmed</span>
+    </td></tr>
 
-    <div style="padding:24px 48px 32px;text-align:center;border-top:1px solid rgba(201,168,76,0.06)">
-      <p style="font-size:13px;font-weight:300;color:rgba(255,255,255,0.22);line-height:2;letter-spacing:0.02em;margin:0">
-        Our team will contact you at <a href="mailto:${booking.email}" style="color:rgba(201,168,76,0.55);text-decoration:none">${booking.email}</a><br/>
-        within 2 hours to finalise your arrangements.<br/><br/>
-        For immediate assistance, please reach us at<br/>
-        <a href="mailto:admin@sliquemoves.com" style="color:rgba(201,168,76,0.55);text-decoration:none">admin@sliquemoves.com</a>
+    <!-- Message -->
+    <tr><td style="padding:24px 48px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.08)">
+      <p style="font-size:14px;font-weight:300;color:rgba(255,255,255,0.5);line-height:1.9;letter-spacing:0.02em;margin:0">
+        Our team is preparing for your journey.<br/>
+        For any questions or changes, please reply to this email or call us at<br/>
+        <a href="tel:+16122751722" style="color:#ffffff;text-decoration:none">(612) 275-1722</a>
       </p>
-    </div>
+    </td></tr>
 
-    <div style="padding:0 48px 40px;text-align:center">
-      <a href="${confirmationUrl}" style="display:inline-block;padding:14px 40px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);color:#C9A84C;font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.45em;text-transform:uppercase;text-decoration:none">View My Reservation</a>
-    </div>
+    <!-- View Reservation -->
+    <tr><td style="padding:0 48px 40px;text-align:center">
+      <a href="${confirmationUrl}" style="display:inline-block;padding:14px 40px;background:#ffffff;border:1px solid #ffffff;color:#000000;font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.45em;text-transform:uppercase;text-decoration:none;font-weight:600">View My Reservation</a>
+    </td></tr>
 
-    <div style="padding:20px 48px;text-align:center;border-top:1px solid rgba(201,168,76,0.06)">
-      <p style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(201,168,76,0.2);margin:0">Slique Moves &nbsp;·&nbsp; Excellence in Motion</p>
-    </div>
-  </div>
-</div>
+    <!-- Footer -->
+    <tr><td style="padding:20px 48px;text-align:center;border-top:1px solid rgba(255,255,255,0.08)">
+      <p style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:0">Slique Moves &nbsp;·&nbsp; Excellence in Motion</p>
+      <p style="font-size:9px;color:rgba(255,255,255,0.2);margin:8px 0 0">Minneapolis, MN · admin@sliquemoves.com</p>
+    </td></tr>
+
+  </table>
+
+</td></tr></table>
 </body></html>`;
 }
 
-// ─── Internal team notification email ────────────────────────────────────────
+// Plain-text version (helps deliverability — most spam filters require it)
+function customerText(booking, refCode, confirmationUrl) {
+  return `SLIQUE MOVES — RESERVATION CONFIRMED
+
+Confirmation Reference: ${refCode}
+
+Hello ${booking.customer_name},
+
+Your reservation has been confirmed. Below are your trip details:
+
+Date: ${formatDate(booking.pickup_date)}
+Time: ${format12Hour(booking.pickup_time)}
+Service: ${SERVICE_LABELS[booking.service_type] || booking.service_type}
+Vehicle: ${VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type}
+Passengers: ${booking.passengers}
+Pickup: ${booking.pickup_location}${booking.dropoff_location ? `\nDestination: ${booking.dropoff_location}` : ''}${booking.special_requests ? `\nSpecial Notes: ${booking.special_requests}` : ''}
+
+For any questions or changes, please reply to this email or call us at (612) 275-1722.
+
+View your reservation: ${confirmationUrl}
+
+Slique Moves · Excellence in Motion
+Minneapolis, MN
+admin@sliquemoves.com`;
+}
+
+// ─── Internal team notification ──────────────────────────────────────────────
 function teamHtml(booking, refCode, adminUrl) {
-  const drop = booking.dropoff_location ? `
-    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
-      <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Dropoff</span>
-      <span style="font-size:14px;font-weight:400;color:#1a1a1a;text-align:right;max-width:65%">${booking.dropoff_location}</span>
-    </div>` : '';
-  const notes = booking.special_requests ? `
-    <div style="display:flex;justify-content:space-between;padding:10px 0">
-      <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Notes</span>
-      <span style="font-size:14px;font-weight:400;color:#1a1a1a;text-align:right;max-width:65%">${booking.special_requests}</span>
-    </div>` : '';
   const submittedAt = new Date().toLocaleString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
   });
+  const dropBubble = booking.dropoff_location ? wideBubble('Dropoff', booking.dropoff_location) : '';
+  const notesBubble = booking.special_requests ? wideBubble('Special Notes', booking.special_requests) : '';
 
   return `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<style>@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap');body{margin:0;padding:0}</style>
-</head><body style="background:#f5f4f0;font-family:'Cormorant Garamond',Georgia,serif;margin:0;padding:0">
-<div style="background:#f5f4f0;padding:40px 16px">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-top:3px solid #0a0a0a">
-    <div style="background:#0a0a0a;padding:28px 40px">
-      <p style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(201,168,76,0.6);margin:0 0 4px">Slique Moves · Internal</p>
-      <h1 style="font-size:20px;font-weight:300;color:#e8e0d0;letter-spacing:0.05em;margin:0">New <em style="font-style:italic;color:#C9A84C">Booking</em> Received</h1>
-    </div>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>New Booking</title></head>
+<body style="margin:0;padding:0;background:#000000;font-family:'Cormorant Garamond',Georgia,serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#000000">
+<tr><td align="center" style="padding:40px 16px">
 
-    <div style="padding:24px 40px;border-bottom:1px solid #f0ede8">
-      <p style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:#888;margin:0 0 12px">Reference</p>
-      <div style="display:flex;justify-content:space-between;padding:8px 0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Booking ID</span>
-        <span style="font-family:'Courier New',monospace;font-size:16px;letter-spacing:0.2em;color:#0a0a0a;font-weight:600">${refCode}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Submitted</span>
-        <span style="font-size:14px;color:#1a1a1a">${submittedAt}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Status</span>
-        <span style="font-size:14px;color:#d4a017;font-weight:600">Pending Confirmation</span>
-      </div>
-    </div>
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.2)">
 
-    <div style="padding:24px 40px;border-bottom:1px solid #f0ede8">
-      <p style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:#888;margin:0 0 12px">Guest Information</p>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Name</span>
-        <span style="font-size:14px;color:#1a1a1a">${booking.customer_name}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Email</span>
-        <a href="mailto:${booking.email}" style="font-size:14px;color:#0a0a0a;text-decoration:none">${booking.email}</a>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:8px 0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Phone</span>
-        <a href="tel:${booking.phone}" style="font-size:14px;color:#0a0a0a;text-decoration:none">${booking.phone}</a>
-      </div>
-    </div>
+    <tr><td style="height:3px;background:#ffffff;line-height:3px;font-size:0">&nbsp;</td></tr>
 
-    <div style="padding:24px 40px;border-bottom:1px solid #f0ede8">
-      <p style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:#888;margin:0 0 12px">Journey Details</p>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Date</span>
-        <span style="font-size:14px;color:#1a1a1a">${formatDate(booking.pickup_date)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Time</span>
-        <span style="font-size:14px;color:#1a1a1a">${format12Hour(booking.pickup_time)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Service</span>
-        <span style="font-size:14px;color:#1a1a1a">${SERVICE_LABELS[booking.service_type] || booking.service_type}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Vehicle</span>
-        <span style="font-size:14px;color:#1a1a1a">${VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f4f0">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Passengers</span>
-        <span style="font-size:14px;color:#1a1a1a">${booking.passengers}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;${drop || notes ? 'border-bottom:1px solid #f5f4f0' : ''}">
-        <span style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#aaa">Pickup</span>
-        <span style="font-size:14px;color:#1a1a1a;text-align:right;max-width:65%">${booking.pickup_location}</span>
-      </div>
-      ${drop}
-      ${notes}
-    </div>
+    <tr><td style="padding:32px 40px 24px;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <div style="font-size:9px;letter-spacing:0.5em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px">Slique Moves · Internal</div>
+      <h1 style="font-size:24px;font-weight:300;color:#ffffff;letter-spacing:0.04em;margin:0">New <em style="font-style:italic">Booking</em></h1>
+      <div style="margin-top:10px"><span style="display:inline-block;padding:5px 14px;background:#ffffff;color:#000000;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;font-weight:600">Action Required</span></div>
+    </td></tr>
 
-    <div style="padding:28px 40px;text-align:center;background:#fafaf8">
-      <a href="${adminUrl}" style="display:inline-block;margin:0 8px;padding:12px 28px;background:#0a0a0a;color:#C9A84C;border:1px solid #0a0a0a;font-family:'Cormorant Garamond',Georgia,serif;font-size:10px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none">Open in Admin</a>
-      <a href="mailto:${booking.email}" style="display:inline-block;margin:0 8px;padding:12px 28px;background:transparent;color:#666;border:1px solid #ddd;font-family:'Cormorant Garamond',Georgia,serif;font-size:10px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none">Reply to Guest</a>
-    </div>
+    <!-- Ref -->
+    <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px">Reference</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>${bubble('Booking ID', `<span style="font-family:'Courier New',monospace;font-size:14px;letter-spacing:0.2em">${refCode}</span>`)}${bubble('Submitted', submittedAt)}</tr>
+      </table>
+    </td></tr>
 
-    <div style="padding:20px 40px;text-align:center">
-      <p style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#bbb;margin:0">Slique Moves Internal Notification</p>
-    </div>
-  </div>
-</div>
+    <!-- Guest -->
+    <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px">Guest Information</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>${bubble('Name', booking.customer_name)}${bubble('Phone', `<a href="tel:${booking.phone}" style="color:#ffffff;text-decoration:none">${booking.phone}</a>`)}</tr>
+      </table>
+      <div style="padding:6px">${wideBubble('Email', `<a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a>`)}</div>
+    </td></tr>
+
+    <!-- Journey -->
+    <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px">Journey Details</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>${bubble('Date', formatDate(booking.pickup_date))}${bubble('Time', format12Hour(booking.pickup_time))}</tr>
+        <tr>${bubble('Service', SERVICE_LABELS[booking.service_type] || booking.service_type)}${bubble('Vehicle', VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type)}</tr>
+        <tr>${bubble('Passengers', booking.passengers)}${bubble('Status', 'Pending')}</tr>
+      </table>
+      <div style="padding:6px">
+        ${wideBubble('Pickup', booking.pickup_location)}
+        ${dropBubble}
+        ${notesBubble}
+      </div>
+    </td></tr>
+
+    <!-- Actions -->
+    <tr><td style="padding:28px 40px;text-align:center">
+      <a href="${adminUrl}" style="display:inline-block;margin:0 6px;padding:12px 28px;background:#ffffff;color:#000000;border:1px solid #ffffff;font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none;font-weight:600">Open Admin</a>
+      <a href="mailto:${booking.email}" style="display:inline-block;margin:0 6px;padding:12px 28px;background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.2);font-family:'Cormorant Garamond',Georgia,serif;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none">Reply to Guest</a>
+    </td></tr>
+
+    <tr><td style="padding:20px 40px;text-align:center;border-top:1px solid rgba(255,255,255,0.08)">
+      <p style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin:0">Slique Moves Internal Notification</p>
+    </td></tr>
+
+  </table>
+
+</td></tr></table>
 </body></html>`;
 }
 
-// ─── Send email via Resend ───────────────────────────────────────────────────
-async function sendResend(apiKey, { to, subject, html, replyTo }) {
+function teamText(booking, refCode, adminUrl) {
+  const submittedAt = new Date().toLocaleString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+  });
+  return `SLIQUE MOVES — NEW BOOKING
+
+Reference: ${refCode}
+Submitted: ${submittedAt}
+
+GUEST
+Name: ${booking.customer_name}
+Phone: ${booking.phone}
+Email: ${booking.email}
+
+JOURNEY
+Date: ${formatDate(booking.pickup_date)}
+Time: ${format12Hour(booking.pickup_time)}
+Service: ${SERVICE_LABELS[booking.service_type] || booking.service_type}
+Vehicle: ${VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type}
+Passengers: ${booking.passengers}
+Pickup: ${booking.pickup_location}${booking.dropoff_location ? `\nDropoff: ${booking.dropoff_location}` : ''}${booking.special_requests ? `\nNotes: ${booking.special_requests}` : ''}
+
+Open admin: ${adminUrl}`;
+}
+
+// ─── Send via Resend ─────────────────────────────────────────────────────────
+async function sendResend(apiKey, { to, subject, html, text, replyTo, headers }) {
   const body = {
     from: `${FROM_NAME} <${FROM_EMAIL}>`,
     to: [to],
     subject,
     html,
+    text,
   };
   if (replyTo) body.reply_to = replyTo;
+  if (headers) body.headers = headers;
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -288,7 +307,7 @@ async function sendResend(apiKey, { to, subject, html, replyTo }) {
   return await res.json();
 }
 
-// ─── Main handler ────────────────────────────────────────────────────────────
+// ─── Handler ─────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -310,18 +329,26 @@ export default async function handler(req, res) {
     const confirmationUrl = `${baseUrl}/BookingConfirmation?id=${booking.id}`;
     const adminUrl = `${baseUrl}/Admin`;
 
-    // Send both emails in parallel
+    // Subject lines that look natural (not spammy)
+    const customerSubject = `Reservation confirmed — ${refCode}`;
+    const teamSubject = `New booking: ${booking.customer_name}, ${formatDate(booking.pickup_date)}`;
+
     const [customerResult, teamResult] = await Promise.allSettled([
       sendResend(apiKey, {
         to: booking.email,
-        subject: `Your Reservation is Confirmed — ${refCode}`,
+        subject: customerSubject,
         html: customerHtml(booking, refCode, confirmationUrl),
-        replyTo: NOTIFICATION_EMAIL,
+        text: customerText(booking, refCode, confirmationUrl),
+        replyTo: REPLY_TO,
+        headers: {
+          'List-Unsubscribe': `<mailto:${REPLY_TO}?subject=unsubscribe>`,
+        },
       }),
       sendResend(apiKey, {
         to: NOTIFICATION_EMAIL,
-        subject: `🚘 New Booking — ${booking.customer_name} · ${formatDate(booking.pickup_date)}`,
+        subject: teamSubject,
         html: teamHtml(booking, refCode, adminUrl),
+        text: teamText(booking, refCode, adminUrl),
         replyTo: booking.email,
       }),
     ]);
