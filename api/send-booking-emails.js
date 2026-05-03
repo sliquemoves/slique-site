@@ -192,10 +192,6 @@ admin@sliquemoves.com`;
 
 // ─── Internal team notification ──────────────────────────────────────────────
 function teamHtml(booking, refCode, adminUrl) {
-  const submittedAt = new Date().toLocaleString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
-  });
-
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>New Booking</title></head>
 <body style="margin:0;padding:0;background:#000000;font-family:'Cormorant Garamond',Georgia,serif">
@@ -216,7 +212,14 @@ function teamHtml(booking, refCode, adminUrl) {
     <tr><td style="padding:28px 40px;border-bottom:1px solid rgba(255,255,255,0.12)">
       ${sectionHeading('Reference')}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>${bubble('Booking ID', `<span style="font-family:'Courier New',monospace;font-size:15px;letter-spacing:0.2em">${refCode}</span>`)}${bubble('Submitted', submittedAt)}</tr>
+        <tr><td colspan="2" style="padding:6px;vertical-align:top">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18)">
+            <tr><td style="padding:16px 20px">
+              <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">Booking ID</div>
+              <div style="font-family:'Courier New',monospace;font-size:17px;letter-spacing:0.2em;color:#ffffff">${refCode}</div>
+            </td></tr>
+          </table>
+        </td></tr>
       </table>
     </td></tr>
 
@@ -225,7 +228,14 @@ function teamHtml(booking, refCode, adminUrl) {
       ${sectionHeading('Guest Information')}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>${bubble('Name', booking.customer_name)}${bubble('Phone', `<a href="tel:${booking.phone}" style="color:#ffffff;text-decoration:none">${booking.phone}</a>`)}</tr>
-        <tr>${bubble('Email', `<a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a>`)}<td style="padding:6px;width:50%"></td></tr>
+        <tr><td colspan="2" style="padding:6px;vertical-align:top">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18)">
+            <tr><td style="padding:16px 20px">
+              <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">Email</div>
+              <div style="font-size:17px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;color:#ffffff;letter-spacing:0.02em"><a href="mailto:${booking.email}" style="color:#ffffff;text-decoration:none">${booking.email}</a></div>
+            </td></tr>
+          </table>
+        </td></tr>
       </table>
     </td></tr>
 
@@ -236,8 +246,30 @@ function teamHtml(booking, refCode, adminUrl) {
         <tr>${bubble('Date', formatDate(booking.pickup_date))}${bubble('Time', format12Hour(booking.pickup_time))}</tr>
         <tr>${bubble('Service', SERVICE_LABELS[booking.service_type] || booking.service_type)}${bubble('Vehicle', VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type)}</tr>
         <tr>${bubble('Passengers', booking.passengers)}${bubble('Status', 'Pending')}</tr>
-        <tr>${bubble('Pickup', booking.pickup_location)}${booking.dropoff_location ? bubble('Dropoff', booking.dropoff_location) : '<td style="padding:6px;width:50%"></td>'}</tr>
-        ${booking.special_requests ? `<tr>${bubble('Special Notes', booking.special_requests)}<td style="padding:6px;width:50%"></td></tr>` : ''}
+        <tr><td colspan="2" style="padding:6px;vertical-align:top">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18)">
+            <tr><td style="padding:16px 20px">
+              <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">Pickup</div>
+              <div style="font-size:17px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;color:#ffffff;letter-spacing:0.02em">${booking.pickup_location}</div>
+            </td></tr>
+          </table>
+        </td></tr>
+        ${booking.dropoff_location ? `<tr><td colspan="2" style="padding:6px;vertical-align:top">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18)">
+            <tr><td style="padding:16px 20px">
+              <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">Dropoff</div>
+              <div style="font-size:17px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;color:#ffffff;letter-spacing:0.02em">${booking.dropoff_location}</div>
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
+        ${booking.special_requests ? `<tr><td colspan="2" style="padding:6px;vertical-align:top">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#141414;border:1px solid rgba(255,255,255,0.18)">
+            <tr><td style="padding:16px 20px">
+              <div style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:#bdbdbd;margin-bottom:8px;font-family:Arial,Helvetica,sans-serif">Special Notes</div>
+              <div style="font-size:17px;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;color:#ffffff;letter-spacing:0.02em">${booking.special_requests}</div>
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
       </table>
     </td></tr>
 
@@ -258,13 +290,9 @@ function teamHtml(booking, refCode, adminUrl) {
 }
 
 function teamText(booking, refCode, adminUrl) {
-  const submittedAt = new Date().toLocaleString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
-  });
   return `SLIQUE MOVES — NEW BOOKING
 
 Reference: ${refCode}
-Submitted: ${submittedAt}
 
 GUEST
 Name: ${booking.customer_name}
