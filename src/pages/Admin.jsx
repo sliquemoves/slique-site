@@ -1,56 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Plus, Loader2, CalendarDays, Clock, CheckCircle2, Car, Users, Phone, Mail, AlertCircle, LogOut } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Trash2, Plus, Loader2, Clock, Users, MapPin, Car, Phone, Mail, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
-// ── Simple password gate ──────────────────────────────────────────────────
-// Set VITE_ADMIN_PASSWORD in your .env — never commit the actual password.
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'slique-admin';
-
-function PasswordGate({ onUnlock }) {
-  const [pw, setPw]     = useState('');
-  const [err, setErr]   = useState(false);
-  const handle = (e) => {
-    e.preventDefault();
-    if (pw === ADMIN_PASSWORD) { onUnlock(); }
-    else { setErr(true); setPw(''); }
-  };
-  return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <p className="text-white font-black text-2xl tracking-tighter mb-8 text-center"
-          style={{ fontFamily: 'Cormorant Garamond, serif' }}>SLIQUE</p>
-        <form onSubmit={handle} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="admin-pw" className="text-xs tracking-widest uppercase text-gray-500">Admin Password</Label>
-            <Input
-              id="admin-pw"
-              type="password"
-              value={pw}
-              onChange={e => { setPw(e.target.value); setErr(false); }}
-              className={`rounded-none h-12 bg-white ${err ? 'border-red-400' : 'border-gray-200'}`}
-              placeholder="Enter password"
-              autoFocus
-              aria-describedby={err ? 'pw-error' : undefined}
-            />
-            {err && <p id="pw-error" className="text-xs text-red-400" role="alert">Incorrect password</p>}
-          </div>
-          <Button type="submit" className="w-full bg-white text-black hover:bg-gray-100 rounded-none py-5 text-xs tracking-widest uppercase">
-            Enter Dashboard
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ── Constants ─────────────────────────────────────────────────────────────
 const timeSlots = [
   '06:00','07:00','08:00','09:00','10:00','11:00',
   '12:00','13:00','14:00','15:00','16:00','17:00',
@@ -58,361 +13,384 @@ const timeSlots = [
 ];
 
 const STATUS_CONFIG = {
-  pending:   { label:'Pending',   bg:'bg-amber-50',  border:'border-amber-200',  text:'text-amber-800',  dot:'bg-amber-400' },
-  confirmed: { label:'Confirmed', bg:'bg-green-50',  border:'border-green-200',  text:'text-green-800',  dot:'bg-green-500' },
-  completed: { label:'Completed', bg:'bg-blue-50',   border:'border-blue-200',   text:'text-blue-800',   dot:'bg-blue-500'  },
-  cancelled: { label:'Cancelled', bg:'bg-gray-100',  border:'border-gray-200',   text:'text-gray-500',   dot:'bg-gray-400'  },
+  pending:   { label: 'Pending',   color: '#C9A84C', bg: 'rgba(201,168,76,0.1)',   border: 'rgba(201,168,76,0.25)' },
+  confirmed: { label: 'Confirmed', color: '#7EC8A4', bg: 'rgba(126,200,164,0.1)',  border: 'rgba(126,200,164,0.25)' },
+  completed: { label: 'Completed', color: '#a0a0a0', bg: 'rgba(160,160,160,0.08)', border: 'rgba(160,160,160,0.2)' },
+  cancelled: { label: 'Cancelled', color: '#e07070', bg: 'rgba(224,112,112,0.08)', border: 'rgba(224,112,112,0.2)' },
 };
 
 const SERVICE_LABELS = {
   hourly_charter: 'Hourly Charter',
   airport_transfer: 'Airport Transfer',
-  corporate: 'Corporate',
+  corporate: 'Corporate Travel',
   special_event: 'Special Event',
 };
 
-function StatusBadge({ status }) {
-  const c = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+const VEHICLE_LABELS = {
+  luxury_sedan: 'Luxury Sedan',
+  luxury_suv: 'Luxury SUV',
+};
+
+function generateRef(id) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let ref = 'SLQ-';
+  const seed = id ? String(id).replace(/-/g, '') : Date.now().toString(16);
+  for (let i = 0; i < 6; i++) ref += chars[parseInt(seed[i] || '0', 16) % chars.length];
+  return ref;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function StatCard({ label, value, accent }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium border rounded-full ${c.bg} ${c.border} ${c.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} aria-hidden="true" />
-      {c.label}
-    </span>
+    <div style={{ background: '#0d0c0a', border: '1px solid rgba(201,168,76,0.12)', padding: '24px 28px' }}>
+      <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 10 }}>{label}</p>
+      <p style={{ fontSize: 32, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: accent || '#e8e0d0' }}>{value}</p>
+    </div>
   );
 }
 
-// ── Supabase data helpers ─────────────────────────────────────────────────
-const fetchBookings = async () => {
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100);
-  if (error) throw error;
-  return data;
-};
+function DetailItem({ icon, label, value }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4, color: 'rgba(201,168,76,0.4)' }}>
+        {icon}
+        <span style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase' }}>{label}</span>
+      </div>
+      <p style={{ fontSize: 12, color: '#c8bfb0', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' }}>{value}</p>
+    </div>
+  );
+}
 
-const fetchAvailability = async (date, vehicle) => {
-  if (!date || !vehicle) return [];
-  const { data, error } = await supabase
-    .from('availability')
-    .select('*')
-    .eq('date', date)
-    .eq('vehicle_type', vehicle)
-    .order('time_slot');
-  if (error) throw error;
-  return data;
-};
+function BookingCard({ booking, onStatusChange, updating }) {
+  const [expanded, setExpanded] = useState(false);
+  const status = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
+  const ref = generateRef(booking.id);
 
-// ── Main Admin component ──────────────────────────────────────────────────
+  return (
+    <motion.div layout style={{ background: '#0d0c0a', border: '1px solid rgba(201,168,76,0.1)', marginBottom: 8, overflow: 'hidden' }}>
+      <div style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => setExpanded(e => !e)}>
+        <div style={{ width: 3, height: 36, background: status.color, flexShrink: 0, borderRadius: 2 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 14, fontFamily: "'Cormorant Garamond', Georgia, serif", color: '#e8e0d0', fontWeight: 400, letterSpacing: '0.02em' }}>
+            {booking.customer_name}
+          </p>
+          <p style={{ fontSize: 9, letterSpacing: '0.3em', color: 'rgba(201,168,76,0.4)', fontFamily: "'Courier New', monospace", marginTop: 2 }}>
+            {ref}
+          </p>
+        </div>
+        <div style={{ textAlign: 'right', marginRight: 16 }}>
+          <p style={{ fontSize: 11, color: '#d4c9b0', letterSpacing: '0.04em' }}>{formatDate(booking.pickup_date)}</p>
+          <p style={{ fontSize: 10, color: 'rgba(201,168,76,0.5)', marginTop: 2 }}>{booking.pickup_time}</p>
+        </div>
+        <span style={{
+          fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase',
+          padding: '4px 10px', border: `1px solid ${status.border}`,
+          color: status.color, background: status.bg, flexShrink: 0,
+        }}>
+          {status.label}
+        </span>
+        <div style={{ color: 'rgba(201,168,76,0.3)', flexShrink: 0 }}>
+          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </div>
+      </div>
+
+      {expanded && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ borderTop: '1px solid rgba(201,168,76,0.08)', padding: '20px 20px 20px 39px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            <DetailItem icon={<Mail size={11} />} label="Email" value={booking.email} />
+            <DetailItem icon={<Phone size={11} />} label="Phone" value={booking.phone} />
+            <DetailItem icon={<Car size={11} />} label="Vehicle" value={VEHICLE_LABELS[booking.vehicle_type] || booking.vehicle_type} />
+            <DetailItem icon={<Users size={11} />} label="Passengers" value={booking.passengers} />
+            <DetailItem icon={<MapPin size={11} />} label="Pickup" value={booking.pickup_location} />
+            {booking.dropoff_location && <DetailItem icon={<MapPin size={11} />} label="Dropoff" value={booking.dropoff_location} />}
+            <DetailItem icon={<Clock size={11} />} label="Service" value={SERVICE_LABELS[booking.service_type] || booking.service_type} />
+          </div>
+
+          {booking.special_requests && (
+            <div style={{ marginBottom: 20, padding: '12px 14px', background: 'rgba(201,168,76,0.04)', border: '1px solid rgba(201,168,76,0.08)' }}>
+              <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 6 }}>Special Notes</p>
+              <p style={{ fontSize: 12, color: '#b0a898', fontFamily: "'Cormorant Garamond', Georgia, serif", lineHeight: 1.7 }}>{booking.special_requests}</p>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>Update Status</p>
+            <Select value={booking.status} onValueChange={(s) => onStatusChange(booking.id, s)} disabled={updating}>
+              <SelectTrigger style={{ width: 160, height: 34, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 0, fontSize: 11, color: '#d4c9b0' }}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(STATUS_CONFIG).map(([val, cfg]) => (
+                  <SelectItem key={val} value={val}>{cfg.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {updating && <Loader2 size={14} className="animate-spin" style={{ color: 'rgba(201,168,76,0.5)' }} />}
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
 export default function Admin() {
-  const [unlocked, setUnlocked]         = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
+  const [availability, setAvailability] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [selectedSlot, setSelectedSlot] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const queryClient = useQueryClient();
+  const [updatingId, setUpdatingId] = useState(null);
 
-  if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />;
+  const fetchBookings = useCallback(async () => {
+    setBookingsLoading(true);
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) console.error('Bookings fetch error:', error);
+    setBookings(data || []);
+    setBookingsLoading(false);
+  }, []);
 
-  // ── Queries ────────────────────────────────────────────────────────────
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ['bookings'],
-    queryFn: fetchBookings
-  });
+  const fetchAvailability = useCallback(async () => {
+    if (!selectedDate || !selectedVehicle) { setAvailability([]); return; }
+    const { data, error } = await supabase
+      .from('availability')
+      .select('*')
+      .eq('date', selectedDate)
+      .eq('vehicle_type', selectedVehicle);
+    if (error) console.error('Availability fetch error:', error);
+    setAvailability(data || []);
+  }, [selectedDate, selectedVehicle]);
 
-  const { data: availability = [], isLoading: availabilityLoading } = useQuery({
-    queryKey: ['availability', selectedDate, selectedVehicle],
-    queryFn: () => fetchAvailability(selectedDate, selectedVehicle),
-    enabled: !!selectedDate && !!selectedVehicle
-  });
+  useEffect(() => { fetchBookings(); }, [fetchBookings]);
+  useEffect(() => {
+    const interval = setInterval(fetchBookings, 60000);
+    return () => clearInterval(interval);
+  }, [fetchBookings]);
+  useEffect(() => { fetchAvailability(); }, [fetchAvailability]);
 
-  // ── Mutations ──────────────────────────────────────────────────────────
-  const addSlotMutation = useMutation({
-    mutationFn: async (slot) => {
-      const { error } = await supabase.from('availability').insert([slot]);
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries(['availability']); toast.success('Time slot added'); setSelectedSlot(''); },
-    onError: () => toast.error('Failed to add slot')
-  });
-
-  const deleteSlotMutation = useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase.from('availability').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries(['availability']); toast.success('Time slot removed'); },
-    onError: () => toast.error('Failed to remove slot')
-  });
-
-  const updateBookingMutation = useMutation({
-    mutationFn: async ({ id, status }) => {
-      const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => { queryClient.invalidateQueries(['bookings']); toast.success('Booking updated'); },
-    onError: () => toast.error('Failed to update booking')
-  });
-
-  // ── Handlers ──────────────────────────────────────────────────────────
-  const handleAddSlot = () => {
-    if (!selectedDate || !selectedVehicle || !selectedSlot) {
-      toast.error('Select date, vehicle, and time slot'); return;
+  const handleStatusChange = async (id, status) => {
+    setUpdatingId(id);
+    const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
+    if (error) {
+      toast.error('Failed to update status');
+    } else {
+      toast.success('Status updated');
+      fetchBookings();
     }
-    if (availability.some(a => a.time_slot === selectedSlot)) {
-      toast.error('This slot already exists for this date'); return;
-    }
-    addSlotMutation.mutate({ date: selectedDate, vehicle_type: selectedVehicle, time_slot: selectedSlot, is_available: true });
+    setUpdatingId(null);
   };
 
-  const handleBulkAdd = () => {
+  const handleAddSlot = async () => {
+    if (!selectedDate || !selectedVehicle || !selectedSlot) { toast.error('Select date, vehicle, and time'); return; }
+    const { error } = await supabase.from('availability').insert([{
+      date: selectedDate, vehicle_type: selectedVehicle, time_slot: selectedSlot, is_available: true
+    }]);
+    if (error) {
+      toast.error('Failed to add slot');
+    } else {
+      toast.success('Time slot added');
+      setSelectedSlot('');
+      fetchAvailability();
+    }
+  };
+
+  const handleBulkAdd = async () => {
     if (!selectedDate || !selectedVehicle) { toast.error('Select date and vehicle'); return; }
-    const existing = new Set(availability.map(a => a.time_slot));
-    const newSlots = timeSlots
-      .filter(s => !existing.has(s))
-      .map(s => ({ date: selectedDate, vehicle_type: selectedVehicle, time_slot: s, is_available: true }));
-    if (!newSlots.length) { toast.info('All slots already added'); return; }
-    Promise.all(newSlots.map(s => supabase.from('availability').insert([s])))
-      .then(() => { queryClient.invalidateQueries(['availability']); toast.success(`Added ${newSlots.length} slots`); })
-      .catch(() => toast.error('Some slots could not be added'));
+    const existing = availability.map(a => a.time_slot);
+    const newSlots = timeSlots.filter(s => !existing.includes(s)).map(s => ({
+      date: selectedDate, vehicle_type: selectedVehicle, time_slot: s, is_available: true
+    }));
+    if (newSlots.length === 0) { toast.info('All slots already added'); return; }
+    const { error } = await supabase.from('availability').insert(newSlots);
+    if (error) {
+      toast.error('Failed to add slots');
+    } else {
+      toast.success(`Added ${newSlots.length} slots`);
+      fetchAvailability();
+    }
   };
 
-  // ── Derived ────────────────────────────────────────────────────────────
+  const handleDeleteSlot = async (id) => {
+    const { error } = await supabase.from('availability').delete().eq('id', id);
+    if (error) {
+      toast.error('Failed to remove slot');
+    } else {
+      toast.success('Slot removed');
+      fetchAvailability();
+    }
+  };
+
   const stats = {
-    pending:   bookings.filter(b => b.status === 'pending').length,
+    total: bookings.length,
+    pending: bookings.filter(b => b.status === 'pending').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     completed: bookings.filter(b => b.status === 'completed').length,
-    total:     bookings.length,
   };
-  const filtered       = statusFilter === 'all' ? bookings : bookings.filter(b => b.status === statusFilter);
-  const availableSlots = availability.filter(a => a.is_available);
-  const bookedSlots    = availability.filter(a => !a.is_available);
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  const filtered = statusFilter === 'all' ? bookings : bookings.filter(b => b.status === statusFilter);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-xl font-black tracking-tighter text-black"
-              style={{ fontFamily: 'Cormorant Garamond, serif' }}>SLIQUE</span>
-            <span className="text-gray-300" aria-hidden="true">/</span>
-            <h1 className="text-sm font-medium text-gray-700">Admin Dashboard</h1>
+    <div style={{
+      minHeight: '100vh',
+      background: 'radial-gradient(ellipse at 50% 0%, #110e07 0%, #080706 60%, #050505 100%)',
+      fontFamily: 'system-ui, sans-serif',
+      padding: '40px 24px',
+    }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(201,168,76,0.1)', paddingBottom: 24 }}
+        >
+          <div>
+            <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 6 }}>Slique Moves</p>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: '#e8e0d0', letterSpacing: '0.04em' }}>
+              Command <span style={{ fontStyle: 'italic', color: '#C9A84C' }}>Dashboard</span>
+            </h1>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="/" className="text-xs text-gray-500 hover:text-black transition-colors tracking-wide uppercase">← View Site</a>
-            <button onClick={() => setUnlocked(false)}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-black transition-colors uppercase tracking-wide"
-              aria-label="Lock dashboard">
-              <LogOut className="w-3.5 h-3.5" aria-hidden="true" />Lock
-            </button>
-          </div>
+          <button
+            onClick={fetchBookings}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'transparent', border: '1px solid rgba(201,168,76,0.2)', color: 'rgba(201,168,76,0.5)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer' }}
+          >
+            <RefreshCw size={11} /> Refresh
+          </button>
+        </motion.div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 40 }}>
+          <StatCard label="Total Bookings" value={stats.total} />
+          <StatCard label="Pending" value={stats.pending} accent="#C9A84C" />
+          <StatCard label="Confirmed" value={stats.confirmed} accent="#7EC8A4" />
+          <StatCard label="Completed" value={stats.completed} accent="#a0a0a0" />
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label:'Pending',   value:stats.pending,   icon:AlertCircle,  color:'text-amber-500' },
-            { label:'Confirmed', value:stats.confirmed, icon:CheckCircle2, color:'text-green-500' },
-            { label:'Completed', value:stats.completed, icon:Car,          color:'text-blue-500'  },
-            { label:'Total',     value:stats.total,     icon:Users,        color:'text-gray-500'  },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-white border border-gray-200 p-5 flex items-center gap-4">
-              <Icon className={`w-8 h-8 flex-shrink-0 ${color}`} aria-hidden="true" />
-              <div>
-                <p className="text-2xl font-light text-black">{bookingsLoading ? '—' : value}</p>
-                <p className="text-xs text-gray-500 tracking-wide uppercase">{label}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'start' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#d4c9b0', letterSpacing: '0.05em' }}>
+                Reservations
+              </h2>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {['all', 'pending', 'confirmed', 'completed', 'cancelled'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setStatusFilter(f)}
+                    style={{
+                      padding: '5px 12px', fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
+                      border: '1px solid',
+                      borderColor: statusFilter === f ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.06)',
+                      background: statusFilter === f ? 'rgba(201,168,76,0.08)' : 'transparent',
+                      color: statusFilter === f ? '#C9A84C' : 'rgba(255,255,255,0.2)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+            {bookingsLoading ? (
+              <div style={{ textAlign: 'center', padding: 60 }}>
+                <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(201,168,76,0.4)', margin: '0 auto' }} />
+              </div>
+            ) : filtered.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.15)', fontSize: 12, letterSpacing: '0.1em' }}>
+                No reservations found
+              </div>
+            ) : (
+              filtered.map(b => (
+                <BookingCard key={b.id} booking={b} onStatusChange={handleStatusChange} updating={updatingId === b.id} />
+              ))
+            )}
+          </div>
 
-          {/* Availability */}
-          <Card className="shadow-none border-gray-200">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-light">Manage <span className="font-semibold">Availability</span></CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="avail-date" className="text-xs tracking-widest uppercase text-gray-500">Date</Label>
-                  <Input id="avail-date" type="date" min={new Date().toISOString().split('T')[0]}
-                    value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="avail-vehicle" className="text-xs tracking-widest uppercase text-gray-500">Vehicle</Label>
-                  <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                    <SelectTrigger id="avail-vehicle"><SelectValue placeholder="Select vehicle" /></SelectTrigger>
+          <div style={{ background: '#0d0c0a', border: '1px solid rgba(201,168,76,0.12)', padding: 28 }}>
+            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#d4c9b0', letterSpacing: '0.05em', marginBottom: 20 }}>
+              Availability
+            </h2>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 8 }}>Date</label>
+              <Input type="date" min={new Date().toISOString().split('T')[0]} value={selectedDate} onChange={e => setSelectedDate(e.target.value)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 0, color: '#d4c9b0', height: 40 }} />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)', marginBottom: 8 }}>Vehicle</label>
+              <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                <SelectTrigger style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 0, color: '#d4c9b0', height: 40 }}>
+                  <SelectValue placeholder="Select vehicle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="luxury_sedan">Luxury Sedan</SelectItem>
+                  <SelectItem value="luxury_suv">Luxury SUV</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedDate && selectedVehicle && (
+              <>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <Select value={selectedSlot} onValueChange={setSelectedSlot}>
+                    <SelectTrigger style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: 0, color: '#d4c9b0', height: 36 }}>
+                      <SelectValue placeholder="Time slot" />
+                    </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="luxury_sedan">Luxury Sedan</SelectItem>
-                      <SelectItem value="luxury_suv">Luxury SUV</SelectItem>
-                      <SelectItem value="luxury_sprinter">Luxury Sprinter</SelectItem>
-                      <SelectItem value="luxury_limo">Stretch Limo</SelectItem>
+                      {timeSlots.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  <button onClick={handleAddSlot} style={{ padding: '0 14px', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: '#C9A84C', cursor: 'pointer', height: 36 }}>
+                    <Plus size={14} />
+                  </button>
                 </div>
-              </div>
 
-              {(!selectedDate || !selectedVehicle) ? (
-                <div className="flex flex-col items-center justify-center py-10 border border-dashed border-gray-200 text-center">
-                  <Clock className="w-8 h-8 text-gray-300 mb-3" aria-hidden="true" />
-                  <p className="text-xs text-gray-400">Select a date and vehicle to manage slots.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="flex gap-2">
-                    <Select value={selectedSlot} onValueChange={setSelectedSlot}>
-                      <SelectTrigger><SelectValue placeholder="Select time slot" /></SelectTrigger>
-                      <SelectContent>{timeSlots.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                    </Select>
-                    <Button onClick={handleAddSlot} disabled={addSlotMutation.isPending || !selectedSlot}
-                      className="shrink-0 bg-black hover:bg-gray-900 text-white rounded-none px-4">
-                      {addSlotMutation.isPending
-                        ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : <><Plus className="w-4 h-4 mr-1" />Add</>}
-                    </Button>
+                <button onClick={handleBulkAdd} style={{ width: '100%', padding: '10px', background: 'transparent', border: '1px solid rgba(201,168,76,0.15)', color: 'rgba(201,168,76,0.5)', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', marginBottom: 20 }}>
+                  Add All Day Slots
+                </button>
+
+                {availability.filter(a => a.is_available).length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(126,200,164,0.5)', marginBottom: 10 }}>
+                      Open · {availability.filter(a => a.is_available).length}
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                      {availability.filter(a => a.is_available).sort((a,b) => a.time_slot.localeCompare(b.time_slot)).map(slot => (
+                        <div key={slot.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', background: 'rgba(126,200,164,0.06)', border: '1px solid rgba(126,200,164,0.15)' }}>
+                          <span style={{ fontSize: 11, color: '#7EC8A4' }}>{slot.time_slot}</span>
+                          <button onClick={() => handleDeleteSlot(slot.id)} style={{ background: 'none', border: 'none', color: 'rgba(224,112,112,0.5)', cursor: 'pointer', padding: 0 }}>
+                            <Trash2 size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <Button variant="outline" className="w-full rounded-none border-dashed text-xs tracking-widest uppercase" onClick={handleBulkAdd}>
-                    <CalendarDays className="w-4 h-4 mr-2" />Add All Day Slots (6am–11pm)
-                  </Button>
-                  {availabilityLoading ? (
-                    <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
-                  ) : (
-                    <>
-                      <div className="space-y-2">
-                        <Label className="text-xs tracking-widest uppercase text-gray-500">
-                          Available <span className="ml-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-[10px] font-semibold">{availableSlots.length}</span>
-                        </Label>
-                        {availableSlots.length === 0
-                          ? <p className="text-xs text-gray-400 py-2">No available slots.</p>
-                          : <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                              {availableSlots.map(s => (
-                                <div key={s.id} className="flex items-center justify-between bg-green-50 border border-green-200 px-3 py-2">
-                                  <span className="text-xs font-medium text-green-800">{s.time_slot}</span>
-                                  <button onClick={() => deleteSlotMutation.mutate(s.id)}
-                                    className="text-green-400 hover:text-red-500 transition-colors" aria-label={`Remove ${s.time_slot}`}>
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                        }
-                      </div>
-                      {bookedSlots.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-xs tracking-widest uppercase text-gray-500">
-                            Booked <span className="ml-1 bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full text-[10px] font-semibold">{bookedSlots.length}</span>
-                          </Label>
-                          <div className="grid grid-cols-3 gap-2 max-h-24 overflow-y-auto">
-                            {bookedSlots.map(s => (
-                              <div key={s.id} className="bg-red-50 border border-red-200 px-3 py-2 text-center">
-                                <span className="text-xs text-red-700">{s.time_slot}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+                )}
 
-          {/* Bookings */}
-          <Card className="shadow-none border-gray-200">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-light">Recent <span className="font-semibold">Bookings</span></CardTitle>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-32 h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {bookingsLoading ? (
-                <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
-              ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <Car className="w-10 h-10 text-gray-200 mb-3" />
-                  <p className="text-sm text-gray-400">{statusFilter === 'all' ? 'No bookings yet.' : `No ${statusFilter} bookings.`}</p>
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[620px] overflow-y-auto pr-1">
-                  {filtered.map(b => (
-                    <article key={b.id} className="border border-gray-200 p-4 space-y-3 hover:border-gray-300 transition-colors">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm text-black truncate">{b.customer_name}</p>
-                          <div className="flex flex-wrap gap-3 mt-0.5">
-                            <a href={`mailto:${b.email}`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-black transition-colors">
-                              <Mail className="w-3 h-3" />{b.email}
-                            </a>
-                            {b.phone && (
-                              <a href={`tel:${b.phone}`} className="flex items-center gap-1 text-xs text-gray-400 hover:text-black transition-colors">
-                                <Phone className="w-3 h-3" />{b.phone}
-                              </a>
-                            )}
-                          </div>
+                {availability.filter(a => !a.is_available).length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(224,112,112,0.4)', marginBottom: 10 }}>
+                      Booked · {availability.filter(a => !a.is_available).length}
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                      {availability.filter(a => !a.is_available).sort((a,b) => a.time_slot.localeCompare(b.time_slot)).map(slot => (
+                        <div key={slot.id} style={{ padding: '6px 8px', background: 'rgba(224,112,112,0.05)', border: '1px solid rgba(224,112,112,0.12)', textAlign: 'center' }}>
+                          <span style={{ fontSize: 11, color: 'rgba(224,112,112,0.6)' }}>{slot.time_slot}</span>
                         </div>
-                        <Select value={b.status} onValueChange={status => updateBookingMutation.mutate({ id: b.id, status })}>
-                          <SelectTrigger className="w-32 h-7 text-xs shrink-0"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <StatusBadge status={b.status} />
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200">
-                          <Car className="w-3 h-3" />{
-                            b.vehicle_type === 'luxury_sedan'    ? 'Sedan'    :
-                            b.vehicle_type === 'luxury_suv'      ? 'SUV'      :
-                            b.vehicle_type === 'luxury_sprinter' ? 'Sprinter' :
-                            b.vehicle_type === 'luxury_limo'     ? 'Limo'     : b.vehicle_type
-                          }
-                        </span>
-                        {b.service_type && (
-                          <span className="inline-flex items-center px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200">
-                            {SERVICE_LABELS[b.service_type] ?? b.service_type}
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200">
-                          <CalendarDays className="w-3 h-3" />{b.pickup_date}{b.pickup_time && ` · ${b.pickup_time}`}
-                        </span>
-                        {b.passengers && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200">
-                            <Users className="w-3 h-3" />{b.passengers} pax
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 space-y-0.5 pt-1 border-t border-gray-100">
-                        <p className="truncate"><span className="text-gray-400 uppercase tracking-wide text-[10px] mr-1">From</span>{b.pickup_location}</p>
-                        {b.dropoff_location && <p className="truncate"><span className="text-gray-400 uppercase tracking-wide text-[10px] mr-1">To</span>{b.dropoff_location}</p>}
-                        {b.special_requests && <p className="truncate text-gray-400 italic"><span className="not-italic uppercase tracking-wide text-[10px] mr-1">Note</span>{b.special_requests}</p>}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
