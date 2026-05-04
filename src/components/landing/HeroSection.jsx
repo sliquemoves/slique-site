@@ -187,7 +187,7 @@ export default function HeroSection({ onBookNow }) {
 
         {/* Background */}
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/42d14d85e_interior1.jpg')` }}>
+          style={{ backgroundImage: `url('/slique.png')` }}>
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black" />
         </div>
 
