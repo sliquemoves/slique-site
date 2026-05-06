@@ -14,7 +14,14 @@ const SHELL = {
   background: '#000',
   color: '#fff',
   fontFamily: 'system-ui, -apple-system, sans-serif',
-  padding: '28px 24px 24px 24px',
+  // Center the whole content group vertically. When the content fits
+  // the viewport, justify-content centers it; when it exceeds the
+  // viewport, the SHELL grows past 100vh so the body scrolls naturally
+  // (no clipped top).
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  padding: '24px',
 };
 
 const WRAP = { maxWidth: 960, margin: '0 auto' };
