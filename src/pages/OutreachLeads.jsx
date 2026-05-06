@@ -64,7 +64,7 @@ function LeadsTable() {
   const filtered = useMemo(() => {
     if (!rows) return [];
     if (filter === 'all') return rows;
-    return rows.filter(r => r.status === filter);
+    return rows.filter(r => r.event_status === filter);
   }, [rows, filter]);
 
   return (
@@ -124,7 +124,7 @@ function LeadsTable() {
                     <td style={TD}>{r.event_name ?? '—'}</td>
                     <td style={TD}>{fmtDate(r.event_date)}</td>
                     <td style={{ ...TD, color: 'rgba(255,255,255,0.6)' }}>{r.event_type ?? '—'}</td>
-                    <td style={TD}><StatusPill value={r.status} /></td>
+                    <td style={TD}><StatusPill value={r.event_status} /></td>
                     <td style={{ ...TD, color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
                       {r.contact_email ?? r.contact_name ?? <span style={{ color: 'rgba(255,255,255,0.25)' }}>—</span>}
                     </td>

@@ -37,7 +37,7 @@ function verifySvixSignature({ secret, svixId, svixTimestamp, svixSignature, raw
   });
 }
 
-// Maps the Resend event type to our email_events.type column,
+// Maps the Resend event type to our email_events.event_type column,
 // and flags whether it warrants adding the recipient to suppressions.
 function classifyEvent(resendType) {
   switch (resendType) {
@@ -111,7 +111,7 @@ export default async function handler(req, res) {
 
     const { data: send, error: sendErr } = await supabaseAdmin
       .from('email_sends')
-      .select('id, snapshot_to_email')
+      .select('id, to_email')
       .eq('resend_message_id', messageId)
       .maybeSingle();
 
@@ -130,16 +130,16 @@ export default async function handler(req, res) {
       .from('email_events')
       .insert({
         send_id: send.id,
-        type,
+        event_type: type,
         occurred_at: payload?.created_at ?? new Date().toISOString(),
         payload,
       });
 
     if (insertErr) throw new Error(`Insert email_events: ${insertErr.message}`);
 
-    if (suppress && send.snapshot_to_email) {
+    if (suppress && send.to_email) {
       await addSuppression(
-        send.snapshot_to_email,
+        send.to_email,
         suppress,
         `Auto-added by resend-events webhook (${resendType})`
       );
@@ -148,7 +148,7 @@ export default async function handler(req, res) {
     await finishRun(runId, 'success', {
       processed: 1,
       succeeded: 1,
-      notes: `${resendType} for ${send.snapshot_to_email}`,
+      notes: `${resendType} for ${send.to_email}`,
     });
 
     return res.status(200).json({ ok: true });

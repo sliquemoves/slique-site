@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     // Load venue details + check for any existing contact
     const { data: venues, error: venueErr } = await supabaseAdmin
       .from('venues')
-      .select('id, name, city, type, website')
+      .select('id, name, city, type, website_url')
       .in('id', venueIds);
 
     if (venueErr) throw new Error(`Failed to load venues: ${venueErr.message}`);
@@ -128,7 +128,8 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // Insert the contact
+        // Insert the contact. The contacts table has no raw_payload column;
+        // citations are kept on agent_runs.notes if we ever need them.
         const { error: insertErr } = await supabaseAdmin
           .from('contacts')
           .insert({
@@ -138,7 +139,6 @@ export default async function handler(req, res) {
             email,
             source_url: contactData.source_url.slice(0, 1000),
             verified_status: 'unverified',
-            raw_payload: { perplexity_response: contactData, citations },
           });
 
         if (insertErr) {

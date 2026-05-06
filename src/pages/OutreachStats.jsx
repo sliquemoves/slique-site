@@ -36,7 +36,7 @@ function StatsView() {
       const [eventsRes, sendsRes, eventsLogRes, draftsRes] = await Promise.all([
         supabase.from('events').select('status').limit(5000),
         supabase.from('email_sends').select('id').limit(5000),
-        supabase.from('email_events').select('type').limit(5000),
+        supabase.from('email_events').select('event_type').limit(5000),
         supabase.from('email_drafts').select('status').limit(5000),
       ]);
 
@@ -59,7 +59,7 @@ function StatsView() {
 
       const eventTypeCounts = {};
       for (const r of eventsLogRes.data ?? []) {
-        eventTypeCounts[r.type] = (eventTypeCounts[r.type] ?? 0) + 1;
+        eventTypeCounts[r.event_type] = (eventTypeCounts[r.event_type] ?? 0) + 1;
       }
 
       const delivered = eventTypeCounts.delivered ?? 0;

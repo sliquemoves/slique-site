@@ -120,7 +120,7 @@ export default async function handler(req, res) {
         if (await isSuppressed(toEmail)) {
           await supabaseAdmin
             .from('email_drafts')
-            .update({ status: 'rejected', rejection_reason: 'suppressed_at_send' })
+            .update({ status: 'rejected', rejection_note: 'suppressed_at_send' })
             .eq('id', draft.id);
           suppressedCount++;
           succeeded++;
@@ -145,7 +145,7 @@ export default async function handler(req, res) {
           if (result.suppressed) {
             await supabaseAdmin
               .from('email_drafts')
-              .update({ status: 'rejected', rejection_reason: 'suppressed_at_send' })
+              .update({ status: 'rejected', rejection_note: 'suppressed_at_send' })
               .eq('id', draft.id);
             suppressedCount++;
             succeeded++;
@@ -157,18 +157,19 @@ export default async function handler(req, res) {
 
         const sentAt = new Date().toISOString();
 
-        // Snapshot — these never change even if drafts/contacts are later edited
+        // Snapshot — these never change even if drafts/contacts are later edited.
+        // email_sends has no event_id/contact_id columns; derive via draft_id join.
         const { error: sendInsertErr } = await supabaseAdmin
           .from('email_sends')
           .insert({
             draft_id: draft.id,
-            event_id: draft.event_id,
-            contact_id: draft.contact_id,
             resend_message_id: result.messageId,
             sent_at: sentAt,
-            snapshot_to_email: toEmail,
-            snapshot_subject: draft.subject,
-            snapshot_body: draft.body,
+            to_email: toEmail,
+            from_email: 'Cyril | Slique <cyril@sliquemoves.com>',
+            reply_to: 'cyril@sliquemoves.com',
+            subject_snapshot: draft.subject,
+            body_snapshot: draft.body,
           });
 
         if (sendInsertErr) throw new Error(`Insert email_sends: ${sendInsertErr.message}`);

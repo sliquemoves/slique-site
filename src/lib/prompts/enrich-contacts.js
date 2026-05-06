@@ -16,12 +16,12 @@ CRITICAL RULES:
 /**
  * Build the user prompt for enriching a single venue.
  *
- * @param {{ name: string, city: string, type: string, website?: string }} venue
+ * @param {{ name: string, city: string, type: string, website_url?: string }} venue
  * @returns {string}
  */
 export function buildEnrichPrompt(venue) {
-  const websiteHint = venue.website
-    ? `Official website: ${venue.website}`
+  const websiteHint = venue.website_url
+    ? `Official website: ${venue.website_url}`
     : `Search for the venue's official website first.`;
 
   return `Find the best sales, events, or booking contact for this venue.

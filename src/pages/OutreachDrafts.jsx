@@ -150,9 +150,9 @@ function DraftsList() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status, rejection_reason }) => {
+    mutationFn: async ({ id, status, rejection_note }) => {
       const patch = { status };
-      if (rejection_reason) patch.rejection_reason = rejection_reason;
+      if (rejection_note) patch.rejection_note = rejection_note;
       const { error } = await supabase.from('email_drafts').update(patch).eq('id', id);
       if (error) throw error;
     },
@@ -179,7 +179,7 @@ function DraftsList() {
 
   const handleReject = (id) => {
     const reason = window.prompt('Reason for rejection (optional):') ?? '';
-    updateStatus.mutate({ id, status: 'rejected', rejection_reason: reason || null }, {
+    updateStatus.mutate({ id, status: 'rejected', rejection_note: reason || null }, {
       onSuccess: () => toast.success('Rejected'),
       onError: (err) => toast.error(err.message),
     });
