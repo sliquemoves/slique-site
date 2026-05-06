@@ -85,7 +85,7 @@ const BUTTON_OVERRIDE = {
 export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const redirect = params.get('redirect') || '/admin';
+  const redirect = params.get('redirect') || '/manage';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

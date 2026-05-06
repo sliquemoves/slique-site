@@ -21,9 +21,11 @@ import OutreachHub from './pages/OutreachHub';
 import OutreachLeads from './pages/OutreachLeads';
 import OutreachStats from './pages/OutreachStats';
 
-// Backwards-compat redirect from the old PascalCase /Admin URL.
-// Now points at the new lower-case /admin hub.
-const AdminRedirect = () => <Navigate to="/admin" replace />;
+// /admin and the legacy PascalCase /Admin both redirect to the canonical
+// /manage hub. The /admin path was getting flagged by some browser ad-tech
+// extensions and DNS-level blocklists which prevented React from booting,
+// so the working hub lives at /manage now.
+const ManageRedirect = () => <Navigate to="/manage" replace />;
 
 export const ROUTES = [
   // Public site
@@ -34,11 +36,12 @@ export const ROUTES = [
   // Admin sign-in (public route, no nav so the public chrome doesn't leak in)
   { path: '/login',               component: Login,               showNav: false, gated: false },
 
-  // Legacy redirect — keep until external bookmarks are replaced
-  { path: '/Admin',               component: AdminRedirect,       showNav: false, gated: false },
+  // Legacy redirects — both flavors of /admin land on the canonical /manage
+  { path: '/Admin',               component: ManageRedirect,      showNav: false, gated: false },
+  { path: '/admin',               component: ManageRedirect,      showNav: false, gated: false },
 
   // Admin (authenticated, role=admin)
-  { path: '/admin',               component: AdminHub,            showNav: false, gated: true  },
+  { path: '/manage',              component: AdminHub,            showNav: false, gated: true  },
   { path: '/bookings',            component: Admin,               showNav: false, gated: true  },
   { path: '/outreach',            component: OutreachHub,         showNav: false, gated: true  },
   { path: '/outreach/drafts',     component: OutreachDrafts,      showNav: false, gated: true  },

@@ -177,15 +177,12 @@ function CalendarRow({ booking }) {
 
 // ─── main ─────────────────────────────────────────────────────────────────────
 export default function AdminHub() {
-  console.log('[AdminHub] component function called');
-
   const [pendingBookings, setPendingBookings] = useState(0);
   const [pendingDrafts, setPendingDrafts] = useState(0);
   const [confirmed, setConfirmed] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    console.log('[AdminHub] fetchAll start');
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
 
@@ -209,12 +206,6 @@ export default function AdminHub() {
           .limit(50),
       ]);
 
-      console.log('[AdminHub] fetchAll results', {
-        pendingBookings: pendingBookingsRes.count, pendingBookingsErr: pendingBookingsRes.error?.message,
-        pendingDrafts: pendingDraftsRes.count, pendingDraftsErr: pendingDraftsRes.error?.message,
-        confirmedRows: confirmedRes.data?.length, confirmedErr: confirmedRes.error?.message,
-      });
-
       setPendingBookings(pendingBookingsRes.count ?? 0);
       setPendingDrafts(pendingDraftsRes.count ?? 0);
       setConfirmed(confirmedRes.data ?? []);
@@ -225,10 +216,7 @@ export default function AdminHub() {
     }
   }, []);
 
-  useEffect(() => {
-    console.log('[AdminHub] useEffect mount');
-    fetchAll();
-  }, [fetchAll]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   return (
     <div style={SHELL}>

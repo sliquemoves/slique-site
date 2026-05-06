@@ -139,7 +139,7 @@ export default function OutreachHub() {
   return (
     <div style={SHELL}>
       <div style={WRAP}>
-        <AdminTopBar backHref="/admin" backLabel="Admin" center="Slique Moves" />
+        <AdminTopBar backHref="/manage" backLabel="Admin" center="Slique Moves" />
 
         <header style={HEADER}>
           <h1 style={TITLE}>Outreach</h1>

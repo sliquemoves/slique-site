@@ -16,14 +16,10 @@ export default function AuthGuard({ children }) {
   const [session, setSession] = useState(null);
   const location = useLocation();
 
-  console.log('[AuthGuard] render', { path: location.pathname, loading, hasSession: !!session, role: session?.user?.app_metadata?.role });
-
   useEffect(() => {
     let active = true;
-    console.log('[AuthGuard] useEffect mount, calling getSession');
 
-    supabase.auth.getSession().then(({ data, error }) => {
-      console.log('[AuthGuard] getSession resolved', { hasSession: !!data?.session, role: data?.session?.user?.app_metadata?.role, error });
+    supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       setSession(data.session ?? null);
       setLoading(false);
@@ -34,8 +30,7 @@ export default function AuthGuard({ children }) {
       setLoading(false);
     });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, s) => {
-      console.log('[AuthGuard] onAuthStateChange', { event, hasSession: !!s, role: s?.user?.app_metadata?.role });
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!active) return;
       setSession(s ?? null);
       setLoading(false);
@@ -75,15 +70,13 @@ export default function AuthGuard({ children }) {
 
   if (!session) {
     const redirect = location.pathname + location.search;
-    console.log('[AuthGuard] no session -> redirecting to /login', { redirect });
     return <Navigate to={`/login?redirect=${encodeURIComponent(redirect)}`} replace />;
   }
 
   if (session.user?.app_metadata?.role !== 'admin') {
-    console.log('[AuthGuard] not admin -> redirecting to /', { role: session.user?.app_metadata?.role });
+    // Signed in but not an admin — bounce to public site.
     return <Navigate to="/" replace />;
   }
 
-  console.log('[AuthGuard] admin -> rendering children');
   return children;
 }
