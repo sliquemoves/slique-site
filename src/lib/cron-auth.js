@@ -4,15 +4,15 @@
 // when invoking cron jobs. Any other caller without the secret gets a 401.
 
 export function verifyCronAuth(request) {
-  const authHeader = request.headers.get('authorization');
-
   if (!process.env.CRON_SECRET) {
     throw new Error('Missing env var: CRON_SECRET');
   }
 
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return false;
-  }
+  // Support both Web API style (Headers object) and Node.js style (plain object)
+  const authHeader =
+    typeof request.headers?.get === 'function'
+      ? request.headers.get('authorization')
+      : request.headers?.authorization;
 
-  return true;
+  return authHeader === `Bearer ${process.env.CRON_SECRET}`;
 }
