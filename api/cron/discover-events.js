@@ -4,7 +4,7 @@
 // and inserts new rows into the events table.
 // Dedupes via the (venue_id, event_date, name) unique constraint.
 
-import { supabaseAdmin } from '../../src/lib/supabaseAdmin.js';
+import { supabaseAdmin } from '../../src/lib/supabase-admin.js';
 import { verifyCronAuth } from '../../src/lib/cron-auth.js';
 import { startRun, finishRun } from '../../src/lib/agent-run-logger.js';
 import { askPerplexityJSON } from '../../src/lib/perplexity-client.js';
