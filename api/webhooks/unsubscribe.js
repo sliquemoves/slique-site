@@ -44,9 +44,8 @@ function renderPage({ heading, body, accent = '#ffffff' }) {
 </html>`;
 }
 
-export default async function handler(request) {
-  const url = new URL(request.url);
-  const raw = url.searchParams.get('email') ?? '';
+export default async function handler(req, res) {
+  const raw = (req.query?.email ?? '').toString();
   const email = raw.toLowerCase().trim();
 
   if (!email || !EMAIL_RX.test(email)) {
@@ -54,10 +53,8 @@ export default async function handler(request) {
       heading: 'Invalid request',
       body: `<p>That unsubscribe link doesn't include a valid email address. If you'd still like to opt out, reply to any message from us with the word <em>unsubscribe</em>.</p>`,
     });
-    return new Response(html, {
-      status: 400,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(400).send(html);
   }
 
   try {
@@ -77,11 +74,7 @@ export default async function handler(request) {
     `,
   });
 
-  return new Response(html, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store',
-    },
-  });
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(200).send(html);
 }

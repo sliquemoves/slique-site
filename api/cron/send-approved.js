@@ -62,9 +62,9 @@ function unsubscribeUrlFor(email) {
   return `${base}/api/webhooks/unsubscribe?email=${encodeURIComponent(email)}`;
 }
 
-export default async function handler(request) {
-  if (!verifyCronAuth(request)) {
-    return new Response('Unauthorized', { status: 401 });
+export default async function handler(req, res) {
+  if (!verifyCronAuth(req)) {
+    return res.status(401).send('Unauthorized');
   }
 
   const dailyLimit = Number(process.env.SEND_DAILY_LIMIT ?? DEFAULT_DAILY_LIMIT);
@@ -88,7 +88,7 @@ export default async function handler(request) {
 
     if (!drafts || drafts.length === 0) {
       await finishRun(runId, 'success', { notes: 'No approved drafts to send.' });
-      return Response.json({ ok: true, message: 'Nothing to send', dailyLimit });
+      return res.status(200).json({ ok: true, message: 'Nothing to send', dailyLimit });
     }
 
     // Pull every contact + event referenced by these drafts so we can snapshot
@@ -207,7 +207,7 @@ export default async function handler(request) {
       notes: `Sent ${succeeded - suppressedCount}, suppressed ${suppressedCount}, failed ${failed}, daily limit ${dailyLimit}`,
     });
 
-    return Response.json({
+    return res.status(200).json({
       ok: true,
       processed,
       succeeded,
@@ -224,7 +224,7 @@ export default async function handler(request) {
       failed,
       errorLog: { fatal: err.message, errors },
     });
-    return Response.json({ ok: false, error: err.message }, { status: 500 });
+    return res.status(500).json({ ok: false, error: err.message });
   }
 }
 

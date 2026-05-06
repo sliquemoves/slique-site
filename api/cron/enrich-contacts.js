@@ -19,9 +19,9 @@ const SLEEP_BETWEEN_CALLS_MS = 1000;
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-export default async function handler(request) {
-  if (!verifyCronAuth(request)) {
-    return new Response('Unauthorized', { status: 401 });
+export default async function handler(req, res) {
+  if (!verifyCronAuth(req)) {
+    return res.status(401).send('Unauthorized');
   }
 
   const runId = await startRun('enrichment');
@@ -47,7 +47,7 @@ export default async function handler(request) {
 
     if (!discoveredEvents || discoveredEvents.length === 0) {
       await finishRun(runId, 'success', { notes: 'No discovered events to enrich.' });
-      return Response.json({ ok: true, message: 'Nothing to enrich' });
+      return res.status(200).json({ ok: true, message: 'Nothing to enrich' });
     }
 
     // Group event IDs by venue
@@ -181,7 +181,7 @@ export default async function handler(request) {
       notes: `${contactsCreated} new contacts, ${eventsAdvanced} events advanced to enriched`,
     });
 
-    return Response.json({
+    return res.status(200).json({
       ok: true,
       processed,
       succeeded,
@@ -198,7 +198,7 @@ export default async function handler(request) {
       failed,
       errorLog: { fatal: err.message, errors },
     });
-    return Response.json({ ok: false, error: err.message }, { status: 500 });
+    return res.status(500).json({ ok: false, error: err.message });
   }
 }
 

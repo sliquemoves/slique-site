@@ -52,16 +52,27 @@ function classifyEvent(resendType) {
   }
 }
 
-export default async function handler(request) {
-  if (request.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+// Read the raw request body as a string. We need the exact bytes Resend signed,
+// so we disable bodyParser below and stream the body ourselves.
+function readRawBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => { data += chunk; });
+    req.on('end', () => resolve(data));
+    req.on('error', reject);
+  });
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).send('Method Not Allowed');
   }
 
-  const rawBody = await request.text();
+  const rawBody = await readRawBody(req);
 
-  const svixId = request.headers.get('svix-id');
-  const svixTimestamp = request.headers.get('svix-timestamp');
-  const svixSignature = request.headers.get('svix-signature');
+  const svixId = req.headers['svix-id'];
+  const svixTimestamp = req.headers['svix-timestamp'];
+  const svixSignature = req.headers['svix-signature'];
 
   const ok = verifySvixSignature({
     secret: process.env.RESEND_WEBHOOK_SECRET,
@@ -73,14 +84,14 @@ export default async function handler(request) {
 
   if (!ok) {
     console.error('[resend-events] Bad signature');
-    return new Response('Bad signature', { status: 401 });
+    return res.status(401).send('Bad signature');
   }
 
   let payload;
   try {
     payload = JSON.parse(rawBody);
   } catch {
-    return new Response('Invalid JSON', { status: 400 });
+    return res.status(400).send('Invalid JSON');
   }
 
   const runId = await startRun('webhook_processing');
@@ -93,7 +104,7 @@ export default async function handler(request) {
       await finishRun(runId, 'failed', {
         notes: `No email_id on payload (type=${resendType})`,
       });
-      return Response.json({ ok: true, ignored: true });
+      return res.status(200).json({ ok: true, ignored: true });
     }
 
     const { type, suppress } = classifyEvent(resendType);
@@ -112,7 +123,7 @@ export default async function handler(request) {
       await finishRun(runId, 'success', {
         notes: `No matching send for ${messageId} (${resendType})`,
       });
-      return Response.json({ ok: true, matched: false });
+      return res.status(200).json({ ok: true, matched: false });
     }
 
     const { error: insertErr } = await supabaseAdmin
@@ -140,12 +151,12 @@ export default async function handler(request) {
       notes: `${resendType} for ${send.snapshot_to_email}`,
     });
 
-    return Response.json({ ok: true });
+    return res.status(200).json({ ok: true });
 
   } catch (err) {
     console.error('[resend-events] Error:', err);
     await finishRun(runId, 'failed', { errorLog: { fatal: err.message } });
-    return Response.json({ ok: false, error: err.message }, { status: 500 });
+    return res.status(500).json({ ok: false, error: err.message });
   }
 }
 
