@@ -1,13 +1,12 @@
 // src/pages/OutreachDrafts.jsx
 // Review queue for pending_review drafts. Approve / edit / reject.
-// Reads via the user's authenticated supabase client — RLS lets only admins through.
+// No UI gate — admin scope is enforced at the data layer via Supabase RLS.
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Check, X, Pencil, Save, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
-import OutreachAdminGate from '@/components/OutreachAdminGate';
 
 const SHELL = {
   minHeight: '100vh',
@@ -228,9 +227,5 @@ function DraftsList() {
 }
 
 export default function OutreachDrafts() {
-  return (
-    <OutreachAdminGate>
-      <DraftsList />
-    </OutreachAdminGate>
-  );
+  return <DraftsList />;
 }

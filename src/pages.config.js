@@ -2,6 +2,7 @@
  * pages.config.js - Page routing configuration
  */
 import Admin from './pages/Admin';
+import AdminBookings from './pages/AdminBookings';
 import BookingConfirmation from './pages/BookingConfirmation';
 import Home from './pages/Home';
 import OutreachDrafts from './pages/OutreachDrafts';
@@ -12,6 +13,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "Admin": Admin,
+    "AdminBookings": AdminBookings,
     "BookingConfirmation": BookingConfirmation,
     "Home": Home,
     "OutreachDrafts": OutreachDrafts,
