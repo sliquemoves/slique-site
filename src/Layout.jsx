@@ -2,20 +2,10 @@ import React from 'react';
 import NavBar from '@/components/landing/NavBar';
 
 /**
- * Layout wraps every page. Currently provides the sticky navigation bar.
- * Admin and BookingConfirmation pages are excluded from the public nav.
+ * Layout wraps every route. Renders the public NavBar only when the
+ * route opted in via `showNav` in pages.config.js.
  */
-export default function Layout({ children, currentPageName }) {
-  const hideNavOn = [
-    'Admin',
-    'AdminBookings',
-    'BookingConfirmation',
-    'OutreachDrafts',
-    'OutreachLeads',
-    'OutreachStats',
-  ];
-  const showNav = !hideNavOn.includes(currentPageName);
-
+export default function Layout({ children, showNav = false }) {
   return (
     <>
       {showNav && <NavBar />}

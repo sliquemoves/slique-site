@@ -5,7 +5,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import OutreachAdminGate from '@/components/OutreachAdminGate';
+import AdminTopBar from '@/components/AdminTopBar';
 
 const SHELL = { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, sans-serif', padding: '40px 24px' };
 const EYEBROW = { fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 };
@@ -93,6 +93,8 @@ function StatsView() {
   return (
     <div style={SHELL}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <AdminTopBar backHref="/outreach" backLabel="Outreach" center="Performance Stats" />
+
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 24, marginBottom: 32 }}>
           <div>
             <div style={EYEBROW}>Slique Outreach</div>
@@ -150,9 +152,5 @@ function StatsView() {
 }
 
 export default function OutreachStats() {
-  return (
-    <OutreachAdminGate>
-      <StatsView />
-    </OutreachAdminGate>
-  );
+  return <StatsView />;
 }

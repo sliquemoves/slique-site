@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Check, X, Pencil, Save, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
+import AdminTopBar from '@/components/AdminTopBar';
 
 const SHELL = {
   minHeight: '100vh',
@@ -191,6 +192,8 @@ function DraftsList() {
   return (
     <div style={SHELL}>
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
+        <AdminTopBar backHref="/outreach" backLabel="Outreach" center="Drafts Queue" />
+
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 24, marginBottom: 32 }}>
           <div>
             <div style={EYEBROW}>Slique Outreach</div>
