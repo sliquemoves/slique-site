@@ -129,8 +129,16 @@ export default function Login() {
 
   if (checking) {
     return (
-      <div style={SHELL}>
-        <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.5)' }} />
+      <div style={{ ...SHELL, flexDirection: 'column', gap: 18 }}>
+        <Loader2 size={26} className="animate-spin" style={{ color: 'rgba(255,255,255,0.7)' }} />
+        <div style={{
+          fontSize: 9,
+          letterSpacing: '0.45em',
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.55)',
+        }}>
+          Loading
+        </div>
       </div>
     );
   }

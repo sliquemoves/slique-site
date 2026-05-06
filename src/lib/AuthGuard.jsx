@@ -42,11 +42,23 @@ export default function AuthGuard({ children }) {
       <div style={{
         minHeight: '100vh',
         background: '#000',
+        color: '#fff',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 18,
+        fontFamily: 'system-ui, -apple-system, sans-serif',
       }}>
-        <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.5)' }} />
+        <Loader2 size={26} className="animate-spin" style={{ color: 'rgba(255,255,255,0.7)' }} />
+        <div style={{
+          fontSize: 9,
+          letterSpacing: '0.45em',
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.55)',
+        }}>
+          Checking session
+        </div>
       </div>
     );
   }
