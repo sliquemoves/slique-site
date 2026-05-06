@@ -197,8 +197,8 @@ export default function HeroSection({ onBookNow }) {
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: 'easeOut' }}>
             <p className="text-gray-200 tracking-[0.4em] uppercase text-sm mb-6 font-medium">Premium Chauffeur Services</p>
             <h1 className="text-7xl lg:text-8xl font-light text-white tracking-tight leading-none mb-0">
-              <span className="block">ELEVATE YOUR</span>
-              <span className="block font-semibold">JOURNEY</span>
+              <span className="block">EXCELLENCE IN</span>
+              <span className="block font-semibold">MOTION</span>
             </h1>
           </motion.div>
         </div>
@@ -231,7 +231,7 @@ export default function HeroSection({ onBookNow }) {
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.2 }} style={{ width: '100%' }}>
               <p style={{ fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d4d4d4', marginBottom: 16, fontWeight: 500 }}>Premium Chauffeur Services</p>
               <h1 className="font-light text-white leading-none" style={{ fontSize: 'clamp(46px,13vw,62px)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
-                Elevate Your<strong className="font-semibold block">Journey</strong>
+                Excellence in<strong className="font-semibold block">Motion</strong>
               </h1>
 
               {/* Full-bleed seamless trust strip — extends past the padded container */}
