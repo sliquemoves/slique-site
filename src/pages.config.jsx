@@ -12,6 +12,7 @@
 import { Navigate } from 'react-router-dom';
 
 import Admin from './pages/Admin';
+import AdminHub from './pages/AdminHub';
 import BookingConfirmation from './pages/BookingConfirmation';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -20,8 +21,9 @@ import OutreachHub from './pages/OutreachHub';
 import OutreachLeads from './pages/OutreachLeads';
 import OutreachStats from './pages/OutreachStats';
 
-// Backwards-compat redirect from the old /Admin URL.
-const AdminRedirect = () => <Navigate to="/bookings" replace />;
+// Backwards-compat redirect from the old PascalCase /Admin URL.
+// Now points at the new lower-case /admin hub.
+const AdminRedirect = () => <Navigate to="/admin" replace />;
 
 export const ROUTES = [
   // Public site
@@ -36,6 +38,7 @@ export const ROUTES = [
   { path: '/Admin',               component: AdminRedirect,       showNav: false, gated: false },
 
   // Admin (authenticated, role=admin)
+  { path: '/admin',               component: AdminHub,            showNav: false, gated: true  },
   { path: '/bookings',            component: Admin,               showNav: false, gated: true  },
   { path: '/outreach',            component: OutreachHub,         showNav: false, gated: true  },
   { path: '/outreach/drafts',     component: OutreachDrafts,      showNav: false, gated: true  },

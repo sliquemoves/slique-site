@@ -569,7 +569,7 @@ export default function Admin() {
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
-        <AdminTopBar center="Slique Moves — Admin" />
+        <AdminTopBar backHref="/admin" backLabel="Admin" center="Slique Moves" />
 
         {/* Header */}
         <motion.div
