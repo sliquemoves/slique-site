@@ -177,41 +177,58 @@ function CalendarRow({ booking }) {
 
 // ─── main ─────────────────────────────────────────────────────────────────────
 export default function AdminHub() {
+  console.log('[AdminHub] component function called');
+
   const [pendingBookings, setPendingBookings] = useState(0);
   const [pendingDrafts, setPendingDrafts] = useState(0);
   const [confirmed, setConfirmed] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
+    console.log('[AdminHub] fetchAll start');
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
 
-    const [pendingBookingsRes, pendingDraftsRes, confirmedRes] = await Promise.all([
-      supabase
-        .from('bookings')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending'),
-      supabase
-        .from('email_drafts')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending_review'),
-      supabase
-        .from('bookings')
-        .select('id, customer_name, pickup_date, pickup_time, pickup_location, dropoff_location, vehicle_type, status')
-        .eq('status', 'confirmed')
-        .gte('pickup_date', today)
-        .order('pickup_date', { ascending: true })
-        .order('pickup_time', { ascending: true })
-        .limit(50),
-    ]);
+    try {
+      const [pendingBookingsRes, pendingDraftsRes, confirmedRes] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending'),
+        supabase
+          .from('email_drafts')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending_review'),
+        supabase
+          .from('bookings')
+          .select('id, customer_name, pickup_date, pickup_time, pickup_location, dropoff_location, vehicle_type, status')
+          .eq('status', 'confirmed')
+          .gte('pickup_date', today)
+          .order('pickup_date', { ascending: true })
+          .order('pickup_time', { ascending: true })
+          .limit(50),
+      ]);
 
-    setPendingBookings(pendingBookingsRes.count ?? 0);
-    setPendingDrafts(pendingDraftsRes.count ?? 0);
-    setConfirmed(confirmedRes.data ?? []);
-    setLoading(false);
+      console.log('[AdminHub] fetchAll results', {
+        pendingBookings: pendingBookingsRes.count, pendingBookingsErr: pendingBookingsRes.error?.message,
+        pendingDrafts: pendingDraftsRes.count, pendingDraftsErr: pendingDraftsRes.error?.message,
+        confirmedRows: confirmedRes.data?.length, confirmedErr: confirmedRes.error?.message,
+      });
+
+      setPendingBookings(pendingBookingsRes.count ?? 0);
+      setPendingDrafts(pendingDraftsRes.count ?? 0);
+      setConfirmed(confirmedRes.data ?? []);
+    } catch (err) {
+      console.error('[AdminHub] fetchAll threw', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    console.log('[AdminHub] useEffect mount');
+    fetchAll();
+  }, [fetchAll]);
 
   return (
     <div style={SHELL}>
