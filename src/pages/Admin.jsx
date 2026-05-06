@@ -14,7 +14,7 @@ const SHELL = {
   background: '#000',
   color: '#fff',
   fontFamily: 'system-ui, -apple-system, sans-serif',
-  padding: '60px 24px 80px 24px',
+  padding: '28px 24px 24px 24px',
 };
 
 const WRAP = { maxWidth: 960, margin: '0 auto' };
@@ -48,7 +48,7 @@ const SUBTITLE = {
   fontStyle: 'italic',
 };
 
-const RULE = { width: 60, height: 1, background: 'rgba(255,255,255,0.25)', margin: '38px auto 0 auto' };
+const RULE = { width: 60, height: 1, background: 'rgba(255,255,255,0.25)', margin: '22px auto 0 auto' };
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 function formatDate(dateStr) {
@@ -90,7 +90,7 @@ function HubTile({ to, eyebrow, label, count, countLabel }) {
         display: 'block',
         background: hover ? 'rgba(255,255,255,0.06)' : '#0a0a0a',
         border: hover ? '1px solid rgba(255,255,255,0.5)' : '1px solid rgba(255,255,255,0.18)',
-        padding: '56px 36px',
+        padding: '40px 36px',
         textAlign: 'center',
         transition: 'all 200ms ease',
         cursor: 'pointer',
@@ -141,7 +141,7 @@ function CalendarRow({ booking }) {
       gridTemplateColumns: '160px 110px 1fr 220px',
       alignItems: 'center',
       gap: 24,
-      padding: '20px 28px',
+      padding: '14px 28px',
       borderTop: '1px solid rgba(255,255,255,0.08)',
     }}>
       <div style={{ fontSize: 12, color: '#fff', letterSpacing: '0.04em' }}>
@@ -222,15 +222,14 @@ export default function Admin() {
       <div style={WRAP}>
 
         {/* Header — centered */}
-        <header style={{ textAlign: 'center', marginBottom: 80 }}>
-          <div style={EYEBROW}>Hospitality</div>
+        <header style={{ textAlign: 'center', marginBottom: 24 }}>
           <h1 style={TITLE}>Slique Moves</h1>
           <div style={SUBTITLE}>Admin</div>
           <div style={RULE} />
         </header>
 
         {/* Two big hub tiles */}
-        <div style={{ display: 'flex', gap: 18, marginBottom: 80 }}>
+        <div style={{ display: 'flex', gap: 18, marginBottom: 24 }}>
           <HubTile
             to="/AdminBookings"
             eyebrow="Reservations"
@@ -249,11 +248,10 @@ export default function Admin() {
 
         {/* Confirmed upcoming bookings calendar */}
         <section>
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <div style={EYEBROW}>Calendar</div>
+          <div style={{ textAlign: 'center', marginBottom: 14 }}>
             <h2 style={{
               fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: 30,
+              fontSize: 24,
               fontWeight: 300,
               letterSpacing: '0.1em',
               color: '#fff',
@@ -262,7 +260,7 @@ export default function Admin() {
             }}>
               Upcoming <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.65)' }}>Confirmed</span>
             </h2>
-            <div style={{ width: 30, height: 1, background: 'rgba(255,255,255,0.2)', margin: '20px auto 0 auto' }} />
+            <div style={{ width: 30, height: 1, background: 'rgba(255,255,255,0.2)', margin: '12px auto 0 auto' }} />
           </div>
 
           <div style={{
