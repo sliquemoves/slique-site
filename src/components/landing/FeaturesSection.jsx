@@ -36,7 +36,10 @@ export default function FeaturesSection() {
         style={{
           backgroundImage: 'url(/slique_interior.png)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          // Anchor the bottom of the photo to the bottom of the section so
+          // the steering-wheel Cadillac crest sits in the upper area, between
+          // the section top and the reviews row. Width / zoom are unchanged.
+          backgroundPosition: 'center bottom',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"
