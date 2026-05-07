@@ -426,7 +426,7 @@ export default function BookingSection() {
               disabled={isSubmitting || availableSlots.length === 0}
               className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : 'Submit Reservation Request'}
+              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : 'Submit'}
             </Button>
           </div>
         </motion.form>

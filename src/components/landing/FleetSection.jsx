@@ -66,9 +66,14 @@ export default function FleetSection() {
               className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full"
               style={{
                 maxWidth: '88%',
-                border: '1px solid rgba(255,255,255,0.08)',
+                // Thicker, more visible border + chunky rounded corners.
+                // overflow: hidden so the photo at the top of the card
+                // clips to the rounded shape instead of poking out square.
+                border: '2px solid rgba(255,255,255,0.22)',
+                borderRadius: '24px',
                 background: 'rgba(255,255,255,0.02)',
                 padding: '0 0 28px 0',
+                overflow: 'hidden',
               }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}

@@ -39,7 +39,7 @@ export default function FeaturesSection() {
           // Vertical-only shift. 'center bottom' (100%) pushed the crest too
           // high; pulling back to 90% lands the steering-wheel Cadillac crest
           // in the band between the heading and the reviews row.
-          backgroundPosition: 'center 90%',
+          backgroundPosition: 'center 80%',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"
