@@ -69,7 +69,7 @@ export default function FleetSection() {
                 // Thicker, more visible border + chunky rounded corners.
                 // overflow: hidden so the photo at the top of the card
                 // clips to the rounded shape instead of poking out square.
-                border: '2px solid rgba(255,255,255,0.22)',
+                border: '3px solid rgba(255,255,255,0.32)',
                 borderRadius: '24px',
                 background: 'rgba(255,255,255,0.02)',
                 padding: '0 0 28px 0',

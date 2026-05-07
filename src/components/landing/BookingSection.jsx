@@ -309,14 +309,16 @@ export default function BookingSection() {
   return (
     <section
       id="booking"
-      className="px-6 pt-12 pb-32"
+      className="px-6 pt-[88px] pb-32"
       style={{
-        // Off-white, warm-leaning to complement the black + gold elsewhere.
-        // The gradient at the top fades from the Fleet section's black into
-        // this color over the first ~48px, so the seam between sections
-        // disappears instead of hard-cutting from black to white.
-        backgroundColor: '#ece6db',
-        backgroundImage: 'linear-gradient(to bottom, #000 0px, #ece6db 48px)',
+        // White section. Top 88px is a black-to-white gradient that picks up
+        // where THE DIFFERENCE section ends (photo + 65% black scrim, i.e.
+        // mostly black) and fades smoothly into pure white. The "BOOK NOW"
+        // eyebrow sits at the 88px mark, exactly where the gradient resolves
+        // to solid #ffffff, so the heading lands on clean white with no
+        // visible seam above it.
+        backgroundColor: '#ffffff',
+        backgroundImage: 'linear-gradient(to bottom, #000 0px, #ffffff 88px)',
       }}
     >
       <div className="max-w-4xl mx-auto">
