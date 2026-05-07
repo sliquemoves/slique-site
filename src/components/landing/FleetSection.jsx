@@ -44,7 +44,7 @@ const vehicles = [
 
 export default function FleetSection() {
   return (
-    <section id="fleet" className="bg-black py-8 px-0 md:px-6 relative">
+    <section id="fleet" className="bg-black py-8 px-0 md:px-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
           className="text-center mb-10 md:mb-16"
@@ -135,18 +135,6 @@ export default function FleetSection() {
           ))}
         </div>
       </div>
-
-      {/* Bottom vignette: the last row of vehicle cards dissolves into solid
-          black before the section boundary, so the seam between FLEET and
-          THE DIFFERENCE reads as one continuous fade rather than a hard cut. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0"
-        style={{
-          height: '128px',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 100%)',
-        }}
-      />
     </section>
   );
 }
