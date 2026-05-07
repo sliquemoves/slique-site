@@ -309,15 +309,13 @@ export default function BookingSection() {
   return (
     <section
       id="booking"
-      className="px-6 pt-10 pb-32"
+      className="px-6 pt-14 pb-32"
       style={{
-        // White section. Top 40px is a black->TRANSPARENT gradient that
-        // dissolves over the white bg. Using transparent (not #ffffff) as
-        // the end-stop avoids the visible "white line" the previous
-        // gradient produced where it peaked at pure white before flattening
-        // out. The opacity quietly fades to zero so there's no perceptible
-        // boundary, and the BOOK NOW eyebrow lands right where the
-        // gradient becomes invisible.
+        // White section. Top 40px is a black->TRANSPARENT gradient (no
+        // explicit white stop, so there's no visible "line" where the
+        // gradient peaks). Content padding of 56px leaves a slim ~16px
+        // breathing zone of solid white between the gradient resolving
+        // and the BOOK NOW eyebrow.
         backgroundColor: '#ffffff',
         backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0px, rgba(0,0,0,0) 40px)',
       }}
@@ -440,7 +438,7 @@ export default function BookingSection() {
               disabled={isSubmitting || availableSlots.length === 0}
               className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : 'Submit'}
+              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : 'Reserve'}
             </Button>
           </div>
         </motion.form>
