@@ -309,7 +309,7 @@ export default function BookingSection() {
   return (
     <section
       id="booking"
-      className="px-6 pt-14 pb-32"
+      className="px-6 pt-14 pb-16"
       style={{
         // White section. Top 40px is a black->TRANSPARENT gradient (no
         // explicit white stop, so there's no visible "line" where the
