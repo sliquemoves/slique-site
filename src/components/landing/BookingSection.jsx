@@ -307,7 +307,18 @@ export default function BookingSection() {
   const todayStr = new Date().toISOString().split('T')[0];
 
   return (
-    <section id="booking" className="bg-white py-32 px-6">
+    <section
+      id="booking"
+      className="px-6 pt-12 pb-32"
+      style={{
+        // Off-white, warm-leaning to complement the black + gold elsewhere.
+        // The gradient at the top fades from the Fleet section's black into
+        // this color over the first ~48px, so the seam between sections
+        // disappears instead of hard-cutting from black to white.
+        backgroundColor: '#ece6db',
+        backgroundImage: 'linear-gradient(to bottom, #000 0px, #ece6db 48px)',
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         <motion.div
           className="text-center mb-16"
