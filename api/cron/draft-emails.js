@@ -6,7 +6,8 @@
 import { supabaseAdmin } from '../../src/lib/supabase-admin.js';
 import { verifyCronAuth } from '../../src/lib/cron-auth.js';
 import { startRun, finishRun } from '../../src/lib/agent-run-logger.js';
-import { askClaudeJSON } from '../../src/lib/claude-client.js';
+import { askClaudeJSON, DEFAULT_MODEL } from '../../src/lib/claude-client.js';
+import { sanitizeDraft } from '../../src/lib/sanitize-draft.js';
 import {
   DRAFT_SYSTEM_PROMPT,
   buildDraftPrompt,
@@ -14,7 +15,6 @@ import {
 } from '../../src/lib/prompts/draft-emails.js';
 
 const MAX_DRAFTS_PER_RUN = 20;
-const MODEL = 'claude-sonnet-4-5';
 const SLEEP_BETWEEN_CALLS_MS = 500;
 // Don't draft a second email to the same contact inside this window.
 // Counts existing drafts in pending_review / approved / sent.
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
 
         const userPrompt = buildDraftPrompt({ venue, event, contact });
         const draft = await askClaudeJSON(DRAFT_SYSTEM_PROMPT, userPrompt, {
-          model: MODEL,
+          model: DEFAULT_MODEL,
           maxTokens: 800,
         });
 
@@ -130,15 +130,20 @@ export default async function handler(req, res) {
           throw new Error('Claude returned a draft missing subject or body');
         }
 
+        // Post-generation safety net — strip em dashes / double-hyphens that
+        // sneak past the prompt rules. En dashes (used for ranges) are kept.
+        const cleanSubject = sanitizeDraft(draft.subject).slice(0, 300);
+        const cleanBody = sanitizeDraft(draft.body);
+
         const { error: insertErr } = await supabaseAdmin
           .from('email_drafts')
           .insert({
             event_id: event.id,
             contact_id: contact.id,
-            subject: draft.subject.slice(0, 300),
-            body: draft.body,
+            subject: cleanSubject,
+            body: cleanBody,
             status: 'pending_review',
-            model_used: MODEL,
+            model_used: DEFAULT_MODEL,
             prompt_version: DRAFT_PROMPT_VERSION,
           });
 

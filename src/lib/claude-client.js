@@ -3,7 +3,9 @@
 // Used by draft-emails.js cron job to generate outreach email drafts.
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const DEFAULT_MODEL = 'claude-sonnet-4-5';
+// Exported so callers (e.g. the draft-emails cron) can record the exact
+// model name into email_drafts.model_used without redeclaring it.
+export const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
 if (!process.env.ANTHROPIC_API_KEY) {
   throw new Error('Missing env var: ANTHROPIC_API_KEY');
