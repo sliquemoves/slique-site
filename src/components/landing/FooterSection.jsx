@@ -37,7 +37,13 @@ function PolicyModal({ title, onClose, children }) {
 }
 
 // ── Footer ─────────────────────────────────────────────────────────────────
-export default function FooterSection() {
+// Props let any page override the brand-description sentence and the contact
+// location tag (e.g. /programs uses Phoenix, AZ and a national area string).
+// Default values preserve the Twin Cities chauffeur footer used everywhere else.
+export default function FooterSection({
+  areaDescription = 'Premium chauffeur services in the Minneapolis–St. Paul metropolitan area. Where every journey becomes an experience.',
+  locationLabel = 'Minneapolis–St. Paul, MN',
+} = {}) {
   const [modal, setModal] = useState(null); // 'privacy' | 'terms' | null
 
   return (
@@ -55,8 +61,7 @@ export default function FooterSection() {
                 SLIQUE
               </p>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Premium chauffeur services in the Minneapolis–St. Paul metropolitan area.
-                Where every journey becomes an experience.
+                {areaDescription}
               </p>
             </div>
 
@@ -86,7 +91,7 @@ export default function FooterSection() {
                 </li>
                 <li className="flex items-center gap-3 text-gray-400">
                   <MapPin className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-                  <span className="text-sm">Minneapolis–St. Paul, MN</span>
+                  <span className="text-sm">{locationLabel}</span>
                 </li>
               </ul>
             </nav>

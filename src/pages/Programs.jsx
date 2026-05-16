@@ -737,9 +737,20 @@ function ApplicationForm() {
             color: ACCENT,
             fontWeight: 600,
             marginBottom: 18,
+            lineHeight: 1.7,
           }}
         >
-          Phoenix only · Limited slots in this rollout
+          {/* Mobile: "Phoenix only" bracketed by orange dots on its own line,
+              "Limited slots..." stacked below. */}
+          <span className="sm:hidden">
+            · Phoenix only ·
+            <br />
+            Limited slots in this rollout
+          </span>
+          {/* Desktop: single line with one middle separator. */}
+          <span className="hidden sm:inline">
+            Phoenix only · Limited slots in this rollout
+          </span>
         </p>
         <SectionTitle>
           Apply to <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>drive</span>
@@ -1070,7 +1081,10 @@ export default function Programs() {
       <ApplicationForm />
       <Faq />
       <ProgramsDisclaimer />
-      <FooterSection />
+      <FooterSection
+        areaDescription="Premium chauffeur services in the United States. Where every journey becomes an experience."
+        locationLabel="Phoenix, AZ"
+      />
     </main>
   );
 }
