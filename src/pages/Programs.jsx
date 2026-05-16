@@ -108,7 +108,7 @@ function Hero() {
     <section
       className="relative overflow-hidden flex items-center"
       style={{
-        minHeight: '78svh',
+        minHeight: '62svh',
         // Warm desert gradient — terracotta haze top-left fading into deep
         // near-black navy bottom-right. Replace with a Prius hero shot when
         // the photography arrives by adding a backgroundImage layer above.
@@ -130,7 +130,7 @@ function Hero() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-16 py-14 sm:py-20">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-16 py-10 sm:py-14">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -183,7 +183,7 @@ function Hero() {
             is yours.
           </p>
 
-          <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-7">
+          <div className="mt-5 sm:mt-7 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-7">
             <a
               href="#apply"
               onClick={scrollTo('apply')}
@@ -255,10 +255,10 @@ function NumbersStrip() {
 
   return (
     <section
-      className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20"
+      className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14"
       aria-label="Driver economics at a glance"
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-10 md:gap-y-0 md:gap-x-12">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-7 md:gap-y-0 md:gap-x-12">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.value}
@@ -348,29 +348,29 @@ function WhatYouDontPayFor() {
   ];
 
   return (
-    <section className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
+    <section className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14">
       <div className="max-w-6xl mx-auto">
         <SectionEyebrow text="Operating costs" />
         <SectionTitle>
           What you <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>don&apos;t</span> pay for
         </SectionTitle>
 
-        <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10">
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10">
           {items.map((item, i) => {
             const Icon = item.icon;
             return (
               <motion.div
                 key={item.title}
-                className="bg-black p-10 sm:p-12"
+                className="bg-black p-7 sm:p-9"
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.55, delay: i * 0.06 }}
               >
                 <Icon
-                  size={28}
+                  size={26}
                   strokeWidth={1.4}
-                  style={{ color: ACCENT, marginBottom: 24 }}
+                  style={{ color: ACCENT, marginBottom: 16 }}
                   aria-hidden="true"
                 />
                 <h3
@@ -434,7 +434,7 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20"
+      className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14"
     >
       <div className="max-w-6xl mx-auto">
         <SectionEyebrow text="The process" />
@@ -442,7 +442,7 @@ function HowItWorks() {
           How it <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>works</span>
         </SectionTitle>
 
-        <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
           {steps.map((step, i) => (
             <motion.div
               key={step.n}
@@ -465,7 +465,7 @@ function HowItWorks() {
                 {step.n}
               </div>
               <div
-                className="mt-4 mb-5 h-px w-10"
+                className="mt-3 mb-4 h-px w-10"
                 style={{ background: 'rgba(255,255,255,0.2)' }}
                 aria-hidden="true"
               />
@@ -515,14 +515,14 @@ function WhoQualifies() {
   ];
 
   return (
-    <section className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
+    <section className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14">
       <div className="max-w-6xl mx-auto">
         <SectionEyebrow text="Eligibility" />
         <SectionTitle>
           Who <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>qualifies</span>
         </SectionTitle>
 
-        <ul className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-y-5 sm:gap-x-14">
+        <ul className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-y-3 sm:gap-y-4 sm:gap-x-14">
           {criteria.map((line, i) => (
             <motion.li
               key={line}
@@ -596,14 +596,14 @@ function Faq() {
   ];
 
   return (
-    <section className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
+    <section className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14">
       <div className="max-w-3xl mx-auto">
         <SectionEyebrow text="Frequently asked" />
         <SectionTitle>
           The <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>fine print</span>, plainly
         </SectionTitle>
 
-        <Accordion type="single" collapsible className="mt-8 sm:mt-10">
+        <Accordion type="single" collapsible className="mt-6 sm:mt-8">
           {items.map((item, i) => (
             <AccordionItem
               key={item.q}
@@ -612,7 +612,7 @@ function Faq() {
               style={{ borderColor: 'rgba(255,255,255,0.12)' }}
             >
               <AccordionTrigger
-                className="text-left text-white hover:no-underline py-6"
+                className="text-left text-white hover:no-underline py-4"
                 style={{
                   fontFamily: SERIF,
                   fontSize: 'clamp(20px, 2.4vw, 26px)',
@@ -623,7 +623,7 @@ function Faq() {
                 {item.q}
               </AccordionTrigger>
               <AccordionContent
-                className="pb-6"
+                className="pb-5"
                 style={{
                   fontFamily: SANS,
                   fontSize: 15,
@@ -720,7 +720,7 @@ function ApplicationForm() {
   return (
     <section
       id="apply"
-      className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20"
+      className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14"
       style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
     >
       <div className="max-w-3xl mx-auto">
@@ -746,7 +746,7 @@ function ApplicationForm() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mt-8 sm:mt-10"
+            className="mt-6 sm:mt-8"
             role="status"
             aria-live="polite"
             style={{
@@ -782,7 +782,7 @@ function ApplicationForm() {
             </p>
           </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-8 sm:mt-10 space-y-6">
+          <form onSubmit={handleSubmit} className="mt-6 sm:mt-8 space-y-5">
             <div>
               <label htmlFor="full_name" style={labelStyle}>Full name</label>
               <Input
@@ -975,7 +975,7 @@ function SectionEyebrow({ text }) {
 function SectionTitle({ children }) {
   return (
     <h2
-      className="mt-5 text-white"
+      className="mt-3 text-white"
       style={{
         fontFamily: SERIF,
         fontSize: 'clamp(36px, 6vw, 64px)',
