@@ -20,6 +20,7 @@ import OutreachDrafts from './pages/OutreachDrafts';
 import OutreachHub from './pages/OutreachHub';
 import OutreachLeads from './pages/OutreachLeads';
 import OutreachStats from './pages/OutreachStats';
+import Programs from './pages/Programs';
 
 // /admin and the legacy PascalCase /Admin both redirect to the canonical
 // /manage hub. The /admin path was getting flagged by some browser ad-tech
@@ -32,6 +33,10 @@ export const ROUTES = [
   { path: '/',                    component: Home,                showNav: true,  gated: false },
   { path: '/Home',                component: Home,                showNav: true,  gated: false },
   { path: '/BookingConfirmation', component: BookingConfirmation, showNav: false, gated: false },
+
+  // Phoenix driver-recruitment landing page (paid-ad destination).
+  // No public navbar — it's a conversion page, not a public site link.
+  { path: '/programs',            component: Programs,            showNav: false, gated: false },
 
   // Admin sign-in (public route, no nav so the public chrome doesn't leak in)
   { path: '/login',               component: Login,               showNav: false, gated: false },
