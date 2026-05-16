@@ -108,7 +108,7 @@ function Hero() {
     <section
       className="relative overflow-hidden flex items-center"
       style={{
-        minHeight: '100svh',
+        minHeight: '78svh',
         // Warm desert gradient — terracotta haze top-left fading into deep
         // near-black navy bottom-right. Replace with a Prius hero shot when
         // the photography arrives by adding a backgroundImage layer above.
@@ -130,14 +130,14 @@ function Hero() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-16 py-24 sm:py-32">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-16 py-14 sm:py-20">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         >
           <div
-            className="inline-flex items-center gap-3 mb-8 sm:mb-10"
+            className="inline-flex items-center gap-3 mb-5 sm:mb-7"
             style={{ fontFamily: SANS, fontSize: 11, letterSpacing: '0.4em' }}
           >
             <span
@@ -168,7 +168,7 @@ function Hero() {
           </h1>
 
           <p
-            className="mt-8 sm:mt-10 text-white/72"
+            className="mt-5 sm:mt-7 text-white/72"
             style={{
               fontFamily: SANS,
               fontSize: 'clamp(16px, 1.6vw, 20px)',
@@ -183,7 +183,7 @@ function Hero() {
             is yours.
           </p>
 
-          <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-7">
+          <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-7">
             <a
               href="#apply"
               onClick={scrollTo('apply')}
@@ -255,10 +255,10 @@ function NumbersStrip() {
 
   return (
     <section
-      className="bg-black px-6 sm:px-8 lg:px-16 py-20 sm:py-28 lg:py-32"
+      className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20"
       aria-label="Driver economics at a glance"
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-14 md:gap-y-0 md:gap-x-12">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-10 md:gap-y-0 md:gap-x-12">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.value}
@@ -348,14 +348,14 @@ function WhatYouDontPayFor() {
   ];
 
   return (
-    <section className="bg-black px-6 sm:px-8 lg:px-16 py-20 sm:py-28 lg:py-32">
+    <section className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
       <div className="max-w-6xl mx-auto">
         <SectionEyebrow text="Operating costs" />
         <SectionTitle>
           What you <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>don&apos;t</span> pay for
         </SectionTitle>
 
-        <div className="mt-14 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10">
+        <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10">
           {items.map((item, i) => {
             const Icon = item.icon;
             return (
@@ -434,7 +434,7 @@ function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="bg-black px-6 sm:px-8 lg:px-16 py-20 sm:py-28 lg:py-32"
+      className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20"
     >
       <div className="max-w-6xl mx-auto">
         <SectionEyebrow text="The process" />
@@ -442,7 +442,7 @@ function HowItWorks() {
           How it <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>works</span>
         </SectionTitle>
 
-        <div className="mt-14 sm:mt-16 grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-14">
+        <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {steps.map((step, i) => (
             <motion.div
               key={step.n}
@@ -515,14 +515,14 @@ function WhoQualifies() {
   ];
 
   return (
-    <section className="bg-black px-6 sm:px-8 lg:px-16 py-20 sm:py-28 lg:py-32">
+    <section className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
       <div className="max-w-6xl mx-auto">
         <SectionEyebrow text="Eligibility" />
         <SectionTitle>
           Who <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>qualifies</span>
         </SectionTitle>
 
-        <ul className="mt-14 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 gap-y-5 sm:gap-y-7 sm:gap-x-14">
+        <ul className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-y-5 sm:gap-x-14">
           {criteria.map((line, i) => (
             <motion.li
               key={line}
@@ -596,14 +596,14 @@ function Faq() {
   ];
 
   return (
-    <section className="bg-black px-6 sm:px-8 lg:px-16 py-20 sm:py-28 lg:py-32">
+    <section className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20">
       <div className="max-w-3xl mx-auto">
         <SectionEyebrow text="Frequently asked" />
         <SectionTitle>
           The <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>fine print</span>, plainly
         </SectionTitle>
 
-        <Accordion type="single" collapsible className="mt-12 sm:mt-14">
+        <Accordion type="single" collapsible className="mt-8 sm:mt-10">
           {items.map((item, i) => (
             <AccordionItem
               key={item.q}
@@ -720,7 +720,7 @@ function ApplicationForm() {
   return (
     <section
       id="apply"
-      className="bg-black px-6 sm:px-8 lg:px-16 py-20 sm:py-28 lg:py-32"
+      className="bg-black px-6 sm:px-8 lg:px-16 py-12 sm:py-16 lg:py-20"
       style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
     >
       <div className="max-w-3xl mx-auto">
@@ -746,7 +746,7 @@ function ApplicationForm() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mt-14"
+            className="mt-8 sm:mt-10"
             role="status"
             aria-live="polite"
             style={{
@@ -782,7 +782,7 @@ function ApplicationForm() {
             </p>
           </motion.div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-12 sm:mt-14 space-y-7">
+          <form onSubmit={handleSubmit} className="mt-8 sm:mt-10 space-y-6">
             <div>
               <label htmlFor="full_name" style={labelStyle}>Full name</label>
               <Input
@@ -1035,12 +1035,13 @@ export default function Programs() {
     <main className="bg-black text-white" style={{ fontFamily: SANS }}>
       <Hero />
       <NumbersStrip />
-      <HeroImagePlaceholder />
+      {/* HeroImagePlaceholder intentionally not rendered. Re-enable once a
+          real Prius hero shot exists; the component still lives above. */}
       <WhatYouDontPayFor />
       <HowItWorks />
       <WhoQualifies />
-      <Faq />
       <ApplicationForm />
+      <Faq />
       <ProgramsDisclaimer />
       <FooterSection />
     </main>
