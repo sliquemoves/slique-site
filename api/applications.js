@@ -6,8 +6,11 @@
 // deliverability behaves the same (from-name, reply-to, plain-text fallback,
 // list-unsubscribe).
 
-const FROM_EMAIL = 'programs@sliquemoves.com';
-const FROM_NAME = 'Slique Programs';
+// Use the same verified sender as the booking emails — saves you from
+// having to set up a separate inbox just for this page. Reply-to is
+// admin@sliquemoves.com so replies still land in the right place.
+const FROM_EMAIL = 'reservations@sliquemoves.com';
+const FROM_NAME = 'Slique Moves';
 // Notification destination — override via APPLICATIONS_TO env var per deploy.
 const NOTIFICATION_EMAIL = process.env.APPLICATIONS_TO || 'admin@sliquemoves.com';
 const REPLY_TO = 'admin@sliquemoves.com';
