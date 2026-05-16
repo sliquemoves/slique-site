@@ -179,8 +179,8 @@ function Hero() {
             }}
           >
             Phoenix drivers are earning $1,800 a week behind the wheel of our
-            Priuses. No gas. No insurance. No repairs. Every dollar you make
-            is yours.
+            Priuses. No gas. No insurance. No repairs. 100% of your earnings,
+            kept.
           </p>
 
           <div className="mt-5 sm:mt-7 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-7">
@@ -210,7 +210,7 @@ function Hero() {
             <a
               href="#how-it-works"
               onClick={scrollTo('how-it-works')}
-              className="inline-flex items-center gap-2 group"
+              className="inline-flex items-center gap-2 group self-center sm:self-auto"
               style={{
                 fontFamily: SANS,
                 color: 'rgba(255,255,255,0.7)',
@@ -250,7 +250,6 @@ function NumbersStrip() {
   const stats = [
     { value: '$1,800', label: 'Average weekly driver earnings in Phoenix' },
     { value: '$0',     label: 'What you pay for gas, insurance, or repairs' },
-    { value: '100%',   label: 'Of your earnings, kept' },
   ];
 
   return (
@@ -258,7 +257,7 @@ function NumbersStrip() {
       className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14"
       aria-label="Driver economics at a glance"
     >
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-7 md:gap-y-0 md:gap-x-12">
+      <div className="max-w-6xl mx-auto grid grid-cols-2 gap-x-6 sm:gap-x-12">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.value}
@@ -272,7 +271,10 @@ function NumbersStrip() {
               className="text-white"
               style={{
                 fontFamily: SERIF,
-                fontSize: 'clamp(56px, 10vw, 104px)',
+                // Side-by-side on mobile means each column is narrow,
+                // so the lower bound is dialed in to fit "$1,800" on a
+                // 320 px phone without wrapping.
+                fontSize: 'clamp(42px, 11vw, 96px)',
                 fontWeight: 300,
                 lineHeight: 0.95,
                 letterSpacing: '-0.02em',
@@ -350,18 +352,20 @@ function WhatYouDontPayFor() {
   return (
     <section className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14">
       <div className="max-w-6xl mx-auto">
-        <SectionEyebrow text="Operating costs" />
-        <SectionTitle>
-          What you <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>don&apos;t</span> pay for
-        </SectionTitle>
+        <div className="text-center">
+          <SectionEyebrow text="Operating costs" />
+          <SectionTitle centered>
+            What you <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>don&apos;t</span> pay for
+          </SectionTitle>
+        </div>
 
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-px bg-white/10">
+        <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-px bg-white/10">
           {items.map((item, i) => {
             const Icon = item.icon;
             return (
               <motion.div
                 key={item.title}
-                className="bg-black p-7 sm:p-9"
+                className="bg-black p-5 sm:p-9 text-center"
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
@@ -370,14 +374,14 @@ function WhatYouDontPayFor() {
                 <Icon
                   size={26}
                   strokeWidth={1.4}
-                  style={{ color: ACCENT, marginBottom: 16 }}
+                  style={{ color: ACCENT, marginBottom: 14, marginLeft: 'auto', marginRight: 'auto', display: 'block' }}
                   aria-hidden="true"
                 />
                 <h3
                   className="text-white"
                   style={{
                     fontFamily: SERIF,
-                    fontSize: 'clamp(28px, 3.5vw, 36px)',
+                    fontSize: 'clamp(22px, 3.5vw, 36px)',
                     fontWeight: 300,
                     letterSpacing: '0.01em',
                     textDecoration: 'line-through',
@@ -389,13 +393,13 @@ function WhatYouDontPayFor() {
                   {item.title}
                 </h3>
                 <p
-                  className="mt-3"
+                  className="mt-3 mx-auto"
                   style={{
                     fontFamily: SANS,
-                    fontSize: 15,
+                    fontSize: 14,
                     lineHeight: 1.55,
                     color: 'rgba(255,255,255,0.65)',
-                    maxWidth: '36ch',
+                    maxWidth: '32ch',
                   }}
                 >
                   {item.body}
@@ -436,9 +440,9 @@ function HowItWorks() {
       id="how-it-works"
       className="bg-black px-6 sm:px-8 lg:px-16 py-8 sm:py-10 lg:py-14"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto text-center">
         <SectionEyebrow text="The process" />
-        <SectionTitle>
+        <SectionTitle centered>
           How it <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }}>works</span>
         </SectionTitle>
 
@@ -465,7 +469,7 @@ function HowItWorks() {
                 {step.n}
               </div>
               <div
-                className="mt-3 mb-4 h-px w-10"
+                className="mt-3 mb-4 h-px w-10 mx-auto"
                 style={{ background: 'rgba(255,255,255,0.2)' }}
                 aria-hidden="true"
               />
@@ -482,7 +486,7 @@ function HowItWorks() {
                 {step.title}
               </h3>
               <p
-                className="mt-3"
+                className="mt-3 mx-auto"
                 style={{
                   fontFamily: SANS,
                   fontSize: 15,
@@ -972,7 +976,7 @@ function SectionEyebrow({ text }) {
   );
 }
 
-function SectionTitle({ children }) {
+function SectionTitle({ children, centered = false }) {
   return (
     <h2
       className="mt-3 text-white"
@@ -982,8 +986,11 @@ function SectionTitle({ children }) {
         fontWeight: 300,
         lineHeight: 1.04,
         letterSpacing: '-0.005em',
-        margin: 0,
-        maxWidth: '18ch',
+        marginTop: 12,
+        marginBottom: 0,
+        marginLeft: centered ? 'auto' : 0,
+        marginRight: centered ? 'auto' : 0,
+        maxWidth: '20ch',
       }}
     >
       {children}
@@ -1033,6 +1040,26 @@ export default function Programs() {
 
   return (
     <main className="bg-black text-white" style={{ fontFamily: SANS }}>
+      {/* Brand mark — same wordmark the footer uses, slotted at the very top
+          of the page so identity is established before the headline. */}
+      <header className="bg-black text-center pt-6 pb-3 px-6">
+        <a
+          href="/"
+          aria-label="Slique Moves home"
+          style={{
+            display: 'inline-block',
+            fontFamily: SERIF,
+            fontWeight: 900,
+            letterSpacing: '-0.03em',
+            color: '#ffffff',
+            fontSize: 24,
+            textDecoration: 'none',
+          }}
+        >
+          SLIQUE
+        </a>
+      </header>
+
       <Hero />
       <NumbersStrip />
       {/* HeroImagePlaceholder intentionally not rendered. Re-enable once a
