@@ -34,7 +34,7 @@ export default function FeaturesSection() {
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: 'url(/slique.png)',
+          backgroundImage: 'url(/escalade.png)',
           backgroundSize: 'cover',
           // 10% down from the top — pulls the visible window slightly
           // lower into the image (the image shifts up in the section).

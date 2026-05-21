@@ -48,8 +48,25 @@ export default function FooterSection({
 
   return (
     <>
-      <footer className="bg-black py-20 px-6 border-t border-white/10" role="contentinfo">
-        <div className="max-w-6xl mx-auto">
+      <footer
+        className="bg-black py-20 px-6 border-t border-white/10 relative overflow-hidden"
+        role="contentinfo"
+      >
+        {/* slique.png as the footer background, anchored to the top. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/slique.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+        {/* Scrim so the gray/white footer text stays legible over the photo. */}
+        <div aria-hidden="true" className="absolute inset-0 bg-black/72" />
+
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid md:grid-cols-3 gap-12 mb-16">
 
             {/* Brand */}
