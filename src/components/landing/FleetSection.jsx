@@ -19,7 +19,7 @@ const vehicles = [
     image: "/slique_maybach.png",
     passengers: "Up to 2",
     luggage: "2 Large Bags",
-    features: ["Premium Leather", "Climate Control", "Ambient Lighting", "Tinted Windows"],
+    features: ["Presidential Seats", "Drink Refrigerator", "Ambient Lighting", "Tinted Windows"],
     type: "mercedes_amg"
   },
   {
