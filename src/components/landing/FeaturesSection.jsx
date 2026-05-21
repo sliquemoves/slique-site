@@ -34,11 +34,13 @@ export default function FeaturesSection() {
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: 'url(/escalade.png)',
+          backgroundImage: 'url(/slique.png)',
           backgroundSize: 'cover',
-          // 30% down from the top — image shifts up another 20%
-          // relative to the previous 10% anchor.
-          backgroundPosition: 'center 30%',
+          // Anchored so the middle model's denim sits just below the
+          // section's bottom frame. slique.png is 1536x1024 (3:2);
+          // 55% pushes the visible window into the upper-mid portion
+          // of the image, cropping the lower-body denim out of view.
+          backgroundPosition: 'center 55%',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"
