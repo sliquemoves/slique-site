@@ -14,17 +14,17 @@ const vehicles = [
     type: "escalade_suv"
   },
   {
-    name: "Mercedes Benz Limousine - Black",
+    name: "Mercedes Benz Maybach - Black",
     subtitle: "Executive Class",
-    image: "/slique_limo.png",
-    passengers: "Up to 10",
-    luggage: "10 Large Bags",
-    features: ["VIP Lounge Interior", "Premium Bar", "Ambient Lighting", "Tinted Windows"],
-    type: "mercedes_limo"
+    image: "/slique_maybach.png",
+    passengers: "Up to 2",
+    luggage: "2 Large Bags",
+    features: ["Premium Leather", "Climate Control", "Ambient Lighting", "Tinted Windows"],
+    type: "mercedes_amg"
   },
   {
     name: "Mercedes Benz Sprinter - Black",
-    subtitle: "Premium Class",
+    subtitle: "Executive Class",
     image: "/slique_van.png",
     passengers: "Up to 15",
     luggage: "15 Large Bags",
@@ -32,13 +32,13 @@ const vehicles = [
     type: "mercedes_sprinter"
   },
   {
-    name: "Mercedes Benz AMG - Black",
-    subtitle: "Premium Class",
-    image: "/slique_maybach.png",
-    passengers: "Up to 2",
-    luggage: "2 Large Bags",
-    features: ["Premium Leather", "Climate Control", "Ambient Lighting", "Tinted Windows"],
-    type: "mercedes_amg"
+    name: "Mercedes Benz Limousine - Black",
+    subtitle: "Executive Class",
+    image: "/slique_limo.png",
+    passengers: "Up to 10",
+    luggage: "10 Large Bags",
+    features: ["VIP Lounge Interior", "Premium Bar", "Ambient Lighting", "Tinted Windows"],
+    type: "mercedes_limo"
   }
 ];
 

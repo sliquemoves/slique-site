@@ -36,8 +36,9 @@ export default function FeaturesSection() {
         style={{
           backgroundImage: 'url(/slique.png)',
           backgroundSize: 'cover',
-          // Top-aligned so the photo's top edge meets the section top.
-          backgroundPosition: 'center top',
+          // 10% down from the top — pulls the visible window slightly
+          // lower into the image (the image shifts up in the section).
+          backgroundPosition: 'center 10%',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"
