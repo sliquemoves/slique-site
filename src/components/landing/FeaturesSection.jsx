@@ -36,10 +36,8 @@ export default function FeaturesSection() {
         style={{
           backgroundImage: 'url(/slique.png)',
           backgroundSize: 'cover',
-          // Vertical-only shift. 'center bottom' (100%) pushed the crest too
-          // high; pulling back to 90% lands the steering-wheel Cadillac crest
-          // in the band between the heading and the reviews row.
-          backgroundPosition: 'center 80%',
+          // Top-aligned so the photo's top edge meets the section top.
+          backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"
