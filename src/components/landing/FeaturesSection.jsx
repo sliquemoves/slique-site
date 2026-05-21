@@ -34,7 +34,7 @@ export default function FeaturesSection() {
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: 'url(/slique_interior.png)',
+          backgroundImage: 'url(/slique.png)',
           backgroundSize: 'cover',
           // Vertical-only shift. 'center bottom' (100%) pushed the crest too
           // high; pulling back to 90% lands the steering-wheel Cadillac crest

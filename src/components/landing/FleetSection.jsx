@@ -34,7 +34,7 @@ const vehicles = [
   {
     name: "Mercedes Benz AMG - Black",
     subtitle: "Premium Class",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/b6bf72161_sliqueAMG.png",
+    image: "/slique_maybach.png",
     passengers: "Up to 2",
     luggage: "2 Large Bags",
     features: ["Premium Leather", "Climate Control", "Ambient Lighting", "Tinted Windows"],
