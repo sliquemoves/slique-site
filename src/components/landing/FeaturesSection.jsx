@@ -36,9 +36,9 @@ export default function FeaturesSection() {
         style={{
           backgroundImage: 'url(/escalade.png)',
           backgroundSize: 'cover',
-          // 10% down from the top — pulls the visible window slightly
-          // lower into the image (the image shifts up in the section).
-          backgroundPosition: 'center 10%',
+          // 30% down from the top — image shifts up another 20%
+          // relative to the previous 10% anchor.
+          backgroundPosition: 'center 30%',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"
