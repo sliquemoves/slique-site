@@ -28,6 +28,7 @@ const SERVICE_LABELS = {
   airport_transfer: 'Airport Transfer',
   corporate: 'Corporate Travel',
   special_event: 'Special Event',
+  daily_rental: 'Daily Rental',
 };
 
 const VEHICLE_LABELS = {
@@ -38,6 +39,13 @@ const VEHICLE_LABELS = {
   // legacy fallbacks
   luxury_sedan: 'Luxury Sedan',
   luxury_suv: 'Luxury SUV',
+  // Daily rentals
+  tesla_model_y: 'Tesla Model Y Performance',
+  amg_c43: 'Mercedes-AMG C43',
+  amg_cle53: 'Mercedes-AMG CLE 53',
+  porsche_718s: 'Porsche 718 S',
+  corvette_c8: 'Corvette C8',
+  corvette_c8_z06: 'Corvette C8 Z06',
 };
 
 const VEHICLE_OPTIONS = [

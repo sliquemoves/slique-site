@@ -13,6 +13,7 @@ const SERVICE_LABELS = {
   airport_transfer: 'Airport Transfer',
   corporate: 'Corporate Travel',
   special_event: 'Special Event',
+  daily_rental: 'Daily Rental',
 };
 
 const VEHICLE_LABELS = {
@@ -22,6 +23,13 @@ const VEHICLE_LABELS = {
   mercedes_amg: 'Mercedes AMG Sedan',
   luxury_sedan: 'Black Luxury Sedan',
   luxury_suv: 'Black Luxury SUV',
+  // Daily rentals
+  tesla_model_y: 'Tesla Model Y Performance',
+  amg_c43: 'Mercedes-AMG C43',
+  amg_cle53: 'Mercedes-AMG CLE 53',
+  porsche_718s: 'Porsche 718 S',
+  corvette_c8: 'Corvette C8',
+  corvette_c8_z06: 'Corvette C8 Z06',
 };
 
 function generateRef(id) {
