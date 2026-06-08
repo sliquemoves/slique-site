@@ -48,12 +48,12 @@ const vehicles = [
 // Specs are real-world figures; `rate` is a placeholder daily price — edit freely.
 const rentals = [
   {
-    name: "Tesla Model Y Performance",
-    tagline: "Electric",
-    image: "/rentals/tesla_model_y.png",
-    hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
-    rate: 149,
-    type: "tesla_model_y",
+    name: "Porsche 718 S",
+    tagline: "Mid-Engine Roadster",
+    image: "/rentals/porsche_718s.png",
+    hp: 350, zeroToSixty: "4.0s", topSpeed: "177", drive: "RWD",
+    rate: 250,
+    type: "porsche_718s",
   },
   {
     name: "Mercedes-AMG C43",
@@ -64,28 +64,28 @@ const rentals = [
     type: "amg_c43",
   },
   {
-    name: "Mercedes-AMG CLE 53",
-    tagline: "Sport Coupe",
-    image: "/rentals/amg_cle53.png",
-    hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
-    rate: 500,
-    type: "amg_cle53",
-  },
-  {
-    name: "Porsche 718 S",
-    tagline: "Mid-Engine Roadster",
-    image: "/rentals/porsche_718s.png",
-    hp: 350, zeroToSixty: "4.0s", topSpeed: "177", drive: "RWD",
-    rate: 250,
-    type: "porsche_718s",
-  },
-  {
     name: "Corvette C8",
     tagline: "Mid-Engine Supercar",
     image: "/rentals/corvette_c8.png",
     hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
     rate: 399,
     type: "corvette_c8",
+  },
+  {
+    name: "Tesla Model Y Performance",
+    tagline: "Electric",
+    image: "/rentals/tesla_model_y.png",
+    hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
+    rate: 149,
+    type: "tesla_model_y",
+  },
+  {
+    name: "Mercedes-AMG CLE 53",
+    tagline: "Sport Coupe",
+    image: "/rentals/amg_cle53.png",
+    hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
+    rate: 500,
+    type: "amg_cle53",
   },
   {
     name: "Corvette C8 Z06",
@@ -193,8 +193,7 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <p className="text-gray-500 text-[10px] tracking-[0.25em] uppercase mb-1.5">{rental.tagline}</p>
-        <h3 className="text-xl text-white font-light tracking-wide mb-5">{rental.name}</h3>
+        <h3 className="text-xl text-white font-light tracking-wide text-center mb-5">{rental.name}</h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -331,9 +330,6 @@ export default function FleetSection() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <p className="text-center text-gray-500 text-sm max-w-xl mx-auto mb-10 px-6">
-                Self-drive performance and luxury, by the day. Reserve the keys — no chauffeur, just you and the road.
-              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
                 {rentals.map((rental, index) => (
                   <RentalCard
