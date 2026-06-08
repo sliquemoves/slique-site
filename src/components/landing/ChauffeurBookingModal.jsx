@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, AlertCircle, X, Check } from 'lucide-react';
@@ -293,11 +292,6 @@ export default function ChauffeurBookingModal({ vehicle, onClose }) {
                   <div className="space-y-2">
                     <Label className="text-xs tracking-widest uppercase text-gray-500">Dropoff Location</Label>
                     <Input value={form.dropoff_location} onChange={(e) => handleChange('dropoff_location', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" placeholder="Destination address" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs tracking-widest uppercase text-gray-500">Special Requests</Label>
-                    <Textarea value={form.special_requests} onChange={(e) => handleChange('special_requests', e.target.value)} className="border-gray-200 focus:border-black rounded-none min-h-[80px] resize-none" placeholder="Child seat, route preferences, flight number, etc." />
                   </div>
 
                   <Button

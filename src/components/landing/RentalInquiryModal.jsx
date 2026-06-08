@@ -11,6 +11,13 @@ import DatePicker from './DatePicker';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
+// Processing fee applied on top of the rental subtotal.
+const PROCESSING_RATE = 0.035;
+
+// Format a number as USD, e.g. 1234.5 → "$1,234.50".
+const usd = (n) =>
+  n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 // Number of whole days between two YYYY-MM-DD strings (>= 1).
 function rentalDays(start, end) {
   if (!start || !end) return 0;
@@ -38,13 +45,18 @@ function rentalDays(start, end) {
    ──────────────────────────────────────────────────────────────── */
 async function submitRentalInquiry({ car, form }) {
   const days = rentalDays(form.pickup_date, form.return_date);
-  const estimate = days > 0 ? days * car.rate : null;
+  const subtotal = days > 0 ? days * car.rate : null;
+  const processingFee = subtotal != null ? subtotal * PROCESSING_RATE : null;
+  const total = subtotal != null ? subtotal + processingFee : null;
 
   const noteLines = [
     `DAILY RENTAL INQUIRY — ${car.name}`,
     `Return date: ${form.return_date}`,
     `Duration: ${days} day${days === 1 ? '' : 's'}`,
-    `Daily rate: $${car.rate}/day` + (estimate != null ? ` (est. $${estimate} before fees)` : ''),
+    `Daily rate: $${car.rate}/day`,
+    subtotal != null ? `Subtotal: ${usd(subtotal)}` : '',
+    processingFee != null ? `Processing (3.5%): ${usd(processingFee)}` : '',
+    total != null ? `Estimated total: ${usd(total)}` : '',
     form.special_requests ? `\nCustomer notes: ${form.special_requests}` : '',
   ].filter(Boolean);
 
@@ -122,7 +134,9 @@ export default function RentalInquiryModal({ car, onClose }) {
   };
 
   const days = rentalDays(form.pickup_date, form.return_date);
-  const estimate = car && days > 0 ? days * car.rate : null;
+  const subtotal = car && days > 0 ? days * car.rate : null;
+  const processingFee = subtotal != null ? subtotal * PROCESSING_RATE : null;
+  const total = subtotal != null ? subtotal + processingFee : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -263,15 +277,21 @@ export default function RentalInquiryModal({ car, onClose }) {
                     <Textarea value={form.special_requests} onChange={(e) => handleChange('special_requests', e.target.value)} className="border-gray-200 focus:border-black rounded-none min-h-[80px] resize-none" placeholder="Delivery requests, additional drivers, questions, etc." />
                   </div>
 
-                  {/* Estimate line */}
-                  {estimate != null && (
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-4 text-sm">
-                      <span className="text-gray-500">
-                        {days} day{days === 1 ? '' : 's'} × ${car.rate}
-                      </span>
-                      <span className="text-black font-medium">
-                        ~${estimate.toLocaleString()} <span className="text-gray-400 font-normal text-xs">before fees</span>
-                      </span>
+                  {/* Estimate breakdown */}
+                  {subtotal != null && (
+                    <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
+                      <div className="flex items-center justify-between text-gray-500">
+                        <span>{days} day{days === 1 ? '' : 's'} × ${car.rate}</span>
+                        <span>{usd(subtotal)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-gray-500">
+                        <span>Processing (3.5%)</span>
+                        <span>{usd(processingFee)}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-black font-medium">
+                        <span>Total</span>
+                        <span>{usd(total)}</span>
+                      </div>
                     </div>
                   )}
 

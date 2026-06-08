@@ -53,7 +53,7 @@ const rentals = [
     tagline: "Mid-Engine Roadster",
     image: "/rentals/porsche_718s.png",
     hp: 350, zeroToSixty: "4.0s", topSpeed: "177", drive: "RWD",
-    rate: 250,
+    rate: 249,
     type: "porsche_718s",
   },
   {
@@ -85,7 +85,7 @@ const rentals = [
     tagline: "Sport Coupe",
     image: "/rentals/amg_cle53.png",
     hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
-    rate: 500,
+    rate: 499,
     type: "amg_cle53",
   },
   {
@@ -93,7 +93,7 @@ const rentals = [
     tagline: "Track-Bred Supercar",
     image: "/rentals/corvette_c8_z06.png",
     hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
-    rate: 700,
+    rate: 699,
     type: "corvette_c8_z06",
   },
 ];
