@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Briefcase, Gauge, Timer, Wind, Cog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RentalInquiryModal from './RentalInquiryModal';
+import ChauffeurBookingModal from './ChauffeurBookingModal';
 
 // ── Chauffeur fleet (the original business) ──────────────────────────────────
 const vehicles = [
@@ -222,6 +223,7 @@ function RentalCard({ rental, index, onRequest }) {
 export default function FleetSection() {
   const [tab, setTab] = useState('chauffeur');
   const [activeRental, setActiveRental] = useState(null);
+  const [activeVehicle, setActiveVehicle] = useState(null);
 
   return (
     <section id="fleet" className="bg-black py-8 px-0 md:px-6">
@@ -308,12 +310,7 @@ export default function FleetSection() {
                     </div>
 
                     <Button
-                      onClick={() => {
-                        window.location.hash = `vehicle=${vehicle.type}`;
-                        setTimeout(() => {
-                          document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 50);
-                      }}
+                      onClick={() => setActiveVehicle(vehicle)}
                       className="w-full mt-6 bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-6"
                     >
                       Book This Vehicle
@@ -346,6 +343,7 @@ export default function FleetSection() {
       </div>
 
       <RentalInquiryModal car={activeRental} onClose={() => setActiveRental(null)} />
+      <ChauffeurBookingModal vehicle={activeVehicle} onClose={() => setActiveVehicle(null)} />
     </section>
   );
 }
