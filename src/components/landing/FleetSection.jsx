@@ -199,8 +199,8 @@ function RentalCard({ rental, index, onRequest }) {
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
           {specs.map(s => (
-            <div key={s.label} className="bg-black px-3 py-3">
-              <div className="flex items-center gap-1.5 text-gray-500 mb-1">
+            <div key={s.label} className="bg-black px-3 py-3 text-center">
+              <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-1">
                 <s.icon className="w-3 h-3" />
                 <span className="text-[9px] tracking-[0.15em] uppercase">{s.label}</span>
               </div>
