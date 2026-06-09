@@ -313,7 +313,7 @@ export default function FleetSection() {
                       onClick={() => setActiveVehicle(vehicle)}
                       className="w-full mt-6 bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-6"
                     >
-                      Book
+                      Reserve
                     </Button>
                   </div>
                 </motion.div>

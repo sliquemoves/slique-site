@@ -299,7 +299,7 @@ export default function ChauffeurBookingModal({ vehicle, onClose }) {
                     disabled={isSubmitting || (!!form.pickup_date && !checkingAvailability && availableSlots.length === 0)}
                     className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Booking...</> : 'Book'}
+                    {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Reserving...</> : 'Reserve'}
                   </Button>
                   <p className="text-center text-[11px] text-gray-400">
                     We'll confirm your reservation details before pickup.
