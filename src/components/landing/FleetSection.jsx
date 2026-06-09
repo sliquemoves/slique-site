@@ -69,7 +69,7 @@ const rentals = [
     tagline: "Mid-Engine Supercar",
     image: "/slique_corvette.png",
     hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
-    rate: 399,
+    rate: 499,
     type: "corvette_c8",
   },
   {
@@ -93,7 +93,7 @@ const rentals = [
     tagline: "Track-Bred Supercar",
     image: "/slique_z06.png",
     hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
-    rate: 699,
+    rate: 700,
     type: "corvette_c8_z06",
   },
 ];
