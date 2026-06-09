@@ -51,7 +51,7 @@ const rentals = [
   {
     name: "Porsche 718 S",
     tagline: "Mid-Engine Roadster",
-    image: "/rentals/porsche_718s.png",
+    image: "/slique_porsche.png",
     hp: 350, zeroToSixty: "4.0s", topSpeed: "177", drive: "RWD",
     rate: 249,
     type: "porsche_718s",
@@ -67,7 +67,7 @@ const rentals = [
   {
     name: "Corvette C8",
     tagline: "Mid-Engine Supercar",
-    image: "/rentals/corvette_c8.png",
+    image: "/slique_corvette.png",
     hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
     rate: 399,
     type: "corvette_c8",
@@ -83,7 +83,7 @@ const rentals = [
   {
     name: "Mercedes-AMG CLE 53",
     tagline: "Sport Coupe",
-    image: "/rentals/amg_cle53.png",
+    image: "/slique_cle.png",
     hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
     rate: 499,
     type: "amg_cle53",
@@ -91,7 +91,7 @@ const rentals = [
   {
     name: "Corvette C8 Z06",
     tagline: "Track-Bred Supercar",
-    image: "/rentals/corvette_c8_z06.png",
+    image: "/slique_z06.png",
     hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
     rate: 699,
     type: "corvette_c8_z06",
