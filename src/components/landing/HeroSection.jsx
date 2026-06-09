@@ -189,8 +189,8 @@ export default function HeroSection() {
       <section id="hero" className="relative overflow-hidden bg-black" style={{ minHeight: '100svh' }}>
 
         {/* Background */}
-        <div className="absolute inset-0 bg-cover bg-bottom bg-no-repeat"
-          style={{ backgroundImage: `url('/escalade.png')`, transform: 'scale(1.05)', transformOrigin: 'center bottom' }}>
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('/escalade.png')`, transform: 'scale(1.05)', transformOrigin: 'center center' }}>
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black" />
         </div>
 

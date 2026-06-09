@@ -93,7 +93,7 @@ const rentals = [
     tagline: "Track-Bred Supercar",
     image: "/slique_z06.png",
     hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
-    rate: 700,
+    rate: 699,
     type: "corvette_c8_z06",
   },
 ];
