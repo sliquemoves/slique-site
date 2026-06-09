@@ -59,7 +59,7 @@ const rentals = [
   {
     name: "Mercedes-AMG C43",
     tagline: "Sport Sedan",
-    image: "/rentals/amg_c43.png",
+    image: "/slique_amg.png",
     hp: 402, zeroToSixty: "4.6s", topSpeed: "155", drive: "AWD",
     rate: 149,
     type: "amg_c43",
