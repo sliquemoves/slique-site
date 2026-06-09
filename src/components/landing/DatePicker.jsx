@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
 // ─── Custom Date Picker ────────────────────────────────────────────────────────
-// Shared between the chauffeur booking form (BookingSection) and the daily-rental
-// inquiry modal (RentalInquiryModal). Pure presentational + local open state.
+// Single-date picker used by the chauffeur booking modal
+// (ChauffeurBookingModal). Pure presentational + local open state.
 export default function DatePicker({ value, onChange, minDate, placeholder = 'Select date' }) {
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState(() => {

@@ -4,21 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
   { label: 'Fleet', href: '#fleet' },
-  { label: 'Reserve', href: '#booking' },
 ];
 
 /**
- * Which mobile top-bar buttons to show per section:
- *   hero        → Fleet + Reserve
- *   fleet       → Reserve only
- *   features    → Fleet + Reserve
- *   booking     → Fleet only
+ * The mobile top-bar Fleet button shows on every section except the fleet
+ * itself (where it would be redundant).
  */
 function useActiveSection() {
   const [section, setSection] = useState('hero');
 
   useEffect(() => {
-    const sectionIds = ['hero', 'fleet', 'features', 'booking'];
+    const sectionIds = ['hero', 'fleet', 'features'];
 
     const observe = () => {
       const scrollY = window.scrollY + window.innerHeight * 0.35;
@@ -45,9 +41,8 @@ export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const activeSection = useActiveSection();
 
-  // Fade the button for the section you're currently in
-  const showFleet   = activeSection !== 'fleet';
-  const showReserve = activeSection !== 'booking';
+  // Fade the Fleet button when you're already in the fleet section
+  const showFleet = activeSection !== 'fleet';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -100,8 +95,8 @@ export default function NavBar() {
             ))}
           </ul>
 
-          {/* Mobile center — scroll-aware Fleet / Reserve buttons (absolutely centered) */}
-          <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex gap-2">
+          {/* Mobile center — scroll-aware Fleet button (centered) */}
+          <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex justify-center">
             <AnimatePresence mode="popLayout">
               {showFleet && (
                 <motion.a
@@ -120,25 +115,6 @@ export default function NavBar() {
                   }}
                 >
                   Fleet
-                </motion.a>
-              )}
-              {showReserve && (
-                <motion.a
-                  key="reserve-btn"
-                  href="#booking"
-                  onClick={e => { e.preventDefault(); handleNav('#booking'); }}
-                  initial={{ opacity: 0, scale: 0.88 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.88 }}
-                  transition={{ duration: 0.22, ease: 'easeInOut' }}
-                  style={{
-                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                    fontWeight: 500, color: '#000', background: '#fff',
-                    padding: '8px 12px', textDecoration: 'none', whiteSpace: 'nowrap',
-                    border: 'none',
-                  }}
-                >
-                  Reserve
                 </motion.a>
               )}
             </AnimatePresence>

@@ -111,7 +111,7 @@ function useActiveSection() {
   const [section, setSection] = useState('hero');
 
   useEffect(() => {
-    const sectionIds = ['hero', 'fleet', 'features', 'booking'];
+    const sectionIds = ['hero', 'fleet', 'features'];
 
     const observe = () => {
       const scrollY = window.scrollY + window.innerHeight * 0.35;
@@ -133,12 +133,11 @@ function useActiveSection() {
   return section;
 }
 
-export default function HeroSection({ onBookNow }) {
+export default function HeroSection() {
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   const activeSection = useActiveSection();
 
-  const showFleet   = activeSection !== 'fleet';
-  const showReserve = activeSection !== 'booking';
+  const showFleet = activeSection !== 'fleet';
 
   return (
     <div className="bg-black">
@@ -158,18 +157,12 @@ export default function HeroSection({ onBookNow }) {
         <a href="#" style={{ fontFamily: 'Georgia,serif', fontWeight: 900, fontSize: 20, letterSpacing: '-0.04em', color: '#fff', textDecoration: 'none', textTransform: 'uppercase' }}>
           SLIQUE
         </a>
-        {/* Fleet + Reserve — center, scroll-aware */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', minHeight: 34 }}>
+        {/* Fleet — center, scroll-aware */}
+        <div style={{ display: 'flex', justifyContent: 'center', minHeight: 34 }}>
           {showFleet && (
             <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
               style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none', transition: 'opacity 0.25s' }}>
               Fleet
-            </a>
-          )}
-          {showReserve && (
-            <a href="#booking" onClick={e => { e.preventDefault(); scrollTo('booking'); }}
-              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#000', background: '#fff', padding: '8px 12px', textDecoration: 'none', border: 'none', transition: 'opacity 0.25s' }}>
-              Reserve
             </a>
           )}
         </div>
@@ -214,10 +207,9 @@ export default function HeroSection({ onBookNow }) {
             <TrustStrip variant="desktop" />
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex justify-center">
             <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-10 py-6 text-sm tracking-widest uppercase font-medium bg-transparent"
               onClick={() => scrollTo('fleet')}>View Fleet</Button>
-            <Button onClick={onBookNow} className="bg-white text-black hover:bg-gray-100 px-10 py-6 text-sm tracking-widest uppercase font-medium">Reserve Now</Button>
           </div>
           <div className="w-24 h-[1px] bg-white/30" />
         </motion.div>
@@ -241,15 +233,11 @@ export default function HeroSection({ onBookNow }) {
             </motion.div>
           </div>
 
-          {/* Bottom: View Fleet → Reserve Now → rule */}
+          {/* Bottom: View Fleet → rule */}
           <motion.div className="flex flex-col items-center gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.5 }}>
             <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
               style={{ display:'block', textAlign:'center', color:'white', fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:400, padding:'16px 0', width:'min(100%, 640px)', border:'1px solid rgba(255,255,255,0.25)', background:'transparent', textDecoration:'none' }}>
               View Fleet
-            </a>
-            <a href="#booking" onClick={e => { e.preventDefault(); scrollTo('booking'); }}
-              style={{ display:'block', textAlign:'center', color:'black', fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:500, padding:'16px 0', width:'min(100%, 640px)', background:'white', textDecoration:'none' }}>
-              Reserve Now
             </a>
             <div style={{ width:96, height:1, background:'rgba(255,255,255,0.3)', marginTop:8 }} />
             <motion.div

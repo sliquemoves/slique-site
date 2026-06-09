@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Briefcase, Gauge, Timer, Wind, Cog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -224,16 +224,6 @@ export default function FleetSection() {
   const [tab, setTab] = useState('chauffeur');
   const [activeRental, setActiveRental] = useState(null);
   const [activeVehicle, setActiveVehicle] = useState(null);
-
-  // The Reserve band (and any other CTA) can switch the active tab via a
-  // window event before scrolling here.
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.detail === 'chauffeur' || e.detail === 'rentals') setTab(e.detail);
-    };
-    window.addEventListener('slique:fleetTab', handler);
-    return () => window.removeEventListener('slique:fleetTab', handler);
-  }, []);
 
   return (
     <section id="fleet" className="bg-black py-8 px-0 md:px-6">

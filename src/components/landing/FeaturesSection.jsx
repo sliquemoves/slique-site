@@ -54,11 +54,10 @@ export default function FeaturesSection() {
       }} />
 
       {/* Bottom vignette — fades any visible photo content into pure #000
-          before the section boundary. Combined with the BookingSection's
-          black-to-transparent gradient at its top, this creates a single
-          continuous slide through black between the two sections. Sits
-          ABOVE the photo / scrim / dots but BELOW the z-10 content, so
-          the cards and their text are not darkened. */}
+          before the section boundary, so this section flows seamlessly into
+          the solid-black footer below. Sits ABOVE the photo / scrim / dots
+          but BELOW the z-10 content, so the cards and their text are not
+          darkened. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0"
