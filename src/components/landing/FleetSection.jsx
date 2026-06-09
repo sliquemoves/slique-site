@@ -73,7 +73,7 @@ const rentals = [
     type: "corvette_c8",
   },
   {
-    name: "Tesla Model Y Performance",
+    name: "Tesla Model Y",
     tagline: "Electric",
     image: "/rentals/tesla_model_y.png",
     hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
