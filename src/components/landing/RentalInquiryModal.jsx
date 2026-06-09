@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, Check } from 'lucide-react';
-import DatePicker from './DatePicker';
+import DateRangePicker from './DateRangePicker';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
@@ -155,15 +155,6 @@ export default function RentalInquiryModal({ car, onClose }) {
     }
   };
 
-  // Return date can't be before the day after pickup.
-  const returnMin = form.pickup_date
-    ? (() => {
-        const d = new Date(form.pickup_date + 'T00:00:00');
-        d.setDate(d.getDate() + 1);
-        return d.toISOString().split('T')[0];
-      })()
-    : todayStr();
-
   return (
     <AnimatePresence>
       {car && (
@@ -246,25 +237,17 @@ export default function RentalInquiryModal({ car, onClose }) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs tracking-widest uppercase text-gray-500">Pickup Date *</Label>
-                      <DatePicker
-                        value={form.pickup_date}
-                        onChange={(v) => handleChange('pickup_date', v)}
-                        minDate={todayStr()}
-                        placeholder="Pickup"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs tracking-widest uppercase text-gray-500">Return Date *</Label>
-                      <DatePicker
-                        value={form.return_date}
-                        onChange={(v) => handleChange('return_date', v)}
-                        minDate={returnMin}
-                        placeholder="Return"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs tracking-widest uppercase text-gray-500">Rental Dates *</Label>
+                    <DateRangePicker
+                      startValue={form.pickup_date}
+                      endValue={form.return_date}
+                      onChange={(start, end) =>
+                        setForm(prev => ({ ...prev, pickup_date: start || '', return_date: end || '' }))
+                      }
+                      minDate={todayStr()}
+                      placeholder="Select pickup & return"
+                    />
                   </div>
 
                   <div className="space-y-2">
