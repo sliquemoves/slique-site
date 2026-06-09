@@ -75,7 +75,7 @@ const rentals = [
   {
     name: "Tesla Model Y",
     tagline: "Electric",
-    image: "/rentals/tesla_model_y.png",
+    image: "/slique_tesla.png",
     hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
     rate: 149,
     type: "tesla_model_y",
