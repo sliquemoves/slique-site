@@ -3,12 +3,20 @@ import { motion } from 'framer-motion';
 import { ChevronDown, Phone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
+// Mixed chauffeur services + daily-rental occasions, interleaved so any
+// visible slice of the marquee shows a balance of both sides of the business.
 const trustItems = [
   'Hourly Charter',
+  'Daily Rentals',
   'Airport Transfer',
+  'Fast Exotics',
   'Corporate Travel',
+  'Date Night',
   'Special Events',
+  'Weekend Fun',
   'Accounts Available',
+  'Photo Shoots',
+  'Chauffeurs',
 ];
 
 /* ────────────────────────────────────────────────────────────────
@@ -28,9 +36,6 @@ function TrustStrip({ variant = 'desktop' }) {
   const itemPadding  = isMobile ? '8px 20px' : '10px 32px';
   const itemGap      = isMobile ? 8 : 10;
   const fontSize     = isMobile ? 9 : 10;
-  // Duration scales with REPEATS_PER_HALF so scroll speed feels constant
-  // regardless of how many items are packed into each half.
-  const duration     = isMobile ? 160 : 180; // 40×4 / 45×4
   const animName     = isMobile ? 'trust-marquee-m' : 'trust-marquee-d';
   const trackClass   = isMobile ? 'trust-track-m'   : 'trust-track-d';
 
@@ -39,8 +44,13 @@ function TrustStrip({ variant = 'desktop' }) {
   // "strip runs out mid-screen" gap: each half on its own overflows
   // the viewport, so as copy A exits left, copy B is already filling
   // the right edge with no empty space between them.
-  const REPEATS_PER_HALF = 4; // 4 × 5 items = 20 items per half
+  const REPEATS_PER_HALF = 4;
   const halfItems = Array.from({ length: REPEATS_PER_HALF }).flatMap(() => trustItems);
+
+  // Hold a constant per-item scroll speed no matter how many items are in
+  // the strip (~9s/item desktop, ~8s/item mobile across one half). With the
+  // original 5 items this resolves to the hand-tuned 180s / 160s.
+  const duration = (isMobile ? 8 : 9) * REPEATS_PER_HALF * trustItems.length;
 
   const renderSet = (ariaHidden) =>
     halfItems.map((item, i) => (
