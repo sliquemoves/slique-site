@@ -188,7 +188,7 @@ export default function HeroSection() {
         <div className="hidden md:flex relative z-10 flex-col items-center justify-center text-center px-6"
           style={{ minHeight: '100svh' }}>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: 'easeOut' }}>
-            <p className="text-gray-200 tracking-[0.4em] uppercase text-sm mb-6 font-medium">Premium Chauffeur Services</p>
+            <p className="text-gray-200 tracking-[0.4em] uppercase text-sm mb-6 font-medium">Premium Vehicle Services</p>
             <h1 className="text-7xl lg:text-8xl font-light text-white tracking-tight leading-none mb-0">
               <span className="block">EXCELLENCE IN</span>
               <span className="block font-semibold">MOTION</span>
@@ -221,7 +221,7 @@ export default function HeroSection() {
           {/* Top: eyebrow + title + trust strip */}
           <div className="flex flex-col items-center justify-center flex-1 text-center">
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.2 }} style={{ width: '100%' }}>
-              <p style={{ fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d4d4d4', marginBottom: 16, fontWeight: 500 }}>Premium Chauffeur Services</p>
+              <p style={{ fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', color: '#d4d4d4', marginBottom: 16, fontWeight: 500 }}>Premium Vehicle Services</p>
               <h1 className="font-light text-white leading-none" style={{ fontSize: 'clamp(46px,13vw,62px)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
                 Excellence in<strong className="font-semibold block">Motion</strong>
               </h1>
