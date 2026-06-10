@@ -25,9 +25,6 @@ function returnFromNotes(notes) {
   return m ? m[1] : null;
 }
 
-// These cars are shop-pickup only — no delivery address field on their form.
-const NO_PICKUP_LOCATION = new Set(['corvette_c8', 'corvette_c8_z06', 'amg_cle53']);
-
 // Processing fee applied on top of the rental subtotal.
 const PROCESSING_RATE = 0.035;
 
@@ -67,7 +64,7 @@ async function submitRentalInquiry({ car, form, payment }) {
   const total = subtotal != null ? subtotal + processingFee : null;
 
   const noteLines = [
-    `DAILY RENTAL ${payment ? '(PAID)' : 'INQUIRY'} — ${car.name}`,
+    `DAILY RENTAL BOOKING${payment ? ' (PAID)' : ''} — ${car.name}`,
     `Return date: ${form.return_date}`,
     `Duration: ${days} day${days === 1 ? '' : 's'}`,
     `Daily rate: $${car.rate}/day`,
@@ -124,8 +121,6 @@ export default function RentalInquiryModal({ car, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const [blockedDates, setBlockedDates] = useState(() => new Set());
   const [clientSecret, setClientSecret] = useState(null);
-
-  const hidePickup = car ? NO_PICKUP_LOCATION.has(car.type) : false;
 
   // Reset whenever a different car opens the modal.
   useEffect(() => {
@@ -317,7 +312,7 @@ export default function RentalInquiryModal({ car, onClose }) {
               // ── Inquiry form ──
               <div className="p-8">
                 <div className="mb-7">
-                  <p className="text-gray-400 tracking-[0.3em] uppercase text-[10px] mb-2">Daily Rental Inquiry</p>
+                  <p className="text-gray-400 tracking-[0.3em] uppercase text-[10px] mb-2">Daily Rental Booking</p>
                   <h3 className="text-2xl font-light text-black tracking-tight">{car.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">
                     ${car.rate}<span className="text-gray-400">/day</span>
@@ -355,13 +350,6 @@ export default function RentalInquiryModal({ car, onClose }) {
                     />
                   </div>
 
-                  {!hidePickup && (
-                    <div className="space-y-2">
-                      <Label className="text-xs tracking-widest uppercase text-gray-500">Pickup Location *</Label>
-                      <Input required value={form.pickup_location} onChange={(e) => handleChange('pickup_location', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" placeholder="Address or airport terminal" />
-                    </div>
-                  )}
-
                   <div className="space-y-2">
                     <Label className="text-xs tracking-widest uppercase text-gray-500">Notes</Label>
                     <Textarea value={form.special_requests} onChange={(e) => handleChange('special_requests', e.target.value)} className="border-gray-200 focus:border-black rounded-none min-h-[80px] resize-none" placeholder="Delivery requests, additional drivers, questions, etc." />
@@ -391,7 +379,7 @@ export default function RentalInquiryModal({ car, onClose }) {
                   >
                     {isSubmitting
                       ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{stripeEnabled ? 'Starting…' : 'Sending...'}</>
-                      : (stripeEnabled ? 'Continue to Payment' : 'Book')}
+                      : 'Book'}
                   </Button>
                   {!stripeEnabled && (
                     <p className="text-center text-[11px] text-gray-400">
