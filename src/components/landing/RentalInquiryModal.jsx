@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, Check } from 'lucide-react';
 import DateRangePicker from './DateRangePicker';
+import ZelleIcon, { ZELLE_PURPLE } from '@/components/ZelleIcon';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
@@ -273,6 +274,13 @@ export default function RentalInquiryModal({ car, onClose }) {
                       <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-black font-medium">
                         <span>Total</span>
                         <span>{usd(total)}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1" style={{ color: ZELLE_PURPLE }}>
+                        <span className="flex items-center gap-1.5 font-semibold">
+                          <ZelleIcon size={16} /> With Zelle
+                          <span className="text-[11px] font-normal opacity-70">· no fee</span>
+                        </span>
+                        <span className="font-semibold">{usd(subtotal)}</span>
                       </div>
                     </div>
                   )}

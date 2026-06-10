@@ -22,9 +22,13 @@ import { insertBooking } from '@/lib/insertBooking';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AdminTopBar from '@/components/AdminTopBar';
+import ZelleIcon from '@/components/ZelleIcon';
 import {
   ALL_VEHICLES, DAILY_RENTALS, CHAUFFEUR_VEHICLES, VEHICLE_BY_TYPE, vehicleLabel,
 } from '@/lib/fleet';
+
+// Lighter Zelle purple for legible text on the dark admin panels.
+const ZELLE_PURPLE_LIGHT = '#b794f6';
 
 // ─── date helpers (all local-time, no UTC drift) ──────────────────────────────
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -238,6 +242,9 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
                       {nights} night{nights === 1 ? '' : 's'} · est. total
                     </p>
                     <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, color: '#fff' }}>{usd(total)}</p>
+                    <p style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4, color: ZELLE_PURPLE_LIGHT, fontSize: 12 }}>
+                      <ZelleIcon size={15} /> With Zelle <span style={{ fontWeight: 600 }}>{usd(subtotal)}</span>
+                    </p>
                   </div>
                 )}
               </div>
