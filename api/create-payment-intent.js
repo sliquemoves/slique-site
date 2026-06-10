@@ -60,9 +60,9 @@ export default async function handler(req, res) {
     const intent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: 'usd',
-      // 'card' covers Apple Pay & Google Pay (they're card wallets) while
-      // avoiding redirect-based methods that would break the in-modal flow.
-      payment_method_types: ['card'],
+      // Card (covers Apple Pay & Google Pay wallets) + US bank ACH only.
+      // Explicit list keeps Klarna / other dashboard methods OFF.
+      payment_method_types: ['card', 'us_bank_account'],
       metadata: { vehicle_type, pickup_date, return_date, nights: String(nights), daily_rate: String(rate) },
     });
 

@@ -70,7 +70,7 @@ async function submitRentalInquiry({ car, form, payment }) {
     subtotal != null ? `Subtotal: ${usd(subtotal)}` : '',
     processingFee != null ? `Processing (3.5%): ${usd(processingFee)}` : '',
     total != null ? `${payment ? 'Total paid' : 'Estimated total'}: ${usd(total)}` : '',
-    payment?.id ? `Payment: Stripe ${payment.id} — PAID IN FULL` : '',
+    payment?.id ? `Payment: Stripe ${payment.id} — ${payment.status === 'processing' ? 'ACH PROCESSING' : 'PAID IN FULL'}` : '',
     form.special_requests ? `\nCustomer notes: ${form.special_requests}` : '',
   ].filter(Boolean);
 
@@ -226,7 +226,7 @@ export default function RentalInquiryModal({ car, onClose }) {
   // After a successful card / Apple Pay charge, record the paid booking.
   const handlePaid = async (paymentIntent) => {
     try {
-      await submitRentalInquiry({ car, form, payment: { id: paymentIntent.id } });
+      await submitRentalInquiry({ car, form, payment: { id: paymentIntent.id, status: paymentIntent.status } });
     } catch (err) {
       // The charge already succeeded — log, but still confirm to the customer.
       console.error('Post-payment booking insert failed:', err);

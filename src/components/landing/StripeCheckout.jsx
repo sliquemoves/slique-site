@@ -30,7 +30,9 @@ function CheckoutForm({ amountLabel, onSuccess }) {
       setBusy(false);
       return;
     }
-    if (paymentIntent && paymentIntent.status === 'succeeded') {
+    // 'succeeded' = card/Apple Pay cleared; 'processing' = ACH bank debit
+    // accepted and settling. Both mean the customer is done — record the booking.
+    if (paymentIntent && (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing')) {
       onSuccess(paymentIntent);
       return;
     }
@@ -79,10 +81,6 @@ function CheckoutForm({ amountLabel, onSuccess }) {
           Pay with card instead
         </button>
       )}
-
-      <p className="text-center text-[11px] text-gray-400">
-        Securely processed by Stripe. Apple Pay appears on supported devices.
-      </p>
     </div>
   );
 }
