@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, Check } from 'lucide-react';
 import DateRangePicker from './DateRangePicker';
@@ -348,11 +347,6 @@ export default function RentalInquiryModal({ car, onClose }) {
                       disabledDates={blockedDates}
                       placeholder="Select pickup & return"
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xs tracking-widest uppercase text-gray-500">Notes</Label>
-                    <Textarea value={form.special_requests} onChange={(e) => handleChange('special_requests', e.target.value)} className="border-gray-200 focus:border-black rounded-none min-h-[80px] resize-none" placeholder="Delivery requests, additional drivers, questions, etc." />
                   </div>
 
                   {/* Estimate breakdown */}
