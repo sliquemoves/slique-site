@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Briefcase, Gauge, Timer, Wind, Cog } from 'lucide-react';
+import { Users, Gauge, Timer, Wind, Cog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RentalInquiryModal from './RentalInquiryModal';
 import ChauffeurBookingModal from './ChauffeurBookingModal';
@@ -195,14 +195,10 @@ export default function FleetSection() {
                       <h3 className="text-3xl md:text-3xl text-white font-light tracking-wide">{vehicle.name}</h3>
                     </div>
 
-                    <div className="flex gap-8 text-sm justify-center">
+                    <div className="flex text-sm justify-center">
                       <div className="flex items-center gap-2 text-gray-400">
                         <Users className="w-4 h-4" />
                         <span>{vehicle.passengers}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <Briefcase className="w-4 h-4" />
-                        <span>{vehicle.luggage}</span>
                       </div>
                     </div>
 
