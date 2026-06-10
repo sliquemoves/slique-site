@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import {
+  Elements, ExpressCheckoutElement, PaymentElement, useStripe, useElements,
+} from '@stripe/react-stripe-js';
 import { stripePromise } from '@/lib/stripe';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -10,21 +12,19 @@ function CheckoutForm({ amountLabel, onSuccess }) {
   const elements = useElements();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  // null = still detecting; true/false = whether Apple Pay / Google Pay is available here.
+  const [walletAvailable, setWalletAvailable] = useState(null);
+  const [showCard, setShowCard] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const confirm = async () => {
     if (!stripe || !elements) return;
     setBusy(true);
     setError(null);
-
-    // redirect: 'if_required' keeps the customer in the modal for card/Apple Pay
-    // (only redirects for payment methods that strictly require it).
     const { error: payError, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: { return_url: window.location.href },
       redirect: 'if_required',
     });
-
     if (payError) {
       setError(payError.message || 'Payment could not be completed.');
       setBusy(false);
@@ -39,20 +39,51 @@ function CheckoutForm({ amountLabel, onSuccess }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <PaymentElement options={{ layout: 'tabs' }} />
+    <div className="space-y-4">
+      {/* Apple Pay / Google Pay button. Renders only on supported devices
+          (Safari/iOS with a Wallet card) once the domain is verified in Stripe. */}
+      {walletAvailable !== false && (
+        <ExpressCheckoutElement
+          onReady={({ availablePaymentMethods }) => setWalletAvailable(!!availablePaymentMethods)}
+          onConfirm={confirm}
+          options={{ paymentMethods: { link: 'never' } }}
+        />
+      )}
+
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <Button
-        type="submit"
-        disabled={!stripe || busy}
-        className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : `Pay ${amountLabel}`}
-      </Button>
+
+      {/* Card fallback — shown automatically when no wallet is available, or on
+          request via the link below. Keeps non-Apple visitors able to pay. */}
+      {(walletAvailable === false || showCard) ? (
+        <form onSubmit={(e) => { e.preventDefault(); confirm(); }} className="space-y-4">
+          {walletAvailable && (
+            <div className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-gray-400">
+              <span className="flex-1 h-px bg-gray-200" /> or pay with card <span className="flex-1 h-px bg-gray-200" />
+            </div>
+          )}
+          <PaymentElement options={{ layout: 'tabs' }} />
+          <Button
+            type="submit"
+            disabled={!stripe || busy}
+            className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : `Pay ${amountLabel}`}
+          </Button>
+        </form>
+      ) : walletAvailable && (
+        <button
+          type="button"
+          onClick={() => setShowCard(true)}
+          className="w-full text-center text-[11px] uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+        >
+          Pay with card instead
+        </button>
+      )}
+
       <p className="text-center text-[11px] text-gray-400">
-        Payments are securely processed by Stripe. Apple Pay shown on supported devices.
+        Securely processed by Stripe. Apple Pay appears on supported devices.
       </p>
-    </form>
+    </div>
   );
 }
 
