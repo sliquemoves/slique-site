@@ -1,296 +1,709 @@
 // src/pages/AdminHub.jsx
-// Top-level admin hub at /admin. Two big tile buttons (Bookings / Outreach)
-// with their pending counts, plus a clean calendar list of confirmed
-// upcoming bookings underneath. Black-and-white gothic.
+// ──────────────────────────────────────────────────────────────────────────────
+// Slique Moves — Admin Command Center (/manage)
+//
+// Built around the daily-rental business: at a glance you can see every car's
+// schedule for the month, and enter a new booking in seconds (most come in by
+// text). Rows are vehicles, columns are the days of the month; a filled cell
+// means the car is out. Tap an open day to start a booking pre-filled with that
+// car + date; tap a booked day to see / edit / cancel it.
+//
+// Chauffeur Bookings and Outreach remain reachable from the top strip.
+// ──────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Loader2, Plus, ChevronLeft, ChevronRight, X, Phone, Trash2, CalendarDays,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { insertBooking } from '@/lib/insertBooking';
+import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AdminTopBar from '@/components/AdminTopBar';
+import {
+  ALL_VEHICLES, DAILY_RENTALS, CHAUFFEUR_VEHICLES, VEHICLE_BY_TYPE, vehicleLabel,
+} from '@/lib/fleet';
 
-// ─── tokens ───────────────────────────────────────────────────────────────────
-const SHELL = {
-  minHeight: '100vh',
-  background: '#000',
-  color: '#fff',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  padding: '24px',
-};
+// ─── date helpers (all local-time, no UTC drift) ──────────────────────────────
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const WEEKDAY = ['S','M','T','W','T','F','S'];
 
-const WRAP = { width: '100%', maxWidth: 960, margin: '0 auto' };
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseYmd = (s) => (s ? new Date(s + 'T00:00:00') : null);
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 
-const TITLE = {
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
-  fontSize: 56,
-  fontWeight: 300,
-  letterSpacing: '0.16em',
-  color: '#fff',
-  margin: 0,
-  textTransform: 'uppercase',
-};
-
-const SUBTITLE = {
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
-  fontSize: 14,
-  fontWeight: 300,
-  letterSpacing: '0.55em',
-  color: 'rgba(255,255,255,0.45)',
-  marginTop: 14,
-  textTransform: 'uppercase',
-  fontStyle: 'italic',
-};
-
-const RULE = { width: 60, height: 1, background: 'rgba(255,255,255,0.25)', margin: '22px auto 0 auto' };
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
+function prettyDate(s) {
+  const d = parseYmd(s);
+  if (!d) return '';
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
-
-function format12Hour(time24) {
-  if (!time24) return '';
-  const [h] = String(time24).split(':');
-  const hour = parseInt(h, 10);
-  const period = hour >= 12 ? 'PM' : 'AM';
-  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return `${display}:00 ${period}`;
+function prettyShort(s) {
+  const d = parseYmd(s);
+  if (!d) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-const VEHICLE_LABELS = {
-  escalade_suv: 'Escalade SUV',
-  mercedes_limo: 'Mercedes Limousine',
-  mercedes_sprinter: 'Sprinter Van',
-  mercedes_amg: 'AMG Sedan',
-  luxury_sedan: 'Luxury Sedan',
-  luxury_suv: 'Luxury SUV',
+// Nights between pickup & return (>=1). Matches the public inquiry math.
+function rentalNights(pickup, ret) {
+  const a = parseYmd(pickup);
+  const b = parseYmd(ret);
+  if (!a || !b) return 1;
+  return Math.max(Math.round((b - a) / 86400000), 1);
+}
+
+// Pull "Return date: YYYY-MM-DD" out of legacy notes (rows created before the
+// return_date column existed).
+function returnFromNotes(notes) {
+  if (!notes) return null;
+  const m = String(notes).match(/Return date:\s*(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
+// The day a car is free again = the booking's end day (inclusive occupancy).
+function bookingEnd(b) {
+  return b.return_date || returnFromNotes(b.special_requests) || b.pickup_date;
+}
+
+const PROCESSING_RATE = 0.035;
+const usd = (n) => (n == null ? '—' : n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }));
+
+// ─── status palette (monochrome gothic) ───────────────────────────────────────
+const STATUS = {
+  pending:   { label: 'Pending',   cell: 'rgba(255,255,255,0.20)', cellBorder: 'rgba(255,255,255,0.35)', text: '#fff',     dot: '#bdbdbd' },
+  confirmed: { label: 'Confirmed', cell: 'rgba(255,255,255,0.92)', cellBorder: '#ffffff',                text: '#000',     dot: '#ffffff' },
+  completed: { label: 'Completed', cell: 'rgba(255,255,255,0.07)', cellBorder: 'rgba(255,255,255,0.16)', text: '#9a9a9a',  dot: '#6a6a6a' },
+};
+const STATUS_ORDER = ['pending', 'confirmed', 'completed', 'cancelled'];
+const STATUS_LABEL = { ...Object.fromEntries(Object.entries(STATUS).map(([k, v]) => [k, v.label])), cancelled: 'Cancelled' };
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Quick-add booking modal
+// ══════════════════════════════════════════════════════════════════════════════
+const EMPTY = {
+  customer_name: '', phone: '', email: '',
+  vehicle_type: '', pickup_date: '', return_date: '',
+  pickup_location: '', special_requests: '', status: 'confirmed',
 };
 
-// ─── tile button ──────────────────────────────────────────────────────────────
-function HubTile({ to, eyebrow, label, count, countLabel }) {
-  const [hover, setHover] = useState(false);
+function NewBookingModal({ open, prefill, onClose, onCreated }) {
+  const [form, setForm] = useState(EMPTY);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) setForm({ ...EMPTY, ...(prefill || {}) });
+  }, [open, prefill]);
+
+  const upd = (k, v) => setForm((f) => {
+    const next = { ...f, [k]: v };
+    if (k === 'pickup_date' && f.return_date && f.return_date < v) next.return_date = '';
+    return next;
+  });
+
+  const car = VEHICLE_BY_TYPE[form.vehicle_type];
+  const isRental = car?.category === 'rental';
+  const nights = isRental && form.return_date ? rentalNights(form.pickup_date, form.return_date) : (isRental ? 1 : 0);
+  const subtotal = isRental && car?.rate ? nights * car.rate : null;
+  const total = subtotal != null ? Math.round(subtotal * (1 + PROCESSING_RATE)) : null;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.vehicle_type) return toast.error('Pick a vehicle');
+    if (!form.customer_name.trim()) return toast.error('Add a customer name');
+    if (!form.pickup_date) return toast.error('Pick a start date');
+    if (isRental && form.return_date && form.return_date < form.pickup_date) {
+      return toast.error('Return date must be after pickup');
+    }
+    setSaving(true);
+    try {
+      const { error } = await insertBooking({
+        customer_name: form.customer_name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        service_type: isRental ? 'daily_rental' : 'hourly_charter',
+        vehicle_type: form.vehicle_type,
+        pickup_date: form.pickup_date,
+        return_date: isRental ? (form.return_date || form.pickup_date) : null,
+        pickup_time: '10:00',
+        pickup_location: form.pickup_location.trim(),
+        dropoff_location: null,
+        passengers: 1,
+        daily_rate: isRental ? (car?.rate ?? null) : null,
+        total_amount: total,
+        special_requests: form.special_requests.trim() || null,
+        status: form.status,
+      });
+      if (error) throw error;
+      toast.success(`Booked ${form.customer_name.trim().split(' ')[0]} — ${vehicleLabel(form.vehicle_type)}`);
+      onCreated();
+      onClose();
+    } catch (err) {
+      console.error('[NewBooking] insert failed', err);
+      toast.error(err.message?.includes('return_date')
+        ? 'Run the SQL migration first (return_date column missing).'
+        : 'Could not save booking');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <Link
-      to={to}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        flex: 1,
-        textDecoration: 'none',
-        display: 'block',
-        background: hover ? 'rgba(255,255,255,0.06)' : '#0a0a0a',
-        border: hover ? '1px solid rgba(255,255,255,0.5)' : '1px solid rgba(255,255,255,0.18)',
-        padding: '40px 36px',
-        textAlign: 'center',
-        transition: 'all 200ms ease',
-        cursor: 'pointer',
-      }}
-    >
-      <div style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 18 }}>
-        {eyebrow}
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+              width: 'min(560px, 94vw)', maxHeight: '92vh', overflow: 'auto',
+              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.15)', padding: 30, zIndex: 101,
+            }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 18 }}>
+              <div>
+                <p style={{ fontSize: 9, letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>New Booking</p>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 300, color: '#fff', letterSpacing: '0.03em' }}>
+                  Reserve a <span style={{ fontStyle: 'italic' }}>vehicle</span>
+                </h2>
+              </div>
+              <button onClick={onClose} style={iconBtn}><X size={16} /></button>
+            </div>
+
+            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <Field label="Vehicle" required>
+                <Select value={form.vehicle_type} onValueChange={(v) => upd('vehicle_type', v)}>
+                  <SelectTrigger style={selectStyle}><SelectValue placeholder="Select vehicle" /></SelectTrigger>
+                  <SelectContent>
+                    {DAILY_RENTALS.map((v) => (
+                      <SelectItem key={v.type} value={v.type}>{v.name} · ${v.rate}/day</SelectItem>
+                    ))}
+                    {CHAUFFEUR_VEHICLES.map((v) => (
+                      <SelectItem key={v.type} value={v.type}>{v.name.replace(/\s*-\s*Black$/i, '')} · Chauffeur</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="Customer Name" required>
+                  <input value={form.customer_name} onChange={(e) => upd('customer_name', e.target.value)} style={inputStyle} placeholder="Jane Doe" />
+                </Field>
+                <Field label="Phone" required>
+                  <input type="tel" value={form.phone} onChange={(e) => upd('phone', e.target.value)} style={inputStyle} placeholder="(612) 555-0100" />
+                </Field>
+              </div>
+
+              <Field label="Email">
+                <input type="email" value={form.email} onChange={(e) => upd('email', e.target.value)} style={inputStyle} placeholder="optional" />
+              </Field>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label={isRental ? 'Pickup Date' : 'Date'} required>
+                  <input type="date" value={form.pickup_date} onChange={(e) => upd('pickup_date', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }} />
+                </Field>
+                <Field label="Return Date">
+                  <input type="date" value={form.return_date} min={form.pickup_date || undefined}
+                    onChange={(e) => upd('return_date', e.target.value)}
+                    disabled={!isRental && !!form.vehicle_type}
+                    style={{ ...inputStyle, colorScheme: 'dark', opacity: (!isRental && form.vehicle_type) ? 0.4 : 1 }} />
+                </Field>
+              </div>
+
+              <Field label="Pickup / Delivery Location">
+                <input value={form.pickup_location} onChange={(e) => upd('pickup_location', e.target.value)} style={inputStyle} placeholder="Address, airport, or 'shop pickup'" />
+              </Field>
+
+              <Field label="Notes">
+                <textarea value={form.special_requests} onChange={(e) => upd('special_requests', e.target.value)} style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} placeholder="From the text thread — anything to remember" />
+              </Field>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
+                <Field label="Status">
+                  <Select value={form.status} onValueChange={(v) => upd('status', v)}>
+                    <SelectTrigger style={selectStyle}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {['pending', 'confirmed', 'completed'].map((s) => (
+                        <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                {subtotal != null && (
+                  <div style={{ textAlign: 'right', paddingBottom: 8 }}>
+                    <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+                      {nights} night{nights === 1 ? '' : 's'} · est. total
+                    </p>
+                    <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, color: '#fff' }}>{usd(total)}</p>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <button type="button" onClick={onClose} style={ghostBtn}>Cancel</button>
+                <button type="submit" disabled={saving} style={{ ...solidBtn, flex: 2, opacity: saving ? 0.5 : 1 }}>
+                  {saving ? 'Saving…' : 'Add Booking'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Booking detail modal (view / change status / delete)
+// ══════════════════════════════════════════════════════════════════════════════
+function BookingDetail({ booking, onClose, onChanged }) {
+  const [busy, setBusy] = useState(false);
+  if (!booking) return null;
+
+  const end = bookingEnd(booking);
+  const isRange = end && end !== booking.pickup_date;
+
+  const setStatus = async (status) => {
+    setBusy(true);
+    const { error } = await supabase.from('bookings').update({ status }).eq('id', booking.id);
+    setBusy(false);
+    if (error) return toast.error('Could not update status');
+    toast.success('Status updated');
+    onChanged();
+    onClose();
+  };
+
+  const remove = async () => {
+    if (!window.confirm(`Delete ${booking.customer_name}'s booking? This cannot be undone.`)) return;
+    setBusy(true);
+    const { error } = await supabase.from('bookings').delete().eq('id', booking.id);
+    setBusy(false);
+    if (error) return toast.error('Could not delete booking');
+    toast.success('Booking deleted');
+    onChanged();
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {booking && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+              width: 'min(460px, 94vw)', maxHeight: '92vh', overflow: 'auto',
+              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.15)', padding: 30, zIndex: 101,
+            }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div>
+                <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>
+                  {vehicleLabel(booking.vehicle_type)}
+                </p>
+                <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 26, fontWeight: 300, color: '#fff', letterSpacing: '0.02em' }}>
+                  {booking.customer_name}
+                </h2>
+              </div>
+              <button onClick={onClose} style={iconBtn}><X size={16} /></button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 22 }}>
+              <Detail label="Dates" value={isRange ? `${prettyShort(booking.pickup_date)} → ${prettyShort(end)}` : prettyDate(booking.pickup_date)} />
+              <Detail label="Total" value={usd(booking.total_amount)} />
+              <Detail label="Phone" value={booking.phone ? <a href={`tel:${booking.phone}`} style={{ color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Phone size={11} /> {booking.phone}</a> : '—'} />
+              <Detail label="Email" value={booking.email || '—'} />
+              {booking.pickup_location && <Detail label="Location" value={booking.pickup_location} />}
+              <Detail label="Service" value={booking.service_type === 'daily_rental' ? 'Daily Rental' : 'Chauffeur'} />
+            </div>
+
+            {booking.special_requests && (
+              <div style={{ marginBottom: 22, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Notes</p>
+                <p style={{ fontSize: 12, color: '#cfcfcf', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontFamily: "'Cormorant Garamond', Georgia, serif" }}>{booking.special_requests}</p>
+              </div>
+            )}
+
+            <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>Set Status</p>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 22 }}>
+              {STATUS_ORDER.map((s) => {
+                const active = booking.status === s;
+                return (
+                  <button key={s} type="button" disabled={busy || active} onClick={() => setStatus(s)}
+                    style={{
+                      padding: '8px 14px', fontSize: 9, letterSpacing: '0.25em', textTransform: 'uppercase',
+                      border: '1px solid', borderColor: active ? '#fff' : 'rgba(255,255,255,0.18)',
+                      background: active ? '#fff' : 'transparent', color: active ? '#000' : 'rgba(255,255,255,0.6)',
+                      cursor: active ? 'default' : 'pointer',
+                    }}>
+                    {STATUS_LABEL[s]}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button type="button" onClick={remove} disabled={busy}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', color: 'rgba(255,120,120,0.7)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', cursor: 'pointer', padding: 0 }}>
+              <Trash2 size={12} /> Delete booking
+            </button>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Month availability grid
+// ══════════════════════════════════════════════════════════════════════════════
+function ScheduleGrid({ year, month, bookings, onPickEmpty, onPickBooking }) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const todayStr = ymd(new Date());
+
+  // Build `${type}|${dateStr}` → booking for every covered day in this month.
+  const cellMap = useMemo(() => {
+    const map = {};
+    const mStart = new Date(year, month, 1);
+    const mEnd = new Date(year, month, daysInMonth);
+    for (const b of bookings) {
+      const start = parseYmd(b.pickup_date);
+      const end = parseYmd(bookingEnd(b)) || start;
+      if (!start) continue;
+      let d = start < mStart ? new Date(mStart) : new Date(start);
+      const last = end > mEnd ? mEnd : end;
+      while (d <= last) {
+        map[`${b.vehicle_type}|${ymd(d)}`] = b;
+        d = addDays(d, 1);
+      }
+    }
+    return map;
+  }, [bookings, year, month, daysInMonth]);
+
+  const CELL = 30;
+  const LABEL = 152;
+
+  return (
+    <div style={{ overflowX: 'auto', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
+      <div style={{ minWidth: LABEL + daysInMonth * CELL }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ width: LABEL, flexShrink: 0, position: 'sticky', left: 0, zIndex: 2, background: '#0a0a0a', borderRight: '1px solid rgba(255,255,255,0.1)' }} />
+          {days.map((d) => {
+            const dateObj = new Date(year, month, d);
+            const isToday = ymd(dateObj) === todayStr;
+            const dow = dateObj.getDay();
+            const weekend = dow === 0 || dow === 6;
+            return (
+              <div key={d} style={{
+                width: CELL, flexShrink: 0, textAlign: 'center', padding: '6px 0',
+                background: isToday ? 'rgba(255,255,255,0.12)' : weekend ? 'rgba(255,255,255,0.03)' : 'transparent',
+              }}>
+                <div style={{ fontSize: 7, letterSpacing: '0.05em', color: 'rgba(255,255,255,0.35)' }}>{WEEKDAY[dow]}</div>
+                <div style={{ fontSize: 11, color: isToday ? '#fff' : 'rgba(255,255,255,0.6)', fontWeight: isToday ? 600 : 400 }}>{d}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Vehicle rows */}
+        {ALL_VEHICLES.map((v, rowIdx) => (
+          <div key={v.type} style={{ display: 'flex', borderBottom: rowIdx === ALL_VEHICLES.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{
+              width: LABEL, flexShrink: 0, position: 'sticky', left: 0, zIndex: 2, background: '#0a0a0a',
+              borderRight: '1px solid rgba(255,255,255,0.1)', padding: '10px 12px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: 11, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.25 }}>{v.shortName}</span>
+              <span style={{ fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>
+                {v.category === 'rental' ? `$${v.rate}/day` : 'Chauffeur'}
+              </span>
+            </div>
+            {days.map((d) => {
+              const dateStr = ymd(new Date(year, month, d));
+              const b = cellMap[`${v.type}|${dateStr}`];
+              const dow = new Date(year, month, d).getDay();
+              const weekend = dow === 0 || dow === 6;
+              const isToday = dateStr === todayStr;
+              if (b) {
+                const st = STATUS[b.status] || STATUS.pending;
+                const isStart = b.pickup_date === dateStr;
+                return (
+                  <button key={d} type="button" title={`${b.customer_name} · ${prettyShort(b.pickup_date)}→${prettyShort(bookingEnd(b))} · ${STATUS_LABEL[b.status]}`}
+                    onClick={() => onPickBooking(b)}
+                    style={{
+                      width: CELL, flexShrink: 0, height: 44, border: 'none', cursor: 'pointer', padding: 0,
+                      background: st.cell,
+                      borderLeft: isStart ? `2px solid ${st.cellBorder}` : 'none',
+                      display: 'flex', alignItems: 'center', justifyContent: isStart ? 'flex-start' : 'center',
+                      paddingLeft: isStart ? 4 : 0, overflow: 'visible',
+                      position: 'relative', zIndex: isStart ? 1 : 0,
+                    }}>
+                    {isStart && (
+                      <span style={{ fontSize: 9, color: st.text, whiteSpace: 'nowrap', fontWeight: 500, letterSpacing: '0.02em', pointerEvents: 'none' }}>
+                        {b.customer_name.split(' ')[0]}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+              return (
+                <button key={d} type="button" title={`${v.shortName} · ${prettyShort(dateStr)} — open`}
+                  onClick={() => onPickEmpty(v.type, dateStr)}
+                  style={{
+                    width: CELL, flexShrink: 0, height: 44, cursor: 'pointer', padding: 0,
+                    border: 'none', borderRight: '1px solid rgba(255,255,255,0.04)',
+                    background: isToday ? 'rgba(255,255,255,0.08)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    transition: 'background 120ms',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = isToday ? 'rgba(255,255,255,0.08)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
+                />
+              );
+            })}
+          </div>
+        ))}
       </div>
-      <div style={{
-        fontFamily: "'Cormorant Garamond', Georgia, serif",
-        fontSize: 38,
-        fontWeight: 300,
-        letterSpacing: '0.16em',
-        color: '#fff',
-        marginBottom: 26,
-        textTransform: 'uppercase',
-      }}>
-        {label}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Main page
+// ══════════════════════════════════════════════════════════════════════════════
+export default function AdminHub() {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth());
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState({ pendingBookings: 0, drafts: 0 });
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [prefill, setPrefill] = useState(null);
+  const [detail, setDetail] = useState(null);
+
+  const fetchMonth = useCallback(async () => {
+    setLoading(true);
+    // Fetch a generous window so multi-day rentals that begin in a prior month
+    // still show up; overlap is filtered client-side.
+    const windowStart = ymd(new Date(year, month - 2, 1));
+    const monthEnd = ymd(new Date(year, month + 1, 0));
+    const mStart = new Date(year, month, 1);
+    const mEnd = new Date(year, month, new Date(year, month + 1, 0).getDate());
+
+    try {
+      const [bRes, pendRes, draftRes] = await Promise.all([
+        supabase.from('bookings').select('*')
+          .neq('status', 'cancelled')
+          .gte('pickup_date', windowStart)
+          .lte('pickup_date', monthEnd)
+          .order('pickup_date', { ascending: true }),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('email_drafts').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
+      ]);
+
+      const overlapping = (bRes.data || []).filter((b) => {
+        const s = parseYmd(b.pickup_date);
+        const e = parseYmd(bookingEnd(b)) || s;
+        return s && e >= mStart && s <= mEnd;
+      });
+      setBookings(overlapping);
+      setCounts({ pendingBookings: pendRes.count ?? 0, drafts: draftRes.count ?? 0 });
+    } catch (err) {
+      console.error('[AdminHub] fetch failed', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [year, month]);
+
+  useEffect(() => { fetchMonth(); }, [fetchMonth]);
+
+  const goPrev = () => { const d = new Date(year, month - 1, 1); setYear(d.getFullYear()); setMonth(d.getMonth()); };
+  const goNext = () => { const d = new Date(year, month + 1, 1); setYear(d.getFullYear()); setMonth(d.getMonth()); };
+  const goToday = () => { const d = new Date(); setYear(d.getFullYear()); setMonth(d.getMonth()); };
+
+  const openEmpty = (vehicle_type, pickup_date) => { setPrefill({ vehicle_type, pickup_date }); setAddOpen(true); };
+  const openNew = () => { setPrefill(null); setAddOpen(true); };
+
+  // Sorted list of this month's bookings for the text schedule below the grid.
+  const monthList = useMemo(
+    () => [...bookings].sort((a, b) => (a.pickup_date < b.pickup_date ? -1 : 1)),
+    [bookings],
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: '28px 20px 80px' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+        <AdminTopBar center="Slique Moves" />
+
+        {/* Title + secondary nav */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22 }}>
+          <div>
+            <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Fleet Schedule</p>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 40, fontWeight: 300, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+              Rentals
+            </h1>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <NavLink to="/bookings" label="Chauffeur Bookings" badge={counts.pendingBookings} />
+            <NavLink to="/outreach" label="Outreach" badge={counts.drafts} />
+          </div>
+        </div>
+
+        {/* Month bar + New Booking */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button onClick={goPrev} style={iconBtn}><ChevronLeft size={16} /></button>
+            <div style={{ minWidth: 220, textAlign: 'center' }}>
+              <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, letterSpacing: '0.06em' }}>
+                {MONTHS[month]} <span style={{ color: 'rgba(255,255,255,0.5)' }}>{year}</span>
+              </span>
+            </div>
+            <button onClick={goNext} style={iconBtn}><ChevronRight size={16} /></button>
+            <button onClick={goToday} style={{ ...ghostBtn, flex: 'none', padding: '8px 14px' }}>Today</button>
+          </div>
+          <button onClick={openNew} style={{ ...solidBtn, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px' }}>
+            <Plus size={13} /> New Booking
+          </button>
+        </div>
+
+        {/* Legend */}
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 12, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+          <Legend swatch={STATUS.confirmed.cell} border={STATUS.confirmed.cellBorder} label="Confirmed" />
+          <Legend swatch={STATUS.pending.cell} border={STATUS.pending.cellBorder} label="Pending" />
+          <Legend swatch={STATUS.completed.cell} border={STATUS.completed.cellBorder} label="Completed" />
+          <span style={{ color: 'rgba(255,255,255,0.3)' }}>Tap an open day to book · tap a booking to edit</span>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 80, border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
+            <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)' }} />
+          </div>
+        ) : (
+          <ScheduleGrid year={year} month={month} bookings={bookings}
+            onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
+        )}
+
+        {/* Text schedule list */}
+        <section style={{ marginTop: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <CalendarDays size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
+            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+              {MONTHS[month]} Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({monthList.length})</span>
+            </h2>
+          </div>
+          <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
+            {monthList.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '48px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                No bookings this month
+              </div>
+            ) : monthList.map((b, i) => {
+              const st = STATUS[b.status] || STATUS.pending;
+              const end = bookingEnd(b);
+              const range = end && end !== b.pickup_date;
+              return (
+                <button key={b.id} type="button" onClick={() => setDetail(b)}
+                  style={{
+                    width: '100%', textAlign: 'left', display: 'grid',
+                    gridTemplateColumns: '130px 1fr auto', gap: 16, alignItems: 'center',
+                    padding: '14px 18px', cursor: 'pointer', background: 'transparent', border: 'none',
+                    borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                  }}>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: "'Courier New', monospace", letterSpacing: '0.03em' }}>
+                    {range ? `${prettyShort(b.pickup_date)}–${prettyShort(end)}` : prettyShort(b.pickup_date)}
+                  </span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, color: '#fff', fontStyle: 'italic', marginRight: 10 }}>{b.customer_name}</span>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em' }}>{vehicleLabel(b.vehicle_type)}</span>
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: st.dot, display: 'inline-block' }} />
+                    <span style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>{STATUS_LABEL[b.status]}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
       </div>
-      <div style={{ width: 30, height: 1, background: 'rgba(255,255,255,0.25)', margin: '0 auto 24px auto' }} />
-      <div style={{
-        fontSize: 8,
-        letterSpacing: '0.45em',
-        textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.4)',
-        marginBottom: 8,
-      }}>
-        {countLabel}
-      </div>
-      <div style={{
-        fontFamily: "'Cormorant Garamond', Georgia, serif",
-        fontSize: 64,
-        fontWeight: 300,
-        color: '#fff',
-        lineHeight: 1,
-      }}>
-        {count}
-      </div>
+
+      <NewBookingModal open={addOpen} prefill={prefill} onClose={() => setAddOpen(false)} onCreated={fetchMonth} />
+      <BookingDetail booking={detail} onClose={() => setDetail(null)} onChanged={fetchMonth} />
+    </div>
+  );
+}
+
+// ─── small pieces ─────────────────────────────────────────────────────────────
+function NavLink({ to, label, badge }) {
+  return (
+    <Link to={to} style={{
+      display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none',
+      padding: '9px 16px', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent',
+      fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)',
+    }}>
+      {label}
+      {badge > 0 && (
+        <span style={{ minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#fff', color: '#000', fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', letterSpacing: 0 }}>
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }
 
-// ─── confirmed bookings calendar list ─────────────────────────────────────────
-function CalendarRow({ booking }) {
+function Legend({ swatch, border, label }) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '160px 110px 1fr 220px',
-      alignItems: 'center',
-      gap: 24,
-      padding: '14px 28px',
-      borderTop: '1px solid rgba(255,255,255,0.08)',
-    }}>
-      <div style={{ fontSize: 12, color: '#fff', letterSpacing: '0.04em' }}>
-        {formatDate(booking.pickup_date)}
-      </div>
-      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', fontFamily: "'Courier New', monospace", letterSpacing: '0.1em' }}>
-        {format12Hour(booking.pickup_time)}
-      </div>
-      <div>
-        <div style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: 18,
-          color: '#fff',
-          letterSpacing: '0.04em',
-          fontStyle: 'italic',
-          marginBottom: 4,
-        }}>
-          {booking.customer_name}
-        </div>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.06em' }}>
-          {booking.pickup_location}
-          {booking.dropoff_location ? ` → ${booking.dropoff_location}` : ''}
-        </div>
-      </div>
-      <div style={{
-        fontSize: 9,
-        letterSpacing: '0.35em',
-        textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.6)',
-        textAlign: 'right',
-      }}>
-        {VEHICLE_LABELS[booking.vehicle_type] ?? booking.vehicle_type}
-      </div>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+      <span style={{ width: 16, height: 12, background: swatch, border: `1px solid ${border}`, display: 'inline-block' }} />
+      {label}
+    </span>
+  );
+}
+
+function Field({ label, required, children }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>
+        {label} {required && <span style={{ color: 'rgba(255,255,255,0.7)' }}>*</span>}
+      </label>
+      {children}
     </div>
   );
 }
 
-// ─── main ─────────────────────────────────────────────────────────────────────
-export default function AdminHub() {
-  const [pendingBookings, setPendingBookings] = useState(0);
-  const [pendingDrafts, setPendingDrafts] = useState(0);
-  const [confirmed, setConfirmed] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    const today = new Date().toISOString().split('T')[0];
-
-    try {
-      const [pendingBookingsRes, pendingDraftsRes, confirmedRes] = await Promise.all([
-        supabase
-          .from('bookings')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pending'),
-        supabase
-          .from('email_drafts')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'pending_review'),
-        supabase
-          .from('bookings')
-          .select('id, customer_name, pickup_date, pickup_time, pickup_location, dropoff_location, vehicle_type, status')
-          .eq('status', 'confirmed')
-          .gte('pickup_date', today)
-          .order('pickup_date', { ascending: true })
-          .order('pickup_time', { ascending: true })
-          .limit(50),
-      ]);
-
-      setPendingBookings(pendingBookingsRes.count ?? 0);
-      setPendingDrafts(pendingDraftsRes.count ?? 0);
-      setConfirmed(confirmedRes.data ?? []);
-    } catch (err) {
-      console.error('[AdminHub] fetchAll threw', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchAll(); }, [fetchAll]);
-
+function Detail({ label, value }) {
   return (
-    <div style={SHELL}>
-      <div style={WRAP}>
-
-        <AdminTopBar />
-
-        {/* Header — centered */}
-        <header style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={TITLE}>Slique Moves</h1>
-          <div style={SUBTITLE}>Admin</div>
-          <div style={RULE} />
-        </header>
-
-        {/* Two big hub tiles */}
-        <div style={{ display: 'flex', gap: 18, marginBottom: 24 }}>
-          <HubTile
-            to="/bookings"
-            eyebrow="Reservations"
-            label="Bookings"
-            count={loading ? '—' : pendingBookings}
-            countLabel="Pending"
-          />
-          <HubTile
-            to="/outreach"
-            eyebrow="Cold Outreach"
-            label="Outreach"
-            count={loading ? '—' : pendingDrafts}
-            countLabel="Drafts to Review"
-          />
-        </div>
-
-        {/* Confirmed upcoming bookings calendar */}
-        <section>
-          <div style={{ textAlign: 'center', marginBottom: 14 }}>
-            <h2 style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: 24,
-              fontWeight: 300,
-              letterSpacing: '0.1em',
-              color: '#fff',
-              margin: 0,
-              textTransform: 'uppercase',
-            }}>
-              Upcoming <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.65)' }}>Confirmed</span>
-            </h2>
-            <div style={{ width: 30, height: 1, background: 'rgba(255,255,255,0.2)', margin: '12px auto 0 auto' }} />
-          </div>
-
-          <div style={{
-            background: '#0a0a0a',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}>
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: 60 }}>
-                <Loader2 size={18} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)' }} />
-              </div>
-            ) : confirmed.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '60px 30px',
-                color: 'rgba(255,255,255,0.3)',
-                fontSize: 12,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-              }}>
-                No confirmed bookings on the horizon
-              </div>
-            ) : (
-              confirmed.map(b => <CalendarRow key={b.id} booking={b} />)
-            )}
-          </div>
-        </section>
-      </div>
+    <div>
+      <p style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 5 }}>{label}</p>
+      <p style={{ fontSize: 13, color: '#e8e8e8', fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: '0.02em' }}>{value}</p>
     </div>
   );
 }
+
+// ─── shared inline styles ─────────────────────────────────────────────────────
+const inputStyle = {
+  width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)',
+  color: '#fff', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none',
+};
+const selectStyle = {
+  width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)',
+  borderRadius: 0, color: '#e0e0e0', height: 40,
+};
+const iconBtn = {
+  background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)',
+  cursor: 'pointer', padding: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+};
+const ghostBtn = {
+  flex: 1, padding: '13px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
+  color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer',
+};
+const solidBtn = {
+  padding: '13px', background: '#fff', color: '#000', border: '1px solid #fff',
+  fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600,
+};

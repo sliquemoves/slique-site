@@ -1,0 +1,146 @@
+// src/lib/fleet.js
+// ──────────────────────────────────────────────────────────────────────────────
+// Single source of truth for the Slique fleet.
+//
+// Both the public landing page (FleetSection) and the admin command center
+// (/manage) import from here, so vehicle names, types, and daily rates never
+// drift between what a customer sees and what the admin schedule shows.
+//
+//   • CHAUFFEUR_VEHICLES — the original chauffeured line (hourly / by-trip).
+//   • DAILY_RENTALS      — the self-drive performance line (priced per day).
+//
+// Edit a car's `rate` here and it updates everywhere at once.
+// ──────────────────────────────────────────────────────────────────────────────
+
+// ── Chauffeur fleet (the original business) ──────────────────────────────────
+export const CHAUFFEUR_VEHICLES = [
+  {
+    name: "Cadillac Escalade SUV - Black",
+    subtitle: "Executive Class",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/3a79fb852_sliqueescalade.png",
+    passengers: "Up to 6",
+    luggage: "6 Large Bags",
+    features: ["Presidential Seats", "Drink Refrigerator", "Ambient Lighting", "Tinted Windows"],
+    type: "escalade_suv",
+  },
+  {
+    name: "Mercedes Benz Maybach - Black",
+    subtitle: "Executive Class",
+    image: "/slique_maybach.png",
+    passengers: "Up to 2",
+    luggage: "2 Large Bags",
+    features: ["Presidential Seats", "Drink Refrigerator", "Ambient Lighting", "Tinted Windows"],
+    type: "mercedes_amg",
+  },
+  {
+    name: "Mercedes Benz Sprinter - Black",
+    subtitle: "Executive Class",
+    image: "/slique_van.png",
+    passengers: "Up to 15",
+    luggage: "15 Large Bags",
+    features: ["VIP Lounge Interior", "Noise Insulation", "Ambient Lighting", "Tinted Windows"],
+    type: "mercedes_sprinter",
+  },
+  {
+    name: "Mercedes Benz Limousine - Black",
+    subtitle: "Executive Class",
+    image: "/slique_limo.png",
+    passengers: "Up to 10",
+    luggage: "10 Large Bags",
+    features: ["VIP Lounge Interior", "Premium Bar", "Ambient Lighting", "Tinted Windows"],
+    type: "mercedes_limo",
+  },
+];
+
+// ── Daily rentals (the new self-drive performance line) ──────────────────────
+// Specs are real-world figures; `rate` is the daily price — edit freely.
+export const DAILY_RENTALS = [
+  {
+    name: "Porsche 718 S",
+    tagline: "Mid-Engine Roadster",
+    image: "/slique_porsche.png",
+    hp: 350, zeroToSixty: "4.0s", topSpeed: "177", drive: "RWD",
+    rate: 249,
+    type: "porsche_718s",
+  },
+  {
+    name: "Mercedes-AMG C43",
+    tagline: "Sport Sedan",
+    image: "/slique_amg.png",
+    hp: 402, zeroToSixty: "4.6s", topSpeed: "155", drive: "AWD",
+    rate: 149,
+    type: "amg_c43",
+  },
+  {
+    name: "Corvette C8",
+    tagline: "Mid-Engine Supercar",
+    image: "/slique_corvette.png",
+    hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
+    rate: 499,
+    type: "corvette_c8",
+  },
+  {
+    name: "Tesla Model Y",
+    tagline: "Electric",
+    image: "/slique_tesla.png",
+    hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
+    rate: 149,
+    type: "tesla_model_y",
+  },
+  {
+    name: "Mercedes-AMG CLE 53",
+    tagline: "Sport Coupe",
+    image: "/slique_cle.png",
+    hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
+    rate: 499,
+    type: "amg_cle53",
+  },
+  {
+    name: "Corvette C8 Z06",
+    tagline: "Track-Bred Supercar",
+    image: "/slique_z06.png",
+    hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
+    rate: 699,
+    type: "corvette_c8_z06",
+  },
+];
+
+// ── Combined views ───────────────────────────────────────────────────────────
+// Every vehicle, tagged with its category and a short display name, in the
+// order the admin schedule should list them: daily rentals first (the focus of
+// the command center), chauffeur fleet after.
+export const ALL_VEHICLES = [
+  ...DAILY_RENTALS.map(v => ({
+    type: v.type,
+    name: v.name,
+    shortName: v.name,
+    image: v.image,
+    rate: v.rate,
+    category: 'rental',
+  })),
+  ...CHAUFFEUR_VEHICLES.map(v => ({
+    type: v.type,
+    name: v.name,
+    // Trim the trailing " - Black" / class for a tighter schedule label.
+    shortName: v.name.replace(/\s*-\s*Black$/i, ''),
+    image: v.image,
+    rate: null,
+    category: 'chauffeur',
+  })),
+];
+
+// type → vehicle meta, for O(1) lookups in the admin + booking flows.
+export const VEHICLE_BY_TYPE = ALL_VEHICLES.reduce((acc, v) => {
+  acc[v.type] = v;
+  return acc;
+}, {});
+
+// Human label for a vehicle_type string, with a graceful fallback.
+export function vehicleLabel(type) {
+  return VEHICLE_BY_TYPE[type]?.shortName || VEHICLE_BY_TYPE[type]?.name || type || '—';
+}
+
+// Daily rate for a vehicle_type (null for chauffeur vehicles / unknowns).
+export function vehicleRate(type) {
+  return VEHICLE_BY_TYPE[type]?.rate ?? null;
+}

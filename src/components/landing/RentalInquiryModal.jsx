@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/lib/supabaseClient';
+import { insertBooking } from '@/lib/insertBooking';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,24 +60,23 @@ async function submitRentalInquiry({ car, form }) {
     form.special_requests ? `\nCustomer notes: ${form.special_requests}` : '',
   ].filter(Boolean);
 
-  const { data: booking, error } = await supabase
-    .from('bookings')
-    .insert([{
-      customer_name: form.customer_name,
-      email: form.email,
-      phone: form.phone,
-      service_type: 'daily_rental',
-      vehicle_type: car.type,
-      pickup_date: form.pickup_date,
-      pickup_time: '10:00',            // sentinel — daily rentals aren't hourly
-      pickup_location: form.pickup_location,
-      dropoff_location: null,
-      passengers: 1,
-      special_requests: noteLines.join('\n'),
-      status: 'pending',
-    }])
-    .select()
-    .single();
+  const { data: booking, error } = await insertBooking({
+    customer_name: form.customer_name,
+    email: form.email,
+    phone: form.phone,
+    service_type: 'daily_rental',
+    vehicle_type: car.type,
+    pickup_date: form.pickup_date,
+    return_date: form.return_date,   // structured end date for the admin schedule
+    pickup_time: '10:00',            // sentinel — daily rentals aren't hourly
+    pickup_location: form.pickup_location,
+    dropoff_location: null,
+    passengers: 1,
+    daily_rate: car.rate,
+    total_amount: total,
+    special_requests: noteLines.join('\n'),
+    status: 'pending',
+  });
 
   if (error) throw error;
 
