@@ -370,16 +370,8 @@ export default function RentalInquiryModal({ car, onClose }) {
                   {/* Estimate breakdown */}
                   {subtotal != null && (
                     <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
-                      <div className="flex items-center justify-between text-gray-500">
-                        <span>{days} day{days === 1 ? '' : 's'} × ${car.rate}</span>
-                        <span>{usd(subtotal)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-gray-500">
-                        <span>Processing (3.5%)</span>
-                        <span>{usd(processingFee)}</span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-black font-medium">
-                        <span>Total</span>
+                      <div className="flex items-center justify-between text-black font-medium">
+                        <span>TOTAL {days} day{days === 1 ? '' : 's'} + processing (3.5%)</span>
                         <span>{usd(total)}</span>
                       </div>
                       <div className="flex items-center justify-between pt-1" style={{ color: ZELLE_PURPLE }}>
@@ -401,11 +393,11 @@ export default function RentalInquiryModal({ car, onClose }) {
                       ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{stripeEnabled ? 'Starting…' : 'Sending...'}</>
                       : (stripeEnabled ? 'Continue to Payment' : 'Book')}
                   </Button>
-                  <p className="text-center text-[11px] text-gray-400">
-                    {stripeEnabled
-                      ? "Secure checkout on the next step — Apple Pay or card."
-                      : "This is an inquiry — we'll confirm availability before any charge."}
-                  </p>
+                  {!stripeEnabled && (
+                    <p className="text-center text-[11px] text-gray-400">
+                      This is an inquiry — we'll confirm availability before any charge.
+                    </p>
+                  )}
                 </form>
               </div>
             )}
