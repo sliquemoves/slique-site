@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, X, Check } from 'lucide-react';
 import DateRangePicker from './DateRangePicker';
+import StripeCheckout from './StripeCheckout';
+import { stripeEnabled } from '@/lib/stripe';
 import ZelleIcon, { ZELLE_PURPLE } from '@/components/ZelleIcon';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
@@ -58,20 +60,21 @@ function rentalDays(start, end) {
    When you later run the SQL migration for a clean `rental_inquiries`
    table, this is the one function to rewrite — the UI above stays put.
    ──────────────────────────────────────────────────────────────── */
-async function submitRentalInquiry({ car, form }) {
+async function submitRentalInquiry({ car, form, payment }) {
   const days = rentalDays(form.pickup_date, form.return_date);
   const subtotal = days > 0 ? days * car.rate : null;
   const processingFee = subtotal != null ? subtotal * PROCESSING_RATE : null;
   const total = subtotal != null ? subtotal + processingFee : null;
 
   const noteLines = [
-    `DAILY RENTAL INQUIRY — ${car.name}`,
+    `DAILY RENTAL ${payment ? '(PAID)' : 'INQUIRY'} — ${car.name}`,
     `Return date: ${form.return_date}`,
     `Duration: ${days} day${days === 1 ? '' : 's'}`,
     `Daily rate: $${car.rate}/day`,
     subtotal != null ? `Subtotal: ${usd(subtotal)}` : '',
     processingFee != null ? `Processing (3.5%): ${usd(processingFee)}` : '',
-    total != null ? `Estimated total: ${usd(total)}` : '',
+    total != null ? `${payment ? 'Total paid' : 'Estimated total'}: ${usd(total)}` : '',
+    payment?.id ? `Payment: Stripe ${payment.id} — PAID IN FULL` : '',
     form.special_requests ? `\nCustomer notes: ${form.special_requests}` : '',
   ].filter(Boolean);
 
@@ -90,7 +93,7 @@ async function submitRentalInquiry({ car, form }) {
     daily_rate: car.rate,
     total_amount: total,
     special_requests: noteLines.join('\n'),
-    status: 'pending',
+    status: payment ? 'confirmed' : 'pending',
   });
 
   if (error) throw error;
@@ -120,6 +123,7 @@ export default function RentalInquiryModal({ car, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [blockedDates, setBlockedDates] = useState(() => new Set());
+  const [clientSecret, setClientSecret] = useState(null);
 
   const hidePickup = car ? NO_PICKUP_LOCATION.has(car.type) : false;
 
@@ -130,6 +134,7 @@ export default function RentalInquiryModal({ car, onClose }) {
       setSubmitted(false);
       setIsSubmitting(false);
       setBlockedDates(new Set());
+      setClientSecret(null);
     }
   }, [car]);
 
@@ -190,6 +195,29 @@ export default function RentalInquiryModal({ car, onClose }) {
       toast.error('Please choose a return date after the pickup date.');
       return;
     }
+
+    // Payments configured → create a PaymentIntent and advance to the pay step.
+    if (stripeEnabled) {
+      setIsSubmitting(true);
+      try {
+        const res = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vehicle_type: car.type, pickup_date: form.pickup_date, return_date: form.return_date }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.clientSecret) throw new Error(data.error || 'Could not start payment');
+        setClientSecret(data.clientSecret);
+      } catch (err) {
+        console.error('Payment init error:', err);
+        toast.error('Could not start payment. Please try again or call us.');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    // No payments configured → fall back to the inquiry flow.
     setIsSubmitting(true);
     try {
       await submitRentalInquiry({ car, form });
@@ -199,6 +227,17 @@ export default function RentalInquiryModal({ car, onClose }) {
       toast.error('Something went wrong. Please try again or call us.');
       setIsSubmitting(false);
     }
+  };
+
+  // After a successful card / Apple Pay charge, record the paid booking.
+  const handlePaid = async (paymentIntent) => {
+    try {
+      await submitRentalInquiry({ car, form, payment: { id: paymentIntent.id } });
+    } catch (err) {
+      // The charge already succeeded — log, but still confirm to the customer.
+      console.error('Post-payment booking insert failed:', err);
+    }
+    setSubmitted(true);
   };
 
   return (
@@ -254,6 +293,25 @@ export default function RentalInquiryModal({ car, onClose }) {
                 >
                   Done
                 </Button>
+              </div>
+            ) : clientSecret ? (
+              // ── Payment step ──
+              <div className="p-8">
+                <div className="mb-7">
+                  <p className="text-gray-400 tracking-[0.3em] uppercase text-[10px] mb-2">Secure Payment</p>
+                  <h3 className="text-2xl font-light text-black tracking-tight">{car.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {days} day{days === 1 ? '' : 's'} · <span className="text-black font-medium">{usd(total)}</span> total
+                  </p>
+                </div>
+                <StripeCheckout clientSecret={clientSecret} amountLabel={usd(total)} onSuccess={handlePaid} />
+                <button
+                  type="button"
+                  onClick={() => setClientSecret(null)}
+                  className="mt-5 w-full text-center text-[11px] text-gray-400 hover:text-black transition-colors"
+                >
+                  ← Back to details
+                </button>
               </div>
             ) : (
               // ── Inquiry form ──
@@ -339,10 +397,14 @@ export default function RentalInquiryModal({ car, onClose }) {
                     disabled={isSubmitting}
                     className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : 'Book'}
+                    {isSubmitting
+                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{stripeEnabled ? 'Starting…' : 'Sending...'}</>
+                      : (stripeEnabled ? 'Continue to Payment' : 'Book')}
                   </Button>
                   <p className="text-center text-[11px] text-gray-400">
-                    This is an inquiry — we'll confirm availability before any charge.
+                    {stripeEnabled
+                      ? "Secure checkout on the next step — Apple Pay or card."
+                      : "This is an inquiry — we'll confirm availability before any charge."}
                   </p>
                 </form>
               </div>
