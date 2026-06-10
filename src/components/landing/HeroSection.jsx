@@ -188,11 +188,9 @@ export default function HeroSection() {
       {/* ── Hero Section ── */}
       <section id="hero" className="relative overflow-hidden bg-black" style={{ minHeight: '100svh' }}>
 
-        {/* Background */}
-        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/escalade.png')`, transform: 'scale(1.05)', transformOrigin: 'center center' }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black" />
-        </div>
+        {/* Background — solid black. Clean and sharp; pulls the eye to the
+            animated trust strip. (Hero photo intentionally removed for now.) */}
+        <div className="absolute inset-0 bg-black" />
 
         {/* ── DESKTOP layout ── */}
         <div className="hidden md:flex relative z-10 flex-col items-center justify-center text-center px-6"
