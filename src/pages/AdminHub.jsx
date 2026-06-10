@@ -101,6 +101,37 @@ const STATUS_ORDER = ['pending', 'confirmed', 'completed', 'cancelled'];
 const STATUS_LABEL = { ...Object.fromEntries(Object.entries(STATUS).map(([k, v]) => [k, v.label])), cancelled: 'Cancelled' };
 
 // ══════════════════════════════════════════════════════════════════════════════
+// Modal shell — flex-centered so Framer Motion's transform animation and the
+// centering don't fight (the old top/left+translate approach got clobbered by
+// motion's own transform, dropping the panel into the bottom-right corner).
+// ══════════════════════════════════════════════════════════════════════════════
+function ModalShell({ open, onClose, width = 560, children }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 101, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              style={{
+                width: `min(${width}px, 94vw)`, maxHeight: '92vh', overflow: 'auto',
+                background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 14,
+                padding: 30, pointerEvents: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+              }}>
+              {children}
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // Quick-add booking modal
 // ══════════════════════════════════════════════════════════════════════════════
 const EMPTY = {
@@ -171,19 +202,7 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }} />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            style={{
-              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-              width: 'min(560px, 94vw)', maxHeight: '92vh', overflow: 'auto',
-              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.15)', padding: 30, zIndex: 101,
-            }}>
+    <ModalShell open={open} onClose={onClose} width={560}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 18 }}>
               <div>
                 <p style={{ fontSize: 9, letterSpacing: '0.45em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>New Booking</p>
@@ -273,10 +292,7 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
                 </button>
               </div>
             </form>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </ModalShell>
   );
 }
 
@@ -285,10 +301,9 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
 // ══════════════════════════════════════════════════════════════════════════════
 function BookingDetail({ booking, onClose, onChanged }) {
   const [busy, setBusy] = useState(false);
-  if (!booking) return null;
 
-  const end = bookingEnd(booking);
-  const isRange = end && end !== booking.pickup_date;
+  const end = booking ? bookingEnd(booking) : null;
+  const isRange = booking && end && end !== booking.pickup_date;
 
   const setStatus = async (status) => {
     setBusy(true);
@@ -312,19 +327,9 @@ function BookingDetail({ booking, onClose, onChanged }) {
   };
 
   return (
-    <AnimatePresence>
+    <ModalShell open={!!booking} onClose={onClose} width={460}>
       {booking && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }} />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            style={{
-              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-              width: 'min(460px, 94vw)', maxHeight: '92vh', overflow: 'auto',
-              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.15)', padding: 30, zIndex: 101,
-            }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
               <div>
                 <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>
@@ -375,10 +380,9 @@ function BookingDetail({ booking, onClose, onChanged }) {
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', color: 'rgba(255,120,120,0.7)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', cursor: 'pointer', padding: 0 }}>
               <Trash2 size={12} /> Delete booking
             </button>
-          </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </ModalShell>
   );
 }
 

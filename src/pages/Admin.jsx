@@ -250,14 +250,15 @@ function NewBookingModal({ open, onClose, onCreated }) {
             onClick={onClose}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }}
           />
-          {/* Modal */}
+          {/* Modal — flex-centered so motion's transform animation doesn't clobber centering */}
+          <div style={{ position: 'fixed', inset: 0, zIndex: 101, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
           <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             style={{
-              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
               width: 'min(640px, 92vw)', maxHeight: '90vh', overflow: 'auto',
-              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.15)',
-              padding: 36, zIndex: 101,
+              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 14,
+              padding: 36, pointerEvents: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
             }}
           >
             {/* Header */}
@@ -362,6 +363,7 @@ function NewBookingModal({ open, onClose, onCreated }) {
               </div>
             </form>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
