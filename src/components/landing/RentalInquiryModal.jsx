@@ -345,6 +345,7 @@ export default function RentalInquiryModal({ car, onClose }) {
                       }
                       minDate={todayStr()}
                       disabledDates={blockedDates}
+                      dropUp
                       placeholder="Select pickup & return"
                     />
                   </div>

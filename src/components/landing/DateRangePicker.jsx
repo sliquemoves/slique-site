@@ -18,7 +18,7 @@ const ymdOf = (d) =>
 
 export default function DateRangePicker({
   startValue, endValue, onChange, minDate, placeholder = 'Select dates',
-  theme = 'light', disabledDates,
+  theme = 'light', disabledDates, dropUp = false,
 }) {
   const dark = theme === 'dark';
   const [open, setOpen] = useState(false);
@@ -131,9 +131,10 @@ export default function DateRangePicker({
     ? (startValue ? 'text-white text-sm' : 'text-white/40 text-sm')
     : (startValue ? 'text-black text-sm' : 'text-gray-400 text-sm');
   const iconCls = dark ? 'w-4 h-4 text-white/40 shrink-0' : 'w-4 h-4 text-gray-400 shrink-0';
-  const panelCls = dark
-    ? 'absolute top-full left-0 right-0 mt-2 z-50 bg-[#0a0a0a] border border-white/15 shadow-2xl p-5'
-    : 'absolute top-full left-0 right-0 mt-2 z-50 bg-white border border-gray-200 shadow-2xl p-5';
+  const posCls = dropUp ? 'bottom-full mb-2' : 'top-full mt-2';
+  const panelCls = `absolute left-0 right-0 ${posCls} z-50 shadow-2xl p-5 ${
+    dark ? 'bg-[#0a0a0a] border border-white/15' : 'bg-white border border-gray-200'
+  }`;
   const navBtnCls = dark
     ? 'w-9 h-9 flex items-center justify-center text-white/70 hover:bg-white/10 transition-colors'
     : 'w-9 h-9 flex items-center justify-center hover:bg-gray-100 transition-colors';
@@ -172,9 +173,9 @@ export default function DateRangePicker({
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: dropUp ? 8 : -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0, y: dropUp ? 8 : -8 }}
             transition={{ duration: 0.15 }}
             className={panelCls}
           >
