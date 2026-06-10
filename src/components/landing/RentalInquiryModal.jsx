@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { insertBooking } from '@/lib/insertBooking';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,19 @@ import DateRangePicker from './DateRangePicker';
 import ZelleIcon, { ZELLE_PURPLE } from '@/components/ZelleIcon';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
+
+// Local-time 'YYYY-MM-DD' (no UTC drift).
+const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Legacy bookings folded the return date into notes before the column existed.
+function returnFromNotes(notes) {
+  if (!notes) return null;
+  const m = String(notes).match(/Return date:\s*(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
+// These cars are shop-pickup only — no delivery address field on their form.
+const NO_PICKUP_LOCATION = new Set(['corvette_c8', 'corvette_c8_z06', 'amg_cle53']);
 
 // Processing fee applied on top of the rental subtotal.
 const PROCESSING_RATE = 0.035;
@@ -105,6 +119,9 @@ export default function RentalInquiryModal({ car, onClose }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [blockedDates, setBlockedDates] = useState(() => new Set());
+
+  const hidePickup = car ? NO_PICKUP_LOCATION.has(car.type) : false;
 
   // Reset whenever a different car opens the modal.
   useEffect(() => {
@@ -112,7 +129,36 @@ export default function RentalInquiryModal({ car, onClose }) {
       setForm(EMPTY_FORM);
       setSubmitted(false);
       setIsSubmitting(false);
+      setBlockedDates(new Set());
     }
+  }, [car]);
+
+  // Pull this car's existing bookings so already-taken days render as
+  // unavailable in the calendar (occupied pickup → return, inclusive).
+  useEffect(() => {
+    if (!car) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('pickup_date, return_date, special_requests, status')
+        .eq('vehicle_type', car.type)
+        .neq('status', 'cancelled');
+      if (cancelled || error || !data) return;
+      const set = new Set();
+      for (const b of data) {
+        if (!b.pickup_date) continue;
+        const endStr = b.return_date || returnFromNotes(b.special_requests) || b.pickup_date;
+        const d = new Date(b.pickup_date + 'T00:00:00');
+        const end = new Date(endStr + 'T00:00:00');
+        for (let i = 0; i < 366 && d <= end; i++) {
+          set.add(ymd(d));
+          d.setDate(d.getDate() + 1);
+        }
+      }
+      if (!cancelled) setBlockedDates(set);
+    })();
+    return () => { cancelled = true; };
   }, [car]);
 
   // Close on Escape.
@@ -246,14 +292,17 @@ export default function RentalInquiryModal({ car, onClose }) {
                         setForm(prev => ({ ...prev, pickup_date: start || '', return_date: end || '' }))
                       }
                       minDate={todayStr()}
+                      disabledDates={blockedDates}
                       placeholder="Select pickup & return"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-xs tracking-widest uppercase text-gray-500">Pickup Location *</Label>
-                    <Input required value={form.pickup_location} onChange={(e) => handleChange('pickup_location', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" placeholder="Address or airport terminal" />
-                  </div>
+                  {!hidePickup && (
+                    <div className="space-y-2">
+                      <Label className="text-xs tracking-widest uppercase text-gray-500">Pickup Location *</Label>
+                      <Input required value={form.pickup_location} onChange={(e) => handleChange('pickup_location', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" placeholder="Address or airport terminal" />
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="text-xs tracking-widest uppercase text-gray-500">Notes</Label>

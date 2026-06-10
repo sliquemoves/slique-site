@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AdminTopBar from '@/components/AdminTopBar';
 import ZelleIcon from '@/components/ZelleIcon';
+import DateRangePicker from '@/components/landing/DateRangePicker';
 import {
   ALL_VEHICLES, DAILY_RENTALS, CHAUFFEUR_VEHICLES, VEHICLE_BY_TYPE, vehicleLabel,
 } from '@/lib/fleet';
@@ -241,17 +242,15 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
                 <input type="email" value={form.email} onChange={(e) => upd('email', e.target.value)} style={inputStyle} placeholder="optional" />
               </Field>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field label={isRental ? 'Pickup Date' : 'Date'} required>
-                  <input type="date" value={form.pickup_date} onChange={(e) => upd('pickup_date', e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }} />
-                </Field>
-                <Field label="Return Date">
-                  <input type="date" value={form.return_date} min={form.pickup_date || undefined}
-                    onChange={(e) => upd('return_date', e.target.value)}
-                    disabled={!isRental && !!form.vehicle_type}
-                    style={{ ...inputStyle, colorScheme: 'dark', opacity: (!isRental && form.vehicle_type) ? 0.4 : 1 }} />
-                </Field>
-              </div>
+              <Field label={isRental ? 'Rental Dates' : 'Date'} required>
+                <DateRangePicker
+                  theme="dark"
+                  startValue={form.pickup_date}
+                  endValue={form.return_date}
+                  onChange={(start, end) => setForm((f) => ({ ...f, pickup_date: start || '', return_date: end || '' }))}
+                  placeholder={isRental ? 'Select pickup & return' : 'Select date'}
+                />
+              </Field>
 
               <Field label="Pickup / Delivery Location">
                 <input value={form.pickup_location} onChange={(e) => upd('pickup_location', e.target.value)} style={inputStyle} placeholder="Address, airport, or 'shop pickup'" />
