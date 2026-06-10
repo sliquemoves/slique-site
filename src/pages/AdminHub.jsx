@@ -3,10 +3,11 @@
 // Slique Moves — Admin Command Center (/manage)
 //
 // Built around the daily-rental business: at a glance you can see every car's
-// schedule for the month, and enter a new booking in seconds (most come in by
-// text). Rows are vehicles, columns are the days of the month; a filled cell
-// means the car is out. Tap an open day to start a booking pre-filled with that
-// car + date; tap a booked day to see / edit / cancel it.
+// schedule for the week, and enter a new booking in seconds (most come in by
+// text). Rows are vehicles, columns are the 7 days of the week; a filled cell
+// means the car is out. Flip between weeks with the arrows (lands on the
+// current week). Tap an open day to start a booking pre-filled with that car +
+// date; tap a booked day to see / edit / cancel it.
 //
 // Chauffeur Bookings and Outreach remain reachable from the top strip.
 // ──────────────────────────────────────────────────────────────────────────────
@@ -31,13 +32,29 @@ import {
 const ZELLE_PURPLE_LIGHT = '#b794f6';
 
 // ─── date helpers (all local-time, no UTC drift) ──────────────────────────────
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const WEEKDAY = ['S','M','T','W','T','F','S'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WEEKDAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 const pad = (n) => String(n).padStart(2, '0');
 const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseYmd = (s) => (s ? new Date(s + 'T00:00:00') : null);
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+
+// Sunday (local midnight) of the week containing `d`.
+const startOfWeek = (d) => {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - x.getDay());
+  return x;
+};
+
+// "Jun 7 – 13, 2026" (collapses month/year when the week stays within one).
+function weekRangeLabel(weekStart) {
+  const end = addDays(weekStart, 6);
+  const sameMonth = weekStart.getMonth() === end.getMonth();
+  const left = `${MONTHS_SHORT[weekStart.getMonth()]} ${weekStart.getDate()}`;
+  const right = sameMonth ? `${end.getDate()}` : `${MONTHS_SHORT[end.getMonth()]} ${end.getDate()}`;
+  return `${left} – ${right}, ${end.getFullYear()}`;
+}
 
 function prettyDate(s) {
   const d = parseYmd(s);
@@ -366,53 +383,52 @@ function BookingDetail({ booking, onClose, onChanged }) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Month availability grid
+// Weekly availability grid — 7 days across, one row per vehicle
 // ══════════════════════════════════════════════════════════════════════════════
-function ScheduleGrid({ year, month, bookings, onPickEmpty, onPickBooking }) {
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
   const todayStr = ymd(new Date());
 
-  // Build `${type}|${dateStr}` → booking for every covered day in this month.
+  // Build `${type}|${dateStr}` → booking for each of the 7 visible days.
   const cellMap = useMemo(() => {
     const map = {};
-    const mStart = new Date(year, month, 1);
-    const mEnd = new Date(year, month, daysInMonth);
+    const first = weekDays[0];
+    const last = weekDays[6];
     for (const b of bookings) {
       const start = parseYmd(b.pickup_date);
       const end = parseYmd(bookingEnd(b)) || start;
       if (!start) continue;
-      let d = start < mStart ? new Date(mStart) : new Date(start);
-      const last = end > mEnd ? mEnd : end;
-      while (d <= last) {
+      let d = start < first ? new Date(first) : new Date(start);
+      const stop = end > last ? last : end;
+      while (d <= stop) {
         map[`${b.vehicle_type}|${ymd(d)}`] = b;
         d = addDays(d, 1);
       }
     }
     return map;
-  }, [bookings, year, month, daysInMonth]);
+  }, [bookings, weekDays]);
 
-  const CELL = 30;
-  const LABEL = 152;
+  const LABEL = 150;
+  const cols = `${LABEL}px repeat(7, minmax(0, 1fr))`;
 
   return (
     <div style={{ overflowX: 'auto', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
-      <div style={{ minWidth: LABEL + daysInMonth * CELL }}>
+      <div style={{ minWidth: 720 }}>
         {/* Header row */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ width: LABEL, flexShrink: 0, position: 'sticky', left: 0, zIndex: 2, background: '#0a0a0a', borderRight: '1px solid rgba(255,255,255,0.1)' }} />
-          {days.map((d) => {
-            const dateObj = new Date(year, month, d);
-            const isToday = ymd(dateObj) === todayStr;
+        <div style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }} />
+          {weekDays.map((dateObj) => {
+            const dStr = ymd(dateObj);
+            const isToday = dStr === todayStr;
             const dow = dateObj.getDay();
             const weekend = dow === 0 || dow === 6;
             return (
-              <div key={d} style={{
-                width: CELL, flexShrink: 0, textAlign: 'center', padding: '6px 0',
+              <div key={dStr} style={{
+                textAlign: 'center', padding: '10px 0',
+                borderLeft: '1px solid rgba(255,255,255,0.05)',
                 background: isToday ? 'rgba(255,255,255,0.12)' : weekend ? 'rgba(255,255,255,0.03)' : 'transparent',
               }}>
-                <div style={{ fontSize: 7, letterSpacing: '0.05em', color: 'rgba(255,255,255,0.35)' }}>{WEEKDAY[dow]}</div>
-                <div style={{ fontSize: 11, color: isToday ? '#fff' : 'rgba(255,255,255,0.6)', fontWeight: isToday ? 600 : 400 }}>{d}</div>
+                <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>{WEEKDAY[dow]}</div>
+                <div style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', Georgia, serif", color: isToday ? '#fff' : 'rgba(255,255,255,0.7)', fontWeight: isToday ? 600 : 400, marginTop: 2 }}>{dateObj.getDate()}</div>
               </div>
             );
           })}
@@ -420,56 +436,58 @@ function ScheduleGrid({ year, month, bookings, onPickEmpty, onPickBooking }) {
 
         {/* Vehicle rows */}
         {ALL_VEHICLES.map((v, rowIdx) => (
-          <div key={v.type} style={{ display: 'flex', borderBottom: rowIdx === ALL_VEHICLES.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
+          <div key={v.type} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: rowIdx === ALL_VEHICLES.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{
-              width: LABEL, flexShrink: 0, position: 'sticky', left: 0, zIndex: 2, background: '#0a0a0a',
-              borderRight: '1px solid rgba(255,255,255,0.1)', padding: '10px 12px',
+              borderRight: '1px solid rgba(255,255,255,0.1)', padding: '12px 14px',
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
             }}>
-              <span style={{ fontSize: 11, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.25 }}>{v.shortName}</span>
+              <span style={{ fontSize: 12, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.25 }}>{v.shortName}</span>
               <span style={{ fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>
                 {v.category === 'rental' ? `$${v.rate}/day` : 'Chauffeur'}
               </span>
             </div>
-            {days.map((d) => {
-              const dateStr = ymd(new Date(year, month, d));
+            {weekDays.map((dateObj, dayIdx) => {
+              const dateStr = ymd(dateObj);
               const b = cellMap[`${v.type}|${dateStr}`];
-              const dow = new Date(year, month, d).getDay();
+              const dow = dateObj.getDay();
               const weekend = dow === 0 || dow === 6;
               const isToday = dateStr === todayStr;
               if (b) {
                 const st = STATUS[b.status] || STATUS.pending;
                 const isStart = b.pickup_date === dateStr;
+                // Show the name on the booking's start day, or on the week's
+                // first column when the booking spilled in from a prior week.
+                const showName = isStart || dayIdx === 0;
                 return (
-                  <button key={d} type="button" title={`${b.customer_name} · ${prettyShort(b.pickup_date)}→${prettyShort(bookingEnd(b))} · ${STATUS_LABEL[b.status]}`}
+                  <button key={dateStr} type="button"
+                    title={`${b.customer_name} · ${prettyShort(b.pickup_date)}→${prettyShort(bookingEnd(b))} · ${STATUS_LABEL[b.status]}`}
                     onClick={() => onPickBooking(b)}
                     style={{
-                      width: CELL, flexShrink: 0, height: 44, border: 'none', cursor: 'pointer', padding: 0,
+                      minWidth: 0, height: 52, border: 'none', cursor: 'pointer', padding: '0 8px',
                       background: st.cell,
-                      borderLeft: isStart ? `2px solid ${st.cellBorder}` : 'none',
-                      display: 'flex', alignItems: 'center', justifyContent: isStart ? 'flex-start' : 'center',
-                      paddingLeft: isStart ? 4 : 0, overflow: 'visible',
-                      position: 'relative', zIndex: isStart ? 1 : 0,
+                      borderLeft: isStart ? `3px solid ${st.cellBorder}` : '1px solid rgba(0,0,0,0.15)',
+                      display: 'flex', alignItems: 'center',
+                      justifyContent: showName ? 'flex-start' : 'center',
                     }}>
-                    {isStart && (
-                      <span style={{ fontSize: 9, color: st.text, whiteSpace: 'nowrap', fontWeight: 500, letterSpacing: '0.02em', pointerEvents: 'none' }}>
-                        {b.customer_name.split(' ')[0]}
+                    {showName && (
+                      <span style={{ fontSize: 12, color: st.text, fontWeight: 500, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>
+                        {b.customer_name}
                       </span>
                     )}
                   </button>
                 );
               }
               return (
-                <button key={d} type="button" title={`${v.shortName} · ${prettyShort(dateStr)} — open`}
+                <button key={dateStr} type="button" title={`${v.shortName} · ${prettyShort(dateStr)} — open`}
                   onClick={() => onPickEmpty(v.type, dateStr)}
                   style={{
-                    width: CELL, flexShrink: 0, height: 44, cursor: 'pointer', padding: 0,
-                    border: 'none', borderRight: '1px solid rgba(255,255,255,0.04)',
-                    background: isToday ? 'rgba(255,255,255,0.08)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent',
+                    minWidth: 0, height: 52, cursor: 'pointer', padding: 0,
+                    border: 'none', borderLeft: '1px solid rgba(255,255,255,0.05)',
+                    background: isToday ? 'rgba(255,255,255,0.07)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent',
                     transition: 'background 120ms',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = isToday ? 'rgba(255,255,255,0.08)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = isToday ? 'rgba(255,255,255,0.07)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
                 />
               );
             })}
@@ -484,9 +502,8 @@ function ScheduleGrid({ year, month, bookings, onPickEmpty, onPickBooking }) {
 // Main page
 // ══════════════════════════════════════════════════════════════════════════════
 export default function AdminHub() {
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth());
+  // Land on the current week (Sunday-anchored).
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState({ pendingBookings: 0, drafts: 0 });
@@ -495,21 +512,26 @@ export default function AdminHub() {
   const [prefill, setPrefill] = useState(null);
   const [detail, setDetail] = useState(null);
 
-  const fetchMonth = useCallback(async () => {
+  // The 7 Date objects for the visible week (memoized so the grid's deps are stable).
+  const weekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    [weekStart],
+  );
+
+  const fetchWeek = useCallback(async () => {
     setLoading(true);
-    // Fetch a generous window so multi-day rentals that begin in a prior month
-    // still show up; overlap is filtered client-side.
-    const windowStart = ymd(new Date(year, month - 2, 1));
-    const monthEnd = ymd(new Date(year, month + 1, 0));
-    const mStart = new Date(year, month, 1);
-    const mEnd = new Date(year, month, new Date(year, month + 1, 0).getDate());
+    const weekEnd = addDays(weekStart, 6);
+    // Pull a generous look-back so multi-day rentals that began earlier still
+    // appear; overlap with the visible week is filtered client-side.
+    const windowStart = ymd(addDays(weekStart, -60));
+    const windowEnd = ymd(weekEnd);
 
     try {
       const [bRes, pendRes, draftRes] = await Promise.all([
         supabase.from('bookings').select('*')
           .neq('status', 'cancelled')
           .gte('pickup_date', windowStart)
-          .lte('pickup_date', monthEnd)
+          .lte('pickup_date', windowEnd)
           .order('pickup_date', { ascending: true }),
         supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('email_drafts').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
@@ -518,7 +540,7 @@ export default function AdminHub() {
       const overlapping = (bRes.data || []).filter((b) => {
         const s = parseYmd(b.pickup_date);
         const e = parseYmd(bookingEnd(b)) || s;
-        return s && e >= mStart && s <= mEnd;
+        return s && e >= weekStart && s <= weekEnd;
       });
       setBookings(overlapping);
       setCounts({ pendingBookings: pendRes.count ?? 0, drafts: draftRes.count ?? 0 });
@@ -527,19 +549,20 @@ export default function AdminHub() {
     } finally {
       setLoading(false);
     }
-  }, [year, month]);
+  }, [weekStart]);
 
-  useEffect(() => { fetchMonth(); }, [fetchMonth]);
+  useEffect(() => { fetchWeek(); }, [fetchWeek]);
 
-  const goPrev = () => { const d = new Date(year, month - 1, 1); setYear(d.getFullYear()); setMonth(d.getMonth()); };
-  const goNext = () => { const d = new Date(year, month + 1, 1); setYear(d.getFullYear()); setMonth(d.getMonth()); };
-  const goToday = () => { const d = new Date(); setYear(d.getFullYear()); setMonth(d.getMonth()); };
+  const goPrev = () => setWeekStart((w) => addDays(w, -7));
+  const goNext = () => setWeekStart((w) => addDays(w, 7));
+  const goThisWeek = () => setWeekStart(startOfWeek(new Date()));
+  const isThisWeek = ymd(weekStart) === ymd(startOfWeek(new Date()));
 
   const openEmpty = (vehicle_type, pickup_date) => { setPrefill({ vehicle_type, pickup_date }); setAddOpen(true); };
   const openNew = () => { setPrefill(null); setAddOpen(true); };
 
-  // Sorted list of this month's bookings for the text schedule below the grid.
-  const monthList = useMemo(
+  // Sorted list of this week's bookings for the text schedule below the grid.
+  const weekList = useMemo(
     () => [...bookings].sort((a, b) => (a.pickup_date < b.pickup_date ? -1 : 1)),
     [bookings],
   );
@@ -563,17 +586,23 @@ export default function AdminHub() {
           </div>
         </div>
 
-        {/* Month bar + New Booking */}
+        {/* Week bar + New Booking */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={goPrev} style={iconBtn}><ChevronLeft size={16} /></button>
+            <button onClick={goPrev} style={iconBtn} title="Previous week"><ChevronLeft size={16} /></button>
             <div style={{ minWidth: 220, textAlign: 'center' }}>
-              <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, letterSpacing: '0.06em' }}>
-                {MONTHS[month]} <span style={{ color: 'rgba(255,255,255,0.5)' }}>{year}</span>
+              <div style={{ fontSize: 8, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 2 }}>
+                {isThisWeek ? 'This Week' : 'Week of'}
+              </div>
+              <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, letterSpacing: '0.05em' }}>
+                {weekRangeLabel(weekStart)}
               </span>
             </div>
-            <button onClick={goNext} style={iconBtn}><ChevronRight size={16} /></button>
-            <button onClick={goToday} style={{ ...ghostBtn, flex: 'none', padding: '8px 14px' }}>Today</button>
+            <button onClick={goNext} style={iconBtn} title="Next week"><ChevronRight size={16} /></button>
+            <button onClick={goThisWeek} disabled={isThisWeek}
+              style={{ ...ghostBtn, flex: 'none', padding: '8px 14px', opacity: isThisWeek ? 0.4 : 1, cursor: isThisWeek ? 'default' : 'pointer' }}>
+              This Week
+            </button>
           </div>
           <button onClick={openNew} style={{ ...solidBtn, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px' }}>
             <Plus size={13} /> New Booking
@@ -593,7 +622,7 @@ export default function AdminHub() {
             <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)' }} />
           </div>
         ) : (
-          <ScheduleGrid year={year} month={month} bookings={bookings}
+          <ScheduleGrid weekDays={weekDays} bookings={bookings}
             onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
         )}
 
@@ -602,15 +631,15 @@ export default function AdminHub() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <CalendarDays size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
             <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
-              {MONTHS[month]} Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({monthList.length})</span>
+              {isThisWeek ? 'This Week' : 'Week'} Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({weekList.length})</span>
             </h2>
           </div>
           <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
-            {monthList.length === 0 ? (
+            {weekList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                No bookings this month
+                No bookings this week
               </div>
-            ) : monthList.map((b, i) => {
+            ) : weekList.map((b, i) => {
               const st = STATUS[b.status] || STATUS.pending;
               const end = bookingEnd(b);
               const range = end && end !== b.pickup_date;
@@ -640,8 +669,8 @@ export default function AdminHub() {
         </section>
       </div>
 
-      <NewBookingModal open={addOpen} prefill={prefill} onClose={() => setAddOpen(false)} onCreated={fetchMonth} />
-      <BookingDetail booking={detail} onClose={() => setDetail(null)} onChanged={fetchMonth} />
+      <NewBookingModal open={addOpen} prefill={prefill} onClose={() => setAddOpen(false)} onCreated={fetchWeek} />
+      <BookingDetail booking={detail} onClose={() => setDetail(null)} onChanged={fetchWeek} />
     </div>
   );
 }
