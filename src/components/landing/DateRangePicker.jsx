@@ -132,17 +132,17 @@ export default function DateRangePicker({
     : (startValue ? 'text-black text-sm' : 'text-gray-400 text-sm');
   const iconCls = dark ? 'w-4 h-4 text-white/40 shrink-0' : 'w-4 h-4 text-gray-400 shrink-0';
   const posCls = dropUp ? 'bottom-full mb-2' : 'top-full mt-2';
-  const panelCls = `absolute left-0 right-0 ${posCls} z-50 shadow-2xl p-5 ${
+  const panelCls = `absolute left-0 right-0 ${posCls} z-50 shadow-2xl p-3 ${
     dark ? 'bg-[#0a0a0a] border border-white/15' : 'bg-white border border-gray-200'
   }`;
   const navBtnCls = dark
-    ? 'w-9 h-9 flex items-center justify-center text-white/70 hover:bg-white/10 transition-colors'
-    : 'w-9 h-9 flex items-center justify-center hover:bg-gray-100 transition-colors';
+    ? 'w-7 h-7 flex items-center justify-center text-white/70 hover:bg-white/10 transition-colors'
+    : 'w-7 h-7 flex items-center justify-center hover:bg-gray-100 transition-colors';
   const monthLabelCls = dark ? 'text-sm font-medium tracking-wide text-white' : 'text-sm font-medium tracking-wide';
   const weekdayCls = dark
     ? 'text-center text-[10px] tracking-widest uppercase text-white/40 py-1'
     : 'text-center text-[10px] tracking-widest uppercase text-gray-400 py-1';
-  const helperCls = dark ? 'text-[11px] text-white/40 mt-4 text-center' : 'text-[11px] text-gray-400 mt-4 text-center';
+  const helperCls = dark ? 'text-[11px] text-white/40 mt-2 text-center' : 'text-[11px] text-gray-400 mt-2 text-center';
 
   const dayClass = ({ isDisabled, isEdge, inRange }) => {
     const mutedTxt = dark ? 'text-white/15 cursor-not-allowed' : 'text-gray-200 cursor-not-allowed';
@@ -150,7 +150,7 @@ export default function DateRangePicker({
     const range = dark ? 'bg-white/12 text-white' : 'bg-gray-100 text-gray-900';
     const normal = dark ? 'hover:bg-white/10 text-white/80 cursor-pointer' : 'hover:bg-gray-100 text-gray-800 cursor-pointer';
     return [
-      'aspect-square text-sm transition-all',
+      'h-8 text-xs flex items-center justify-center transition-all',
       isDisabled ? mutedTxt : '',
       isEdge ? edge : '',
       !isEdge && inRange ? range : '',
@@ -179,7 +179,7 @@ export default function DateRangePicker({
             transition={{ duration: 0.15 }}
             className={panelCls}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2">
               <button type="button" onClick={() => setViewDate(new Date(year, month - 1, 1))} className={navBtnCls}>
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -189,13 +189,13 @@ export default function DateRangePicker({
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-0.5 mb-1">
               {weekdays.map(w => (
                 <div key={w} className={weekdayCls}>{w}</div>
               ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5">
               {days.map((day, i) => {
                 if (day === null) return <div key={`empty-${i}`} />;
                 const dayDate = new Date(year, month, day);

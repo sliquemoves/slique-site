@@ -60,9 +60,10 @@ export default async function handler(req, res) {
     const intent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: 'usd',
-      // Card (covers Apple Pay & Google Pay wallets) + US bank ACH only.
-      // Explicit list keeps Klarna / other dashboard methods OFF.
-      payment_method_types: ['card', 'us_bank_account'],
+      // Card ONLY (covers Apple Pay & Google Pay wallets). No ACH/Klarna/Link —
+      // funds must clear instantly before a rental is confirmed. The explicit
+      // list also suppresses the Link inline sign-up in the Payment Element.
+      payment_method_types: ['card'],
       metadata: { vehicle_type, pickup_date, return_date, nights: String(nights), daily_rate: String(rate) },
     });
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, X, Check } from 'lucide-react';
+import { Loader2, X, Check, ArrowLeft } from 'lucide-react';
 import DateRangePicker from './DateRangePicker';
 import StripeCheckout from './StripeCheckout';
 import { stripeEnabled } from '@/lib/stripe';
@@ -291,7 +291,15 @@ export default function RentalInquiryModal({ car, onClose }) {
             ) : clientSecret ? (
               // ── Payment step ──
               <div className="p-8">
-                <div className="mb-7">
+                <button
+                  type="button"
+                  onClick={() => setClientSecret(null)}
+                  aria-label="Back to details"
+                  className="absolute top-4 left-4 z-20 w-9 h-9 flex items-center justify-center text-gray-400 hover:text-black transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div className="mb-7 mt-6">
                   <p className="text-gray-400 tracking-[0.3em] uppercase text-[10px] mb-2">Secure Payment</p>
                   <h3 className="text-2xl font-light text-black tracking-tight">{car.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">
@@ -299,13 +307,6 @@ export default function RentalInquiryModal({ car, onClose }) {
                   </p>
                 </div>
                 <StripeCheckout clientSecret={clientSecret} amountLabel={usd(total)} onSuccess={handlePaid} />
-                <button
-                  type="button"
-                  onClick={() => setClientSecret(null)}
-                  className="mt-5 w-full text-center text-[11px] text-gray-400 hover:text-black transition-colors"
-                >
-                  ← Back to details
-                </button>
               </div>
             ) : (
               // ── Inquiry form ──
