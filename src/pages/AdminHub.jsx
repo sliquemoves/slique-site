@@ -411,15 +411,18 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
     return map;
   }, [bookings, weekDays]);
 
-  const LABEL = 150;
+  const LABEL = 156;
   const cols = `${LABEL}px repeat(7, minmax(0, 1fr))`;
+  const ROW_H = 56;
 
   return (
-    <div style={{ overflowX: 'auto', border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
-      <div style={{ minWidth: 720 }}>
+    <div style={{ overflowX: 'auto', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, background: '#0b0b0b' }}>
+      <div style={{ minWidth: 760 }}>
         {/* Header row */}
         <div style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }} />
+          <div style={{ position: 'sticky', left: 0, zIndex: 2, background: '#0b0b0b', borderRight: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'flex-end', padding: '0 14px 10px' }}>
+            <span style={{ fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Fleet</span>
+          </div>
           {weekDays.map((dateObj) => {
             const dStr = ymd(dateObj);
             const isToday = dStr === todayStr;
@@ -427,12 +430,16 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
             const weekend = dow === 0 || dow === 6;
             return (
               <div key={dStr} style={{
-                textAlign: 'center', padding: '10px 0',
+                textAlign: 'center', padding: '12px 0 10px',
                 borderLeft: '1px solid rgba(255,255,255,0.05)',
-                background: isToday ? 'rgba(255,255,255,0.12)' : weekend ? 'rgba(255,255,255,0.03)' : 'transparent',
+                background: weekend ? 'rgba(255,255,255,0.02)' : 'transparent',
               }}>
-                <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>{WEEKDAY[dow]}</div>
-                <div style={{ fontSize: 18, fontFamily: "'Cormorant Garamond', Georgia, serif", color: isToday ? '#fff' : 'rgba(255,255,255,0.7)', fontWeight: isToday ? 600 : 400, marginTop: 2 }}>{dateObj.getDate()}</div>
+                <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: isToday ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.38)' }}>{WEEKDAY[dow]}</div>
+                <div style={{
+                  margin: '4px auto 0', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
+                  background: isToday ? '#fff' : 'transparent', color: isToday ? '#000' : 'rgba(255,255,255,0.72)',
+                  fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: isToday ? 600 : 400,
+                }}>{dateObj.getDate()}</div>
               </div>
             );
           })}
@@ -442,11 +449,12 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
         {ALL_VEHICLES.map((v, rowIdx) => (
           <div key={v.type} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: rowIdx === ALL_VEHICLES.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{
-              borderRight: '1px solid rgba(255,255,255,0.1)', padding: '12px 14px',
-              display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              position: 'sticky', left: 0, zIndex: 1, background: '#0b0b0b',
+              borderRight: '1px solid rgba(255,255,255,0.1)', padding: '0 14px',
+              height: ROW_H, display: 'flex', flexDirection: 'column', justifyContent: 'center',
             }}>
-              <span style={{ fontSize: 12, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.25 }}>{v.shortName}</span>
-              <span style={{ fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>
+              <span style={{ fontSize: 12.5, color: '#fff', letterSpacing: '0.02em', lineHeight: 1.2 }}>{v.shortName}</span>
+              <span style={{ fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: v.category === 'rental' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.28)', marginTop: 3 }}>
                 {v.category === 'rental' ? `$${v.rate}/day` : 'Chauffeur'}
               </span>
             </div>
@@ -456,9 +464,11 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
               const dow = dateObj.getDay();
               const weekend = dow === 0 || dow === 6;
               const isToday = dateStr === todayStr;
+              const cellBg = isToday ? 'rgba(255,255,255,0.05)' : weekend ? 'rgba(255,255,255,0.015)' : 'transparent';
               if (b) {
                 const st = STATUS[b.status] || STATUS.pending;
                 const isStart = b.pickup_date === dateStr;
+                const isEnd = ymd(parseYmd(bookingEnd(b)) || parseYmd(b.pickup_date)) === dateStr;
                 // Show the name on the booking's start day, or on the week's
                 // first column when the booking spilled in from a prior week.
                 const showName = isStart || dayIdx === 0;
@@ -467,17 +477,27 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
                     title={`${b.customer_name} · ${prettyShort(b.pickup_date)}→${prettyShort(bookingEnd(b))} · ${STATUS_LABEL[b.status]}`}
                     onClick={() => onPickBooking(b)}
                     style={{
-                      minWidth: 0, height: 52, border: 'none', cursor: 'pointer', padding: '0 8px',
-                      background: st.cell,
-                      borderLeft: isStart ? `3px solid ${st.cellBorder}` : '1px solid rgba(0,0,0,0.15)',
-                      display: 'flex', alignItems: 'center',
+                      minWidth: 0, height: ROW_H, border: 'none', cursor: 'pointer', padding: '6px 0',
+                      background: cellBg, borderLeft: '1px solid rgba(255,255,255,0.04)',
+                      display: 'flex', alignItems: 'stretch',
+                    }}>
+                    <div style={{
+                      flex: 1, minWidth: 0, background: st.cell,
+                      borderTop: `1px solid ${st.cellBorder}`, borderBottom: `1px solid ${st.cellBorder}`,
+                      borderLeft: isStart ? `1px solid ${st.cellBorder}` : 'none',
+                      borderRight: isEnd ? `1px solid ${st.cellBorder}` : 'none',
+                      borderTopLeftRadius: isStart ? 8 : 0, borderBottomLeftRadius: isStart ? 8 : 0,
+                      borderTopRightRadius: isEnd ? 8 : 0, borderBottomRightRadius: isEnd ? 8 : 0,
+                      marginLeft: isStart ? 4 : 0, marginRight: isEnd ? 4 : 0,
+                      display: 'flex', alignItems: 'center', padding: '0 10px',
                       justifyContent: showName ? 'flex-start' : 'center',
                     }}>
-                    {showName && (
-                      <span style={{ fontSize: 12, color: st.text, fontWeight: 500, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>
-                        {b.customer_name}
-                      </span>
-                    )}
+                      {showName && (
+                        <span style={{ fontSize: 12, color: st.text, fontWeight: 500, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pointerEvents: 'none' }}>
+                          {b.customer_name}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               }
@@ -485,14 +505,16 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
                 <button key={dateStr} type="button" title={`${v.shortName} · ${prettyShort(dateStr)} — open`}
                   onClick={() => onPickEmpty(v.type, dateStr)}
                   style={{
-                    minWidth: 0, height: 52, cursor: 'pointer', padding: 0,
-                    border: 'none', borderLeft: '1px solid rgba(255,255,255,0.05)',
-                    background: isToday ? 'rgba(255,255,255,0.07)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent',
-                    transition: 'background 120ms',
+                    minWidth: 0, height: ROW_H, cursor: 'pointer', padding: 0,
+                    border: 'none', borderLeft: '1px solid rgba(255,255,255,0.04)',
+                    background: cellBg, transition: 'background 120ms, color 120ms', color: 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = isToday ? 'rgba(255,255,255,0.07)' : weekend ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
-                />
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = cellBg; e.currentTarget.style.color = 'transparent'; }}
+                >
+                  <Plus size={13} style={{ pointerEvents: 'none' }} />
+                </button>
               );
             })}
           </div>
