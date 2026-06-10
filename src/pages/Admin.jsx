@@ -577,7 +577,7 @@ export default function Admin() {
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
-        <AdminTopBar backHref="/manage" backLabel="Admin" center="Slique Moves" />
+        <AdminTopBar backHref="/bookings" backLabel="Calendar" center="Slique Moves" />
 
         {/* Header */}
         <motion.div

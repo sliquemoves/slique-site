@@ -570,18 +570,18 @@ export default function AdminHub() {
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: '28px 20px 80px' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-        <AdminTopBar center="Slique Moves" />
+        <AdminTopBar backHref="/manage" backLabel="Admin" center="Slique Moves" />
 
         {/* Title + secondary nav */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22 }}>
           <div>
             <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Fleet Schedule</p>
             <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 40, fontWeight: 300, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
-              Rentals
+              Bookings
             </h1>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <NavLink to="/bookings" label="Chauffeur Bookings" badge={counts.pendingBookings} />
+            <NavLink to="/bookings/list" label="List View" badge={counts.pendingBookings} />
             <NavLink to="/outreach" label="Outreach" badge={counts.drafts} />
           </div>
         </div>

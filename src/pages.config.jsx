@@ -13,6 +13,7 @@ import { Navigate } from 'react-router-dom';
 
 import Admin from './pages/Admin';
 import AdminHub from './pages/AdminHub';
+import ManageHub from './pages/ManageHub';
 import BookingConfirmation from './pages/BookingConfirmation';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -46,8 +47,12 @@ export const ROUTES = [
   { path: '/admin',               component: ManageRedirect,      showNav: false, gated: false },
 
   // Admin (authenticated, role=admin)
-  { path: '/manage',              component: AdminHub,            showNav: false, gated: true  },
-  { path: '/bookings',            component: Admin,               showNav: false, gated: true  },
+  //   /manage        → top-level hub (Bookings · Outreach)
+  //   /bookings      → fleet-schedule calendar (primary booking view)
+  //   /bookings/list → detailed reservations list (availability lock, filters)
+  { path: '/manage',              component: ManageHub,           showNav: false, gated: true  },
+  { path: '/bookings',            component: AdminHub,            showNav: false, gated: true  },
+  { path: '/bookings/list',       component: Admin,               showNav: false, gated: true  },
   { path: '/outreach',            component: OutreachHub,         showNav: false, gated: true  },
   { path: '/outreach/drafts',     component: OutreachDrafts,      showNav: false, gated: true  },
   { path: '/outreach/leads',      component: OutreachLeads,       showNav: false, gated: true  },
