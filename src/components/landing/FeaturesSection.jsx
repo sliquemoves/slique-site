@@ -40,7 +40,7 @@ export default function FeaturesSection() {
           // section's bottom frame. slique.png is 1536x1024 (3:2);
           // 55% pushes the visible window into the upper-mid portion
           // of the image, cropping the lower-body denim out of view.
-          backgroundPosition: 'center 20%',
+          backgroundPosition: 'center 22%',
           backgroundRepeat: 'no-repeat',
         }}
         aria-hidden="true"

@@ -134,7 +134,7 @@ export default function FleetSection() {
   const [activeVehicle, setActiveVehicle] = useState(null);
 
   return (
-    <section id="fleet" className="bg-black py-8 px-0 md:px-6">
+    <section id="fleet" className="bg-black pt-0 pb-8 px-0 md:px-6">
       <div className="max-w-7xl mx-auto">
         <motion.div
           className="text-center mb-8 md:mb-10"
@@ -143,7 +143,6 @@ export default function FleetSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-gray-500 tracking-[0.3em] uppercase text-xs mb-4">The Fleet</p>
           <h2 className="text-3xl md:text-5xl font-light text-white tracking-tight">
             UNCOMPROMISING <span className="font-semibold">LUXURY</span>
           </h2>
