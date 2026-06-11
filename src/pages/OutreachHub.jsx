@@ -60,6 +60,7 @@ function HubTile({ to, eyebrow, label, stat, statLabel, loading }) {
         display: 'block',
         background: hover ? 'rgba(255,255,255,0.06)' : '#0a0a0a',
         border: hover ? '1px solid rgba(255,255,255,0.5)' : '1px solid rgba(255,255,255,0.18)',
+        borderRadius: 22,
         padding: '40px 28px',
         textAlign: 'center',
         transition: 'all 200ms ease',

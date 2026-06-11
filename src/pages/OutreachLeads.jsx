@@ -38,7 +38,7 @@ function StatusPill({ value }) {
     <span style={{
       fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
       padding: '3px 10px', border: `1px solid ${color}`, color,
-      background: 'rgba(255,255,255,0.04)', display: 'inline-block',
+      background: 'rgba(255,255,255,0.04)', display: 'inline-block', borderRadius: 9999,
     }}>
       {value ?? '—'}
     </span>
@@ -78,7 +78,7 @@ function LeadsTable() {
             <h1 style={HEADER_TITLE}>Leads</h1>
           </div>
           <button onClick={() => refetch()} disabled={isFetching}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.25)', opacity: isFetching ? 0.5 : 1 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.25)', opacity: isFetching ? 0.5 : 1, borderRadius: 9999 }}>
             <RefreshCw size={11} /> Refresh
           </button>
         </div>
@@ -89,7 +89,7 @@ function LeadsTable() {
               padding: '5px 12px', fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
               border: '1px solid', borderColor: filter === f ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.06)',
               background: filter === f ? 'rgba(255,255,255,0.08)' : 'transparent',
-              color: filter === f ? '#fff' : 'rgba(255,255,255,0.3)', cursor: 'pointer',
+              color: filter === f ? '#fff' : 'rgba(255,255,255,0.3)', cursor: 'pointer', borderRadius: 9999,
             }}>{f}</button>
           ))}
         </div>
@@ -105,7 +105,7 @@ function LeadsTable() {
             No leads {filter !== 'all' ? `with status "${filter}"` : ''}.
           </div>
         ) : (
-          <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', overflow: 'auto' }}>
+          <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', overflow: 'auto', borderRadius: 14 }}>
             <table style={TABLE}>
               <thead>
                 <tr>

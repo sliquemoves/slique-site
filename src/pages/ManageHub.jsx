@@ -55,6 +55,7 @@ function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading }) {
         textAlign: 'center',
         transition: 'all 220ms ease',
         position: 'relative',
+        borderRadius: 22,
       }}
     >
       <div style={{
@@ -110,8 +111,7 @@ export default function ManageHub() {
         <AdminTopBar center="Slique Moves" />
 
         <header style={HEADER}>
-          <div style={EYEBROW}>Slique Moves</div>
-          <h1 style={TITLE}>Command</h1>
+          <h1 style={TITLE}>Admin</h1>
           <div style={SUBTITLE}>Bookings · Outreach</div>
           <div style={RULE} />
         </header>

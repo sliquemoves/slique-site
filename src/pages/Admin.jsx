@@ -88,7 +88,7 @@ function format12Hour(time24) {
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({ label, value }) {
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px' }}>
+    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px', borderRadius: 16 }}>
       <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>{label}</p>
       <p style={{ fontSize: 32, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#ffffff' }}>{value}</p>
     </div>
@@ -114,7 +114,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
   const ref = generateRef(booking.id);
 
   return (
-    <motion.div layout style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 8, overflow: 'hidden' }}>
+    <motion.div layout style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 8, overflow: 'hidden', borderRadius: 14 }}>
       <div style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => setExpanded(e => !e)}>
         <div style={{ width: 3, height: 36, background: status.color, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -132,7 +132,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
         <span style={{
           fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase',
           padding: '4px 10px', border: `1px solid ${status.border}`,
-          color: status.color, background: status.bg, flexShrink: 0,
+          color: status.color, background: status.bg, flexShrink: 0, borderRadius: 9999,
         }}>
           {status.label}
         </span>
@@ -163,7 +163,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>Update Status</p>
             <Select value={booking.status} onValueChange={(s) => onStatusChange(booking.id, s)} disabled={updating}>
-              <SelectTrigger style={{ width: 160, height: 34, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0, fontSize: 11, color: '#e0e0e0' }}>
+              <SelectTrigger style={{ width: 160, height: 34, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, fontSize: 11, color: '#e0e0e0' }}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -269,7 +269,7 @@ function NewBookingModal({ open, onClose, onCreated }) {
                   New <span style={{ fontStyle: 'italic' }}>Reservation</span>
                 </h2>
               </div>
-              <button onClick={onClose} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 8 }}>
+              <button onClick={onClose} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 8, borderRadius: 9999 }}>
                 <X size={16} />
               </button>
             </div>
@@ -353,11 +353,11 @@ function NewBookingModal({ open, onClose, onCreated }) {
 
               <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                 <button type="button" onClick={onClose}
-                  style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  style={{ flex: 1, padding: '14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 9999 }}>
                   Cancel
                 </button>
                 <button type="submit" disabled={submitting}
-                  style={{ flex: 2, padding: '14px', background: '#ffffff', color: '#000000', border: '1px solid #ffffff', fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, opacity: submitting ? 0.5 : 1 }}>
+                  style={{ flex: 2, padding: '14px', background: '#ffffff', color: '#000000', border: '1px solid #ffffff', fontSize: 10, letterSpacing: '0.4em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, opacity: submitting ? 0.5 : 1, borderRadius: 9999 }}>
                   {submitting ? 'Creating…' : 'Create Booking'}
                 </button>
               </div>
@@ -375,17 +375,18 @@ const inputStyle = {
   background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.15)',
   color: '#ffffff',
-  padding: '10px 12px',
+  padding: '10px 14px',
   fontSize: 13,
   fontFamily: 'inherit',
   outline: 'none',
+  borderRadius: 12,
 };
 
 const selectStyle = {
   width: '100%',
   background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 0,
+  borderRadius: 12,
   color: '#e0e0e0',
   height: 40,
 };
@@ -445,7 +446,7 @@ function AvailabilityPanel({ refresh }) {
   };
 
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: 28 }}>
+    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: 28, borderRadius: 16 }}>
       <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#ffffff', letterSpacing: '0.05em', marginBottom: 6 }}>
         Block Times
       </h2>
@@ -456,13 +457,13 @@ function AvailabilityPanel({ refresh }) {
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Date</label>
         <Input type="date" min={new Date().toISOString().split('T')[0]} value={date} onChange={e => setDate(e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0, color: '#e0e0e0', height: 40, colorScheme: 'dark' }} />
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, color: '#e0e0e0', height: 40, colorScheme: 'dark' }} />
       </div>
 
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Vehicle</label>
         <Select value={vehicle} onValueChange={setVehicle}>
-          <SelectTrigger style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 0, color: '#e0e0e0', height: 40 }}>
+          <SelectTrigger style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, color: '#e0e0e0', height: 40 }}>
             <SelectValue placeholder="Select vehicle" />
           </SelectTrigger>
           <SelectContent>
@@ -596,13 +597,13 @@ export default function Admin() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => setNewBookingOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#ffffff', border: '1px solid #ffffff', color: '#000000', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#ffffff', border: '1px solid #ffffff', color: '#000000', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, borderRadius: 9999 }}
             >
               <Plus size={11} /> New Booking
             </button>
             <button
               onClick={fetchBookings}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 9999 }}
             >
               <RefreshCw size={11} /> Refresh
             </button>

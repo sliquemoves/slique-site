@@ -31,6 +31,7 @@ const PILL = {
   background: 'transparent',
   cursor: 'pointer',
   fontFamily: 'inherit',
+  borderRadius: 9999,
 };
 
 const CENTER = {
@@ -42,7 +43,7 @@ const CENTER = {
   color: 'rgba(255,255,255,0.4)',
 };
 
-export default function AdminTopBar({ backHref, backLabel = 'Back', center }) {
+export default function AdminTopBar({ backHref, backLabel = 'Back', center, leftExtra }) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -52,12 +53,13 @@ export default function AdminTopBar({ backHref, backLabel = 'Back', center }) {
 
   return (
     <div style={STRIP}>
-      <div style={{ minWidth: 130 }}>
+      <div style={{ minWidth: 130, display: 'flex', alignItems: 'center', gap: 8 }}>
         {backHref ? (
           <Link to={backHref} style={PILL}>
             <ArrowLeft size={11} /> {backLabel}
           </Link>
         ) : null}
+        {leftExtra}
       </div>
 
       <div style={CENTER}>{center}</div>

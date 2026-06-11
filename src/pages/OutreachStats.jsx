@@ -10,7 +10,7 @@ import AdminTopBar from '@/components/AdminTopBar';
 const SHELL = { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, sans-serif', padding: '40px 24px' };
 const EYEBROW = { fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 };
 const HEADER_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, letterSpacing: '0.04em', color: '#fff' };
-const STAT_CARD = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px' };
+const STAT_CARD = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px', borderRadius: 16 };
 const STAT_LABEL = { fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 };
 const STAT_VALUE = { fontSize: 36, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#fff' };
 const STAT_SUB = { fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 4 };
@@ -101,7 +101,7 @@ function StatsView() {
             <h1 style={HEADER_TITLE}>Stats</h1>
           </div>
           <button onClick={() => refetch()} disabled={isFetching}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.25)', opacity: isFetching ? 0.5 : 1 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.25)', opacity: isFetching ? 0.5 : 1, borderRadius: 9999 }}>
             <RefreshCw size={11} /> Refresh
           </button>
         </div>

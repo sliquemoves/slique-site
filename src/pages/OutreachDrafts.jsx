@@ -19,7 +19,7 @@ const SHELL = {
 
 const EYEBROW = { fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 };
 const HEADER_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, letterSpacing: '0.04em', color: '#fff' };
-const PANEL = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 14, padding: '20px 22px' };
+const PANEL = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 14, padding: '20px 22px', borderRadius: 16 };
 
 const META_LABEL = { fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' };
 const META_VALUE = { fontSize: 12, color: '#e0e0e0', fontFamily: "'Cormorant Garamond', Georgia, serif" };
@@ -29,10 +29,11 @@ const INPUT = {
   background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.15)',
   color: '#fff',
-  padding: '10px 12px',
+  padding: '10px 14px',
   fontSize: 13,
   outline: 'none',
   boxSizing: 'border-box',
+  borderRadius: 12,
 };
 
 const BTN = {
@@ -45,6 +46,7 @@ const BTN = {
   textTransform: 'uppercase',
   cursor: 'pointer',
   border: '1px solid',
+  borderRadius: 9999,
 };
 
 const BTN_APPROVE = { ...BTN, background: '#fff', color: '#000', borderColor: '#fff', fontWeight: 600 };

@@ -351,7 +351,7 @@ function BookingDetail({ booking, onClose, onChanged }) {
             </div>
 
             {booking.special_requests && (
-              <div style={{ marginBottom: 22, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ marginBottom: 22, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12 }}>
                 <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Notes</p>
                 <p style={{ fontSize: 12, color: '#cfcfcf', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontFamily: "'Cormorant Garamond', Georgia, serif" }}>{booking.special_requests}</p>
               </div>
@@ -367,7 +367,7 @@ function BookingDetail({ booking, onClose, onChanged }) {
                       padding: '8px 14px', fontSize: 9, letterSpacing: '0.25em', textTransform: 'uppercase',
                       border: '1px solid', borderColor: active ? '#fff' : 'rgba(255,255,255,0.18)',
                       background: active ? '#fff' : 'transparent', color: active ? '#000' : 'rgba(255,255,255,0.6)',
-                      cursor: active ? 'default' : 'pointer',
+                      cursor: active ? 'default' : 'pointer', borderRadius: 9999,
                     }}>
                     {STATUS_LABEL[s]}
                   </button>
@@ -595,7 +595,12 @@ export default function AdminHub() {
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: '28px 20px 80px' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-        <AdminTopBar backHref="/manage" backLabel="Admin" center="Slique Moves" />
+        <AdminTopBar
+          backHref="/manage"
+          backLabel="Admin"
+          center="Slique Moves"
+          leftExtra={<NavLink to="/outreach" label="Outreach" badge={counts.drafts} />}
+        />
 
         {/* Title + secondary nav */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22 }}>
@@ -607,7 +612,6 @@ export default function AdminHub() {
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <NavLink to="/bookings/list" label="List View" badge={counts.pendingBookings} />
-            <NavLink to="/outreach" label="Outreach" badge={counts.drafts} />
           </div>
         </div>
 
@@ -643,7 +647,7 @@ export default function AdminHub() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 80, border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
+          <div style={{ textAlign: 'center', padding: 80, border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14 }}>
             <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)' }} />
           </div>
         ) : (
@@ -659,7 +663,7 @@ export default function AdminHub() {
               {isThisWeek ? 'This Week' : 'Week'} Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({weekList.length})</span>
             </h2>
           </div>
-          <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a' }}>
+          <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14, overflow: 'hidden' }}>
             {weekList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '48px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                 No bookings this week
@@ -707,6 +711,7 @@ function NavLink({ to, label, badge }) {
       display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none',
       padding: '9px 16px', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent',
       fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)',
+      borderRadius: 9999,
     }}>
       {label}
       {badge > 0 && (
@@ -721,7 +726,7 @@ function NavLink({ to, label, badge }) {
 function Legend({ swatch, border, label }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-      <span style={{ width: 16, height: 12, background: swatch, border: `1px solid ${border}`, display: 'inline-block' }} />
+      <span style={{ width: 16, height: 12, background: swatch, border: `1px solid ${border}`, display: 'inline-block', borderRadius: 4 }} />
       {label}
     </span>
   );
@@ -750,21 +755,21 @@ function Detail({ label, value }) {
 // ─── shared inline styles ─────────────────────────────────────────────────────
 const inputStyle = {
   width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)',
-  color: '#fff', padding: '10px 12px', fontSize: 13, fontFamily: 'inherit', outline: 'none',
+  color: '#fff', padding: '10px 14px', fontSize: 13, fontFamily: 'inherit', outline: 'none', borderRadius: 12,
 };
 const selectStyle = {
   width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 0, color: '#e0e0e0', height: 40,
+  borderRadius: 12, color: '#e0e0e0', height: 40,
 };
 const iconBtn = {
   background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.65)',
-  cursor: 'pointer', padding: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  cursor: 'pointer', padding: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 9999,
 };
 const ghostBtn = {
   flex: 1, padding: '13px', background: 'transparent', border: '1px solid rgba(255,255,255,0.15)',
-  color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer',
+  color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 9999,
 };
 const solidBtn = {
   padding: '13px', background: '#fff', color: '#000', border: '1px solid #fff',
-  fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600,
+  fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, borderRadius: 9999,
 };
