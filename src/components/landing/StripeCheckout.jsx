@@ -5,6 +5,7 @@ import {
 import { stripePromise } from '@/lib/stripe';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import ZelleIcon, { ZELLE_PURPLE } from '@/components/ZelleIcon';
 
 // Inner form — must live inside <Elements> to use the Stripe hooks.
 function CheckoutForm({ amountLabel, onSuccess }) {
@@ -58,11 +59,6 @@ function CheckoutForm({ amountLabel, onSuccess }) {
           request via the link below. Keeps non-Apple visitors able to pay. */}
       {(walletAvailable === false || showCard) ? (
         <form onSubmit={(e) => { e.preventDefault(); confirm(); }} className="space-y-4">
-          {walletAvailable && (
-            <div className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-gray-400">
-              <span className="flex-1 h-px bg-gray-200" /> or pay with card <span className="flex-1 h-px bg-gray-200" />
-            </div>
-          )}
           <PaymentElement options={{ layout: 'tabs' }} />
           <Button
             type="submit"
@@ -76,9 +72,10 @@ function CheckoutForm({ amountLabel, onSuccess }) {
         <button
           type="button"
           onClick={() => setShowCard(true)}
-          className="w-full text-center text-[11px] uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 text-xs tracking-widest uppercase font-medium transition-colors hover:bg-purple-50"
+          style={{ border: `1px solid ${ZELLE_PURPLE}`, color: ZELLE_PURPLE, background: 'transparent' }}
         >
-          Pay with card instead
+          <ZelleIcon size={16} /> Pay with Zelle or Card
         </button>
       )}
     </div>
