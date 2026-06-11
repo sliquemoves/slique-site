@@ -76,7 +76,7 @@ export const DAILY_RENTALS = [
     tagline: "Mid-Engine Supercar",
     image: "/slique_corvette.png",
     hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
-    rate: 499,
+    rate: 429,
     type: "corvette_c8",
   },
   {

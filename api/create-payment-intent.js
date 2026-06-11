@@ -15,7 +15,7 @@ import Stripe from 'stripe';
 const RENTAL_RATES = {
   porsche_718s:    249,
   amg_c43:         149,
-  corvette_c8:     399,
+  corvette_c8:     429,
   tesla_model_y:   149,
   amg_cle53:       499,
   corvette_c8_z06: 699,
