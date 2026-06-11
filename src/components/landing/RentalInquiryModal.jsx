@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, X, Check, ArrowLeft } from 'lucide-react';
+import { Loader2, X, Check } from 'lucide-react';
 import DateRangePicker from './DateRangePicker';
 import StripeCheckout from './StripeCheckout';
 import { stripeEnabled } from '@/lib/stripe';
@@ -188,16 +188,20 @@ export default function RentalInquiryModal({ car, onClose }) {
   const processingFee = subtotal != null ? subtotal * PROCESSING_RATE : null;
   const total = subtotal != null ? subtotal + processingFee : null;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.return_date || days < 1) {
-      toast.error('Please choose a return date after the pickup date.');
-      return;
-    }
+  // All required contact fields + a valid date range are present.
+  const emailValid = /\S+@\S+\.\S+/.test(form.email);
+  const formReady = !!(
+    form.customer_name.trim() && emailValid && form.phone.trim() &&
+    form.pickup_date && form.return_date && days >= 1
+  );
 
-    // Payments configured → create a PaymentIntent and advance to the pay step.
-    if (stripeEnabled) {
-      setIsSubmitting(true);
+  // With payments on, create/refresh the PaymentIntent as soon as valid dates
+  // are chosen, so the Apple Pay / card buttons can render inline (no extra step).
+  useEffect(() => {
+    if (!stripeEnabled || !car) return;
+    if (!form.pickup_date || !form.return_date || days < 1) { setClientSecret(null); return; }
+    let cancelled = false;
+    (async () => {
       try {
         const res = await fetch('/api/create-payment-intent', {
           method: 'POST',
@@ -205,18 +209,25 @@ export default function RentalInquiryModal({ car, onClose }) {
           body: JSON.stringify({ vehicle_type: car.type, pickup_date: form.pickup_date, return_date: form.return_date }),
         });
         const data = await res.json();
-        if (!res.ok || !data.clientSecret) throw new Error(data.error || 'Could not start payment');
-        setClientSecret(data.clientSecret);
+        if (!cancelled && res.ok && data.clientSecret) setClientSecret(data.clientSecret);
       } catch (err) {
         console.error('Payment init error:', err);
-        toast.error('Could not start payment. Please try again or call us.');
-      } finally {
-        setIsSubmitting(false);
       }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [car, form.pickup_date, form.return_date]);
+
+  // Dormant-mode fallback (no Stripe keys): submit a plain inquiry.
+  const handleInquiry = async () => {
+    if (!form.customer_name.trim() || !emailValid || !form.phone.trim()) {
+      toast.error('Please fill in your name, email, and phone.');
       return;
     }
-
-    // No payments configured → fall back to the inquiry flow.
+    if (!form.return_date || days < 1) {
+      toast.error('Please choose a return date after the pickup date.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await submitRentalInquiry({ car, form });
@@ -304,34 +315,8 @@ export default function RentalInquiryModal({ car, onClose }) {
                   Done
                 </Button>
               </div>
-            ) : clientSecret ? (
-              // ── Payment step ──
-              <div className="p-8">
-                <button
-                  type="button"
-                  onClick={() => setClientSecret(null)}
-                  aria-label="Back to details"
-                  className="absolute top-4 left-4 z-20 w-9 h-9 flex items-center justify-center text-gray-400 hover:text-black transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div className="mb-7 mt-6">
-                  <p className="text-gray-400 tracking-[0.3em] uppercase text-[10px] mb-2">Secure Payment</p>
-                  <h3 className="text-2xl font-light text-black tracking-tight">{car.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {days} day{days === 1 ? '' : 's'} · <span className="text-black font-medium">{usd(total)}</span> total
-                  </p>
-                </div>
-                <StripeCheckout
-                  clientSecret={clientSecret}
-                  amountLabel={usd(total)}
-                  zelleAmountLabel={usd(subtotal)}
-                  onSuccess={handlePaid}
-                  onZelleConfirm={handleZelle}
-                />
-              </div>
             ) : (
-              // ── Inquiry form ──
+              // ── Booking form + inline payment ──
               <div className="p-8">
                 <div className="mb-7">
                   <p className="text-gray-400 tracking-[0.3em] uppercase text-[10px] mb-2">Daily Rental Booking</p>
@@ -341,7 +326,7 @@ export default function RentalInquiryModal({ car, onClose }) {
                   </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-5">
                   <div className="space-y-2">
                     <Label className="text-xs tracking-widest uppercase text-gray-500">Full Name *</Label>
                     <Input required value={form.customer_name} onChange={(e) => handleChange('customer_name', e.target.value)} className="border-gray-200 focus:border-black rounded-none h-12" placeholder="John Smith" />
@@ -390,21 +375,39 @@ export default function RentalInquiryModal({ car, onClose }) {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting
-                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{stripeEnabled ? 'Starting…' : 'Sending...'}</>
-                      : 'Book'}
-                  </Button>
-                  {!stripeEnabled && (
-                    <p className="text-center text-[11px] text-gray-400">
-                      This is an inquiry — we'll confirm availability before any charge.
-                    </p>
+                  {stripeEnabled ? (
+                    formReady && clientSecret ? (
+                      <StripeCheckout
+                        key={clientSecret}
+                        clientSecret={clientSecret}
+                        amountLabel={usd(total)}
+                        zelleAmountLabel={usd(subtotal)}
+                        onSuccess={handlePaid}
+                        onZelleConfirm={handleZelle}
+                      />
+                    ) : (
+                      <div className="text-center text-[11px] tracking-widest uppercase text-gray-400 py-4 border border-gray-100">
+                        {!form.pickup_date || !form.return_date || days < 1
+                          ? 'Select your rental dates to continue'
+                          : 'Enter your name, email & phone to pay'}
+                      </div>
+                    )
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        onClick={handleInquiry}
+                        disabled={isSubmitting}
+                        className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : 'Book'}
+                      </Button>
+                      <p className="text-center text-[11px] text-gray-400">
+                        This is an inquiry — we'll confirm availability before any charge.
+                      </p>
+                    </>
                   )}
-                </form>
+                </div>
               </div>
             )}
           </motion.div>
