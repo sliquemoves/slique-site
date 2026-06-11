@@ -70,12 +70,15 @@ function CheckoutForm({ amountLabel, zelleAmountLabel, onSuccess, onZelleConfirm
               <img
                 src="/slique_zelle_qr.png"
                 alt="Zelle QR for SLIQUE MOVES LLC"
-                className="mx-auto w-full max-w-[240px] h-auto"
+                className="mx-auto w-full max-w-[220px] h-auto"
               />
+              <p className="text-[11px] text-gray-500 leading-relaxed mt-1 mb-2">
+                Scan in your bank's app to pay <span className="text-black">SLIQUE MOVES LLC</span> the amount above.
+              </p>
               <button
                 type="button"
                 onClick={onZelleConfirm}
-                className="mt-2 w-full py-3 text-xs tracking-widest uppercase font-medium text-white transition-opacity hover:opacity-90"
+                className="w-full py-3 text-xs tracking-widest uppercase font-medium text-white transition-opacity hover:opacity-90"
                 style={{ background: ZELLE_PURPLE }}
               >
                 I've sent the Zelle payment
