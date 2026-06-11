@@ -62,15 +62,20 @@ async function submitRentalInquiry({ car, form, payment }) {
   const processingFee = subtotal != null ? subtotal * PROCESSING_RATE : null;
   const total = subtotal != null ? subtotal + processingFee : null;
 
+  const isZelle = payment?.method === 'zelle';
   const noteLines = [
-    `DAILY RENTAL BOOKING${payment ? ' (PAID)' : ''} — ${car.name}`,
+    `DAILY RENTAL BOOKING${payment?.id ? ' (PAID)' : isZelle ? ' (ZELLE PENDING)' : ''} — ${car.name}`,
     `Return date: ${form.return_date}`,
     `Duration: ${days} day${days === 1 ? '' : 's'}`,
     `Daily rate: $${car.rate}/day`,
     subtotal != null ? `Subtotal: ${usd(subtotal)}` : '',
     processingFee != null ? `Processing (3.5%): ${usd(processingFee)}` : '',
-    total != null ? `${payment ? 'Total paid' : 'Estimated total'}: ${usd(total)}` : '',
-    payment?.id ? `Payment: Stripe ${payment.id} — ${payment.status === 'processing' ? 'ACH PROCESSING' : 'PAID IN FULL'}` : '',
+    total != null ? `${payment?.id ? 'Total paid' : 'Estimated total'}: ${usd(total)}` : '',
+    payment?.id
+      ? `Payment: Stripe ${payment.id} — ${payment.status === 'processing' ? 'ACH PROCESSING' : 'PAID IN FULL'}`
+      : isZelle
+        ? `Payment: Zelle — customer indicated sent (${usd(subtotal)}, no fee); CONFIRM RECEIPT`
+        : '',
     form.special_requests ? `\nCustomer notes: ${form.special_requests}` : '',
   ].filter(Boolean);
 
@@ -89,7 +94,7 @@ async function submitRentalInquiry({ car, form, payment }) {
     daily_rate: car.rate,
     total_amount: total,
     special_requests: noteLines.join('\n'),
-    status: payment ? 'confirmed' : 'pending',
+    status: payment?.id ? 'confirmed' : 'pending',
   });
 
   if (error) throw error;
@@ -234,6 +239,17 @@ export default function RentalInquiryModal({ car, onClose }) {
     setSubmitted(true);
   };
 
+  // Customer says they sent the Zelle payment — record a pending booking for
+  // manual confirmation (Zelle has no API, so receipt is verified by hand).
+  const handleZelle = async () => {
+    try {
+      await submitRentalInquiry({ car, form, payment: { method: 'zelle' } });
+    } catch (err) {
+      console.error('Zelle booking insert failed:', err);
+    }
+    setSubmitted(true);
+  };
+
   return (
     <AnimatePresence>
       {car && (
@@ -306,7 +322,13 @@ export default function RentalInquiryModal({ car, onClose }) {
                     {days} day{days === 1 ? '' : 's'} · <span className="text-black font-medium">{usd(total)}</span> total
                   </p>
                 </div>
-                <StripeCheckout clientSecret={clientSecret} amountLabel={usd(total)} onSuccess={handlePaid} />
+                <StripeCheckout
+                  clientSecret={clientSecret}
+                  amountLabel={usd(total)}
+                  zelleAmountLabel={usd(subtotal)}
+                  onSuccess={handlePaid}
+                  onZelleConfirm={handleZelle}
+                />
               </div>
             ) : (
               // ── Inquiry form ──

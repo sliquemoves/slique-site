@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 import ZelleIcon, { ZELLE_PURPLE } from '@/components/ZelleIcon';
 
 // Inner form — must live inside <Elements> to use the Stripe hooks.
-function CheckoutForm({ amountLabel, onSuccess }) {
+function CheckoutForm({ amountLabel, zelleAmountLabel, onSuccess, onZelleConfirm }) {
   const stripe = useStripe();
   const elements = useElements();
   const [busy, setBusy] = useState(false);
@@ -58,16 +58,47 @@ function CheckoutForm({ amountLabel, onSuccess }) {
       {/* Card fallback — shown automatically when no wallet is available, or on
           request via the link below. Keeps non-Apple visitors able to pay. */}
       {(walletAvailable === false || showCard) ? (
-        <form onSubmit={(e) => { e.preventDefault(); confirm(); }} className="space-y-4">
-          <PaymentElement options={{ layout: 'tabs' }} />
-          <Button
-            type="submit"
-            disabled={!stripe || busy}
-            className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : 'Book'}
-          </Button>
-        </form>
+        <div className="space-y-5">
+          {/* Zelle — no fee. Customer scans, pays in their bank app, then taps
+              the confirm button so we capture their booking (pending review). */}
+          {onZelleConfirm && (
+            <div className="text-center border border-gray-200 p-4">
+              <p className="text-[11px] tracking-widest uppercase mb-1" style={{ color: ZELLE_PURPLE }}>
+                Pay with Zelle · no fee
+              </p>
+              {zelleAmountLabel && <p className="text-2xl font-light text-black">{zelleAmountLabel}</p>}
+              <img
+                src="/slique_zelle_qr.png"
+                alt="Zelle QR for SLIQUE MOVES LLC"
+                className="mx-auto w-full max-w-[240px] h-auto"
+              />
+              <button
+                type="button"
+                onClick={onZelleConfirm}
+                className="mt-2 w-full py-3 text-xs tracking-widest uppercase font-medium text-white transition-opacity hover:opacity-90"
+                style={{ background: ZELLE_PURPLE }}
+              >
+                I've sent the Zelle payment
+              </button>
+            </div>
+          )}
+
+          {/* or pay with card */}
+          <div className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-gray-400">
+            <span className="flex-1 h-px bg-gray-200" /> or pay with card <span className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); confirm(); }} className="space-y-4">
+            <PaymentElement options={{ layout: 'tabs' }} />
+            <Button
+              type="submit"
+              disabled={!stripe || busy}
+              className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing…</> : 'Book'}
+            </Button>
+          </form>
+        </div>
       ) : walletAvailable && (
         <button
           type="button"
@@ -83,7 +114,7 @@ function CheckoutForm({ amountLabel, onSuccess }) {
 }
 
 // Wrapper — provides the Elements context bound to a specific PaymentIntent.
-export default function StripeCheckout({ clientSecret, amountLabel, onSuccess }) {
+export default function StripeCheckout({ clientSecret, amountLabel, zelleAmountLabel, onSuccess, onZelleConfirm }) {
   if (!clientSecret || !stripePromise) return null;
   const options = {
     clientSecret,
@@ -94,7 +125,12 @@ export default function StripeCheckout({ clientSecret, amountLabel, onSuccess })
   };
   return (
     <Elements stripe={stripePromise} options={options}>
-      <CheckoutForm amountLabel={amountLabel} onSuccess={onSuccess} />
+      <CheckoutForm
+        amountLabel={amountLabel}
+        zelleAmountLabel={zelleAmountLabel}
+        onSuccess={onSuccess}
+        onZelleConfirm={onZelleConfirm}
+      />
     </Elements>
   );
 }
