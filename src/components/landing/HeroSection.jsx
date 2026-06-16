@@ -171,7 +171,7 @@ export default function HeroSection() {
         <div style={{ display: 'flex', justifyContent: 'center', minHeight: 34 }}>
           {showFleet && (
             <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 12px', textDecoration: 'none', transition: 'opacity 0.25s' }}>
+              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 16px', textDecoration: 'none', transition: 'opacity 0.25s', borderRadius: 9999 }}>
               Fleet
             </a>
           )}
@@ -244,7 +244,7 @@ export default function HeroSection() {
           {/* Bottom: View Fleet → rule */}
           <motion.div className="flex flex-col items-center gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.5 }}>
             <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-              style={{ display:'block', textAlign:'center', color:'white', fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:400, padding:'16px 0', width:'min(100%, 640px)', border:'1px solid rgba(255,255,255,0.25)', background:'transparent', textDecoration:'none' }}>
+              style={{ display:'block', textAlign:'center', color:'white', fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:400, padding:'16px 0', width:'min(100%, 640px)', border:'1px solid rgba(255,255,255,0.25)', background:'transparent', textDecoration:'none', borderRadius:9999 }}>
               View Fleet
             </a>
             <div style={{ width:96, height:1, background:'rgba(255,255,255,0.3)', marginTop:8 }} />

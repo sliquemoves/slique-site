@@ -111,7 +111,7 @@ export default function NavBar() {
                     fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
                     fontWeight: 500, color: '#fff', background: '#000',
                     border: '1px solid rgba(255,255,255,0.3)',
-                    padding: '8px 12px', textDecoration: 'none', whiteSpace: 'nowrap',
+                    padding: '8px 16px', textDecoration: 'none', whiteSpace: 'nowrap', borderRadius: 9999,
                   }}
                 >
                   Fleet
