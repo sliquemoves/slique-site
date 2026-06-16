@@ -6,6 +6,12 @@ import RentalInquiryModal from './RentalInquiryModal';
 import ChauffeurBookingModal from './ChauffeurBookingModal';
 import { CHAUFFEUR_VEHICLES as vehicles, DAILY_RENTALS as rentals } from '@/lib/fleet';
 
+// Daily-rental filters — matched against each car's `body` / `brand` tag.
+const FILTER_ROWS = [
+  ['coupe', 'convertible', 'suv'],
+  ['mercedes', 'corvette'],
+];
+
 // Image with a graceful gradient fallback if the photo isn't present yet.
 function CarImage({ src, alt }) {
   const [failed, setFailed] = useState(false);
@@ -132,6 +138,12 @@ export default function FleetSection() {
   const [tab, setTab] = useState('chauffeur');
   const [activeRental, setActiveRental] = useState(null);
   const [activeVehicle, setActiveVehicle] = useState(null);
+  const [filter, setFilter] = useState(null);
+
+  // A car matches the active filter by body type OR brand. No filter = all.
+  const visibleRentals = filter
+    ? rentals.filter(r => r.body === filter || r.brand === filter)
+    : rentals;
 
   return (
     <section id="fleet" className="bg-black pt-0 pb-8 px-0 md:px-6">
@@ -230,16 +242,43 @@ export default function FleetSection() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
-                {rentals.map((rental, index) => (
-                  <RentalCard
-                    key={rental.type}
-                    rental={rental}
-                    index={index}
-                    onRequest={setActiveRental}
-                  />
+              {/* Minimal two-row filter — click an active one to clear it. */}
+              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-2.5">
+                {FILTER_ROWS.map((row, i) => (
+                  <div key={i} className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap">
+                    {row.map(opt => {
+                      const active = filter === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setFilter(active ? null : opt)}
+                          className={`text-[10px] tracking-[0.25em] uppercase pb-0.5 border-b transition-colors ${active ? 'text-white border-white' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
                 ))}
               </div>
+
+              {visibleRentals.length === 0 ? (
+                <p className="text-center text-gray-600 text-[11px] tracking-[0.25em] uppercase py-16">
+                  None available
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+                  {visibleRentals.map((rental, index) => (
+                    <RentalCard
+                      key={rental.type}
+                      rental={rental}
+                      index={index}
+                      onRequest={setActiveRental}
+                    />
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

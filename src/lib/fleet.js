@@ -62,6 +62,7 @@ export const DAILY_RENTALS = [
     hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
     rate: 149,
     type: "tesla_model_y",
+    body: "suv", brand: "tesla",
   },
   {
     name: "Mercedes-AMG C43",
@@ -70,6 +71,7 @@ export const DAILY_RENTALS = [
     hp: 402, zeroToSixty: "4.6s", topSpeed: "155", drive: "AWD",
     rate: 149,
     type: "amg_c43",
+    body: "sedan", brand: "mercedes",
   },
   {
     name: "Corvette C8",
@@ -78,6 +80,7 @@ export const DAILY_RENTALS = [
     hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
     rate: 429,
     type: "corvette_c8",
+    body: "coupe", brand: "corvette",
   },
   {
     name: "Cadillac Escalade",
@@ -86,6 +89,7 @@ export const DAILY_RENTALS = [
     hp: 420, zeroToSixty: "5.8s", topSpeed: "112", drive: "AWD",
     rate: 249,
     type: "cadillac_escalade",
+    body: "suv", brand: "cadillac",
   },
   {
     name: "Mercedes-AMG CLE 53",
@@ -94,6 +98,7 @@ export const DAILY_RENTALS = [
     hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
     rate: 499,
     type: "amg_cle53",
+    body: "coupe", brand: "mercedes",
   },
   {
     name: "Corvette C8 Z06",
@@ -102,6 +107,7 @@ export const DAILY_RENTALS = [
     hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
     rate: 699,
     type: "corvette_c8_z06",
+    body: "coupe", brand: "corvette",
   },
   {
     name: "Mercedes-Benz G-Wagon",
@@ -110,6 +116,7 @@ export const DAILY_RENTALS = [
     hp: 577, zeroToSixty: "4.5s", topSpeed: "149", drive: "AWD",
     rate: 649,
     type: "g_wagon",
+    body: "suv", brand: "mercedes",
   },
 ];
 
