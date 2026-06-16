@@ -292,14 +292,16 @@ export default function FleetSection() {
                 <div className={visibleRentals.length <= 2
                   ? "grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto px-4 md:px-0"
                   : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0"}>
-                  {visibleRentals.map((rental, index) => (
-                    <RentalCard
-                      key={rental.type}
-                      rental={rental}
-                      index={index}
-                      onRequest={setActiveRental}
-                    />
-                  ))}
+                  {visibleRentals.map((rental, index) => {
+                    // A lone trailing card (e.g. the 7th) gets centered in the
+                    // middle column instead of left-aligned in the last row.
+                    const orphan = visibleRentals.length % 3 === 1 && index === visibleRentals.length - 1;
+                    return (
+                      <div key={rental.type} className={orphan ? 'lg:col-start-2' : undefined}>
+                        <RentalCard rental={rental} index={index} onRequest={setActiveRental} />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
