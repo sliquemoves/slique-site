@@ -56,6 +56,15 @@ export const CHAUFFEUR_VEHICLES = [
 // Specs are real-world figures; `rate` is the daily price — edit freely.
 export const DAILY_RENTALS = [
   {
+    name: "Corvette C8",
+    tagline: "Mid-Engine Supercar",
+    image: "/slique_corvette.png",
+    hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
+    rate: 429,
+    type: "corvette_c8",
+    body: "coupe", brand: "corvette",
+  },
+  {
     name: "Cadillac Escalade",
     tagline: "Full-Size Luxury SUV",
     image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/3a79fb852_sliqueescalade.png",
@@ -72,15 +81,6 @@ export const DAILY_RENTALS = [
     rate: 149,
     type: "amg_c43",
     body: "sedan", brand: "mercedes",
-  },
-  {
-    name: "Corvette C8",
-    tagline: "Mid-Engine Supercar",
-    image: "/slique_corvette.png",
-    hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
-    rate: 429,
-    type: "corvette_c8",
-    body: "coupe", brand: "corvette",
   },
   {
     name: "Tesla Model Y",
