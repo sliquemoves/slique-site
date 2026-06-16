@@ -112,7 +112,7 @@ export const DAILY_RENTALS = [
   {
     name: "Mercedes-Benz G-Wagon",
     tagline: "Luxury SUV",
-    image: "/slique_gwagon.png",
+    image: "/slique_wagon.png",
     hp: 577, zeroToSixty: "4.5s", topSpeed: "149", drive: "AWD",
     rate: 649,
     type: "g_wagon",
