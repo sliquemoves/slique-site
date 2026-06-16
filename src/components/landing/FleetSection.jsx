@@ -144,8 +144,11 @@ export default function FleetSection() {
   const filtered = filter
     ? rentals.filter(r => r.body === filter || r.brand === filter)
     : rentals;
-  const visibleRentals = sort
-    ? [...filtered].sort((a, b) => (sort === 'asc' ? a.rate - b.rate : b.rate - a.rate))
+  // A category filter auto-sorts low→high; the manual sort buttons only apply
+  // (and only show) when no category filter is active.
+  const effectiveSort = filter ? 'asc' : sort;
+  const visibleRentals = effectiveSort
+    ? [...filtered].sort((a, b) => (effectiveSort === 'asc' ? a.rate - b.rate : b.rate - a.rate))
     : filtered;
 
   return (
@@ -262,21 +265,23 @@ export default function FleetSection() {
                     );
                   })}
                 </div>
-                <div className="flex items-center justify-center gap-x-5">
-                  {SORTS.map(s => {
-                    const active = sort === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setSort(active ? null : s.id)}
-                        className={`text-[10px] tracking-[0.2em] uppercase pb-0.5 border-b transition-colors ${active ? 'text-white border-white' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
-                      >
-                        {s.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                {!filter && (
+                  <div className="flex items-center justify-center gap-x-5">
+                    {SORTS.map(s => {
+                      const active = sort === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSort(active ? null : s.id)}
+                          className={`text-[10px] tracking-[0.2em] uppercase pb-0.5 border-b transition-colors ${active ? 'text-white border-white' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {visibleRentals.length === 0 ? (
@@ -284,7 +289,9 @@ export default function FleetSection() {
                   None available
                 </p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+                <div className={visibleRentals.length <= 2
+                  ? "grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto px-4 md:px-0"
+                  : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0"}>
                   {visibleRentals.map((rental, index) => (
                     <RentalCard
                       key={rental.type}

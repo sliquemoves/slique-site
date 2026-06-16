@@ -56,13 +56,13 @@ export const CHAUFFEUR_VEHICLES = [
 // Specs are real-world figures; `rate` is the daily price — edit freely.
 export const DAILY_RENTALS = [
   {
-    name: "Tesla Model Y",
-    tagline: "Electric",
-    image: "/slique_tesla.png",
-    hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
-    rate: 149,
-    type: "tesla_model_y",
-    body: "suv", brand: "tesla",
+    name: "Cadillac Escalade",
+    tagline: "Full-Size Luxury SUV",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/3a79fb852_sliqueescalade.png",
+    hp: 420, zeroToSixty: "5.8s", topSpeed: "112", drive: "AWD",
+    rate: 249,
+    type: "cadillac_escalade",
+    body: "suv", brand: "cadillac",
   },
   {
     name: "Mercedes-AMG C43",
@@ -83,13 +83,13 @@ export const DAILY_RENTALS = [
     body: "coupe", brand: "corvette",
   },
   {
-    name: "Cadillac Escalade",
-    tagline: "Full-Size Luxury SUV",
-    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/3a79fb852_sliqueescalade.png",
-    hp: 420, zeroToSixty: "5.8s", topSpeed: "112", drive: "AWD",
-    rate: 249,
-    type: "cadillac_escalade",
-    body: "suv", brand: "cadillac",
+    name: "Tesla Model Y",
+    tagline: "Electric",
+    image: "/slique_tesla.png",
+    hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
+    rate: 149,
+    type: "tesla_model_y",
+    body: "suv", brand: "tesla",
   },
   {
     name: "Mercedes-AMG CLE 53",
