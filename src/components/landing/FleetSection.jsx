@@ -7,10 +7,9 @@ import ChauffeurBookingModal from './ChauffeurBookingModal';
 import { CHAUFFEUR_VEHICLES as vehicles, DAILY_RENTALS as rentals } from '@/lib/fleet';
 
 // Daily-rental filters — matched against each car's `body` / `brand` tag.
-const FILTER_ROWS = [
-  ['coupe', 'convertible', 'suv'],
-  ['mercedes', 'corvette'],
-];
+const FILTERS = ['coupe', 'suv', 'mercedes', 'corvette'];
+// Price sort options.
+const SORTS = [{ id: 'asc', label: 'Low → Hi' }, { id: 'desc', label: 'Hi → Low' }];
 
 // Image with a graceful gradient fallback if the photo isn't present yet.
 function CarImage({ src, alt }) {
@@ -139,11 +138,15 @@ export default function FleetSection() {
   const [activeRental, setActiveRental] = useState(null);
   const [activeVehicle, setActiveVehicle] = useState(null);
   const [filter, setFilter] = useState(null);
+  const [sort, setSort] = useState(null);
 
   // A car matches the active filter by body type OR brand. No filter = all.
-  const visibleRentals = filter
+  const filtered = filter
     ? rentals.filter(r => r.body === filter || r.brand === filter)
     : rentals;
+  const visibleRentals = sort
+    ? [...filtered].sort((a, b) => (sort === 'asc' ? a.rate - b.rate : b.rate - a.rate))
+    : filtered;
 
   return (
     <section id="fleet" className="bg-black pt-0 pb-8 px-0 md:px-6">
@@ -242,25 +245,38 @@ export default function FleetSection() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Minimal two-row filter — click an active one to clear it. */}
-              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-2.5">
-                {FILTER_ROWS.map((row, i) => (
-                  <div key={i} className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap">
-                    {row.map(opt => {
-                      const active = filter === opt;
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setFilter(active ? null : opt)}
-                          className={`text-[10px] tracking-[0.25em] uppercase pb-0.5 border-b transition-colors ${active ? 'text-white border-white' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
-                        >
-                          {opt}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
+              {/* Minimal filters (one line) + price sort — click an active one to clear it. */}
+              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-3">
+                <div className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap">
+                  {FILTERS.map(opt => {
+                    const active = filter === opt;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setFilter(active ? null : opt)}
+                        className={`text-[10px] tracking-[0.25em] uppercase pb-0.5 border-b transition-colors ${active ? 'text-white border-white' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-center gap-x-5">
+                  {SORTS.map(s => {
+                    const active = sort === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSort(active ? null : s.id)}
+                        className={`text-[10px] tracking-[0.2em] uppercase pb-0.5 border-b transition-colors ${active ? 'text-white border-white' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {visibleRentals.length === 0 ? (
