@@ -13,12 +13,13 @@
 import Stripe from 'stripe';
 
 const RENTAL_RATES = {
-  porsche_718s:    249,
-  amg_c43:         149,
-  corvette_c8:     429,
-  tesla_model_y:   149,
-  amg_cle53:       499,
-  corvette_c8_z06: 699,
+  tesla_model_y:     149,
+  amg_c43:           149,
+  corvette_c8:       429,
+  cadillac_escalade: 249,
+  amg_cle53:         499,
+  corvette_c8_z06:   699,
+  g_wagon:           649,
 };
 
 // Customer-facing processing surcharge (matches the rental modal's displayed total).

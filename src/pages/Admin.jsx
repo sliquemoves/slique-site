@@ -40,12 +40,14 @@ const VEHICLE_LABELS = {
   luxury_sedan: 'Luxury Sedan',
   luxury_suv: 'Luxury SUV',
   // Daily rentals
-  tesla_model_y: 'Tesla Model Y Performance',
+  tesla_model_y: 'Tesla Model Y',
   amg_c43: 'Mercedes-AMG C43',
   amg_cle53: 'Mercedes-AMG CLE 53',
   porsche_718s: 'Porsche 718 S',
   corvette_c8: 'Corvette C8',
   corvette_c8_z06: 'Corvette C8 Z06',
+  cadillac_escalade: 'Cadillac Escalade',
+  g_wagon: 'Mercedes-Benz G-Wagon',
 };
 
 const VEHICLE_OPTIONS = [

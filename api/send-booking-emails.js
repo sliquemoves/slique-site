@@ -30,6 +30,8 @@ const VEHICLE_LABELS = {
   porsche_718s: 'Porsche 718 S',
   corvette_c8: 'Corvette C8',
   corvette_c8_z06: 'Corvette C8 Z06',
+  cadillac_escalade: 'Cadillac Escalade',
+  g_wagon: 'Mercedes-Benz G-Wagon',
 };
 
 function generateRef(id) {
