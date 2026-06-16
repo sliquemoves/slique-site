@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Users, Gauge, Timer, Wind, Cog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RentalInquiryModal from './RentalInquiryModal';
@@ -124,7 +124,7 @@ function RentalCard({ rental, index, onRequest }) {
 
         <Button
           onClick={() => onRequest(rental)}
-          className="w-full mt-auto bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-5 rounded-none"
+          className="w-full mt-auto bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-5 rounded-full"
         >
           Book
         </Button>
@@ -140,6 +140,12 @@ export default function FleetSection() {
   const [filter, setFilter] = useState(null);
   const [sort, setSort] = useState(null);
 
+  // Fade the fleet section in as it's scrolled to, and back out when the user
+  // scrolls up toward the hero (opacity tracks the section's top vs viewport).
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'start start'] });
+  const fleetOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
+
   // A car matches the active filter by body type OR brand. No filter = all.
   const filtered = filter
     ? rentals.filter(r => r.body === filter || r.brand === filter)
@@ -152,8 +158,8 @@ export default function FleetSection() {
     : filtered;
 
   return (
-    <section id="fleet" className="bg-black pt-0 pb-8 px-0 md:px-6">
-      <div className="max-w-7xl mx-auto">
+    <section id="fleet" ref={sectionRef} className="bg-black pt-0 pb-8 px-0 md:px-6">
+      <motion.div style={{ opacity: fleetOpacity }} className="max-w-7xl mx-auto">
         <motion.div
           className="text-center mb-8 md:mb-10"
           initial={{ opacity: 0, y: 20 }}
@@ -307,7 +313,7 @@ export default function FleetSection() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       <RentalInquiryModal car={activeRental} onClose={() => setActiveRental(null)} />
       <ChauffeurBookingModal vehicle={activeVehicle} onClose={() => setActiveVehicle(null)} />
