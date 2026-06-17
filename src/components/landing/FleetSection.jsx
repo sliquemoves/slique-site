@@ -107,7 +107,7 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-xl text-white font-light tracking-wide text-center mb-5">{rental.name}</h3>
+        <h3 className="font-gothic text-xl text-white font-light tracking-wide text-center mb-5">{rental.name}</h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -215,7 +215,7 @@ export default function FleetSection() {
                   <div className="space-y-4 text-center px-6">
                     <div>
                       <p className="text-gray-500 text-xs tracking-[0.2em] uppercase mb-2">{vehicle.subtitle}</p>
-                      <h3 className="text-3xl md:text-3xl text-white font-light tracking-wide">{vehicle.name}</h3>
+                      <h3 className="font-gothic text-3xl md:text-3xl text-white font-light tracking-wide">{vehicle.name}</h3>
                     </div>
 
                     <div className="flex text-sm justify-center">
