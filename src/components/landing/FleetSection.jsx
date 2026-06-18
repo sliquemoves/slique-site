@@ -41,7 +41,7 @@ function FleetToggle({ value, onChange }) {
     <div className="flex justify-center mb-10 md:mb-14">
       <div
         className="relative inline-flex p-1"
-        style={{ border: '1px solid #ffffff', borderRadius: 9999 }}
+        style={{ border: '1px solid rgba(255,255,255,0.18)', borderRadius: 9999 }}
       >
         {tabs.map(tab => {
           const active = value === tab.id;
