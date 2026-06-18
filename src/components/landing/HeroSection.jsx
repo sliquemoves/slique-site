@@ -148,7 +148,7 @@ export default function HeroSection() {
         <div style={{ display: 'flex', justifyContent: 'center', minHeight: 34 }}>
           {showFleet && (
             <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid #ffffff', padding: '8px 16px', textDecoration: 'none', transition: 'opacity 0.25s', borderRadius: 9999 }}>
+              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: 'none', padding: '8px 16px', textDecoration: 'none', transition: 'opacity 0.25s', borderRadius: 9999 }}>
               Fleet
             </a>
           )}
