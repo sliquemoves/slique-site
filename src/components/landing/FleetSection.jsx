@@ -98,11 +98,11 @@ function RentalCard({ rental, index, onRequest }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
         {/* Rate badge */}
         <div
-          className="absolute top-3 right-3 px-3 py-1.5 text-xs text-black"
-          style={{ background: '#ffffff' }}
+          className="absolute top-3 right-3 px-3 py-1.5 text-xs text-white"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', border: '1px solid #ffffff' }}
         >
           <span className="font-semibold">${rental.rate}</span>
-          <span className="text-black/50">/day</span>
+          <span className="text-white/60">/day</span>
         </div>
       </div>
 
