@@ -192,7 +192,7 @@ export default function FleetSection() {
                   className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full"
                   style={{
                     maxWidth: '88%',
-                    border: '3px solid #ffffff',
+                    border: '1px solid #ffffff',
                     borderRadius: '24px',
                     background: 'rgba(255,255,255,0.02)',
                     padding: '0 0 28px 0',

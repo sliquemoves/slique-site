@@ -110,7 +110,7 @@ export default function NavBar() {
                   style={{
                     fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
                     fontWeight: 500, color: '#fff', background: '#000',
-                    border: 'none',
+                    border: '1px solid #ffffff',
                     padding: '8px 16px', textDecoration: 'none', whiteSpace: 'nowrap', borderRadius: 9999,
                   }}
                 >
