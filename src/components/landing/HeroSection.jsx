@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, Phone } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 
 // Mixed chauffeur services + daily-rental occasions, interleaved so any
 // visible slice of the marquee shows a balance of both sides of the business.
@@ -188,15 +187,9 @@ export default function HeroSection() {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.6 }}>
 
           {/* Full-bleed seamless trust strip */}
-          <div style={{ width: '100%', marginBottom: 20 }}>
+          <div style={{ width: '100%' }}>
             <TrustStrip variant="desktop" />
           </div>
-
-          <div className="flex justify-center">
-            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-10 py-6 text-sm tracking-widest uppercase font-medium bg-transparent"
-              onClick={() => scrollTo('fleet')}>View Fleet</Button>
-          </div>
-          <div className="w-24 h-[1px] bg-white/30" />
         </motion.div>
 
         {/* ── MOBILE layout ── */}
@@ -218,28 +211,29 @@ export default function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Bottom: View Fleet → rule */}
+          {/* Bottom: rule → tappable scroll arrow */}
           <motion.div className="flex flex-col items-center gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.5 }}>
-            <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-              style={{ display:'block', textAlign:'center', color:'white', fontSize:11, letterSpacing:'0.2em', textTransform:'uppercase', fontWeight:400, padding:'16px 0', width:'min(100%, 640px)', border:'1px solid rgba(255,255,255,0.25)', background:'transparent', textDecoration:'none', borderRadius:9999 }}>
-              View Fleet
-            </a>
-            <div style={{ width:96, height:1, background:'rgba(255,255,255,0.3)', marginTop:8 }} />
+            <div style={{ width:96, height:1, background:'rgba(255,255,255,0.3)' }} />
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ display:'flex', justifyContent:'center', marginTop:6 }}
+              onClick={() => scrollTo('fleet')}
+              role="button"
+              aria-label="View the fleet"
+              style={{ display:'flex', justifyContent:'center', marginTop:6, cursor:'pointer' }}
             >
-              <ChevronDown className="w-4 h-4 text-white/30" />
+              <ChevronDown className="w-6 h-6 text-white/60" />
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Desktop scroll indicator */}
-        <motion.div className="hidden md:block absolute bottom-10 left-1/2 -translate-x-1/2"
+        {/* Desktop scroll indicator — tappable, scrolls to the fleet */}
+        <motion.div className="hidden md:block absolute bottom-10 left-1/2 -translate-x-1/2 cursor-pointer"
+          onClick={() => scrollTo('fleet')}
+          role="button" aria-label="View the fleet"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}>
           <motion.div animate={{ y: [0,10,0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-            <ChevronDown className="w-6 h-6 text-white/50" />
+            <ChevronDown className="w-8 h-8 text-white/70" />
           </motion.div>
         </motion.div>
       </section>
