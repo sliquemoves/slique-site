@@ -5,10 +5,10 @@ import { Users, Star } from 'lucide-react';
 const features = [
   {
     type: "review",
-    name: "Sydney",
-    date: "April 2026",
+    name: "Lexi",
+    date: "June 2026",
     rating: 5,
-    text: "Really nice car and excellent service. The best experience I've had in my entire career. Highly recommended."
+    text: "Fantastic customer service and a great car!!"
   },
   {
     type: "stat",
@@ -19,10 +19,10 @@ const features = [
   },
   {
     type: "review",
-    name: "Brandon",
-    date: "March 2026",
+    name: "Sydney",
+    date: "April 2026",
     rating: 5,
-    text: "Need a good day? This is the perfect car. Smooth pick up and drop off. The owner is a very friendly young gentleman with a great personality."
+    text: "Really nice car and excellent service. The best experience I've had in my entire career. Highly recommended."
   }
 ];
 

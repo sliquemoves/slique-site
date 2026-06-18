@@ -135,6 +135,11 @@
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+/* Name + duration live here (not in React inline style) so a re-render can
+   never restart/rewind the marquee. Durations are tuned for 11 strip items
+   (~9s/item desktop, ~8s/item mobile across one half) — update if items change. */
+.trust-track-d { animation-name: trust-marquee-d; animation-duration: 396s; }
+.trust-track-m { animation-name: trust-marquee-m; animation-duration: 352s; }
 @media (hover: hover) {
   .trust-wrap:hover .trust-track-d,
   .trust-wrap:hover .trust-track-m { animation-play-state: paused; }

@@ -36,21 +36,17 @@ function TrustStrip({ variant = 'desktop' }) {
   const itemPadding  = isMobile ? '8px 20px' : '10px 32px';
   const itemGap      = isMobile ? 8 : 10;
   const fontSize     = isMobile ? 9 : 10;
-  const animName     = isMobile ? 'trust-marquee-m' : 'trust-marquee-d';
   const trackClass   = isMobile ? 'trust-track-m'   : 'trust-track-d';
 
   // Repeat items inside each half enough times to guarantee the half
   // is wider than any realistic viewport. This is what kills the
   // "strip runs out mid-screen" gap: each half on its own overflows
   // the viewport, so as copy A exits left, copy B is already filling
-  // the right edge with no empty space between them.
+  // the right edge with no empty space between them. (The animation itself —
+  // name, duration, and hover-pause — lives in index.css so a re-render can't
+  // restart it.)
   const REPEATS_PER_HALF = 4;
   const halfItems = Array.from({ length: REPEATS_PER_HALF }).flatMap(() => trustItems);
-
-  // Hold a constant per-item scroll speed no matter how many items are in
-  // the strip (~9s/item desktop, ~8s/item mobile across one half). With the
-  // original 5 items this resolves to the hand-tuned 180s / 160s.
-  const duration = (isMobile ? 8 : 9) * REPEATS_PER_HALF * trustItems.length;
 
   const renderSet = (ariaHidden) =>
     halfItems.map((item, i) => (
@@ -75,10 +71,10 @@ function TrustStrip({ variant = 'desktop' }) {
     ));
 
   return (
-    // Keyframes + animation live in index.css (static, never re-rendered) so a
-    // React re-render can't restart the marquee. Only the dynamic duration is
-    // inline; the pause-on-hover targets this stable wrapper, not the moving
-    // track — so hovering pauses cleanly instead of resetting.
+    // The whole animation (keyframes, name, duration, hover-pause) lives in
+    // index.css — nothing animation-related is React-managed — so a re-render
+    // can never restart it. Hover pauses the track in place (freezes), never
+    // rewinds. Pause targets the stable wrapper, not the moving track.
     <div
       className="trust-wrap"
       style={{
@@ -90,7 +86,7 @@ function TrustStrip({ variant = 'desktop' }) {
           'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
       }}
     >
-      <div className={trackClass} style={{ animationName: animName, animationDuration: `${duration}s` }}>
+      <div className={trackClass}>
         {renderSet(false)}
         {renderSet(true)}
       </div>
@@ -152,7 +148,7 @@ export default function HeroSection() {
         <div style={{ display: 'flex', justifyContent: 'center', minHeight: 34 }}>
           {showFleet && (
             <a href="#fleet" onClick={e => { e.preventDefault(); scrollTo('fleet'); }}
-              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 16px', textDecoration: 'none', transition: 'opacity 0.25s', borderRadius: 9999 }}>
+              style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: '#000', border: 'none', padding: '8px 16px', textDecoration: 'none', transition: 'opacity 0.25s', borderRadius: 9999 }}>
               Fleet
             </a>
           )}
