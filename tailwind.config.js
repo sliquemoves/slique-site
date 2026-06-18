@@ -10,7 +10,7 @@ export default {
       fontFamily: {
         display: ['Cormorant Garamond', 'Georgia', 'serif'],
         sans:    ['DM Sans', 'system-ui', 'sans-serif'],
-        gothic:  ['Oswald', 'system-ui', 'sans-serif'],
+        gothic:  ['Bebas Neue', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         display: '-0.02em',
