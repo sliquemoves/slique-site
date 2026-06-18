@@ -82,7 +82,7 @@ function RentalCard({ rental, index, onRequest }) {
     <motion.div
       className="group w-full overflow-hidden flex flex-col"
       style={{
-        border: '1px solid rgba(255,255,255,0.16)',
+        border: '1px solid #ffffff',
         borderRadius: '18px',
         background: 'rgba(255,255,255,0.02)',
       }}
@@ -107,7 +107,7 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="font-display text-2xl text-white font-bold tracking-wide text-center mb-5">{rental.name}</h3>
+        <h3 className="font-bubbly text-2xl text-white font-semibold tracking-wide text-center mb-5">{rental.name}</h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -190,7 +190,7 @@ export default function FleetSection() {
                   className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full"
                   style={{
                     maxWidth: '88%',
-                    border: '3px solid rgba(255,255,255,0.32)',
+                    border: '3px solid #ffffff',
                     borderRadius: '24px',
                     background: 'rgba(255,255,255,0.02)',
                     padding: '0 0 28px 0',
