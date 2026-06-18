@@ -107,7 +107,9 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="font-bubbly text-2xl text-white font-semibold tracking-wide text-center mb-5">{rental.name}</h3>
+        <h3 className="font-bubbly text-2xl text-white font-semibold tracking-wide text-center mb-5">
+          <span className="inline-block" style={{ transform: 'scaleX(1.1)' }}>{rental.name}</span>
+        </h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
