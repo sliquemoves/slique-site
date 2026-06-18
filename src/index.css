@@ -115,3 +115,31 @@
   .tracking-ultra { letter-spacing: 0.4em; }
   .tracking-display { letter-spacing: -0.02em; }
 }
+
+/* Hero trust-strip marquee — keyframes kept static (outside React) so a
+   re-render can never restart the animation. The component supplies only the
+   animation name + duration inline; hover-pause targets the stable wrapper. */
+@keyframes trust-marquee-d {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes trust-marquee-m {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.trust-track-d,
+.trust-track-m {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@media (hover: hover) {
+  .trust-wrap:hover .trust-track-d,
+  .trust-wrap:hover .trust-track-m { animation-play-state: paused; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trust-track-d,
+  .trust-track-m { animation: none !important; }
+}

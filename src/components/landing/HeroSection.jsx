@@ -75,45 +75,26 @@ function TrustStrip({ variant = 'desktop' }) {
     ));
 
   return (
-    <>
-      <style>{`
-        @keyframes ${animName} {
-          from { transform: translate3d(0, 0, 0); }
-          to   { transform: translate3d(-50%, 0, 0); }
-        }
-        .${trackClass} {
-          display: flex;
-          width: max-content;
-          animation: ${animName} ${duration}s linear infinite;
-          will-change: transform;
-        }
-        /* Pause on hover for desktop users who want to read */
-        @media (hover: hover) {
-          .${trackClass}:hover { animation-play-state: paused; }
-        }
-        /* Respect reduced motion */
-        @media (prefers-reduced-motion: reduce) {
-          .${trackClass} { animation: none; }
-        }
-      `}</style>
-
-      <div
-        style={{
-          overflow: 'hidden',
-          width: '100%',
-          // Fade edges so items flow in/out rather than hard-clipping
-          WebkitMaskImage:
-            'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
-          maskImage:
-            'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
-        }}
-      >
-        <div className={trackClass}>
-          {renderSet(false)}
-          {renderSet(true)}
-        </div>
+    // Keyframes + animation live in index.css (static, never re-rendered) so a
+    // React re-render can't restart the marquee. Only the dynamic duration is
+    // inline; the pause-on-hover targets this stable wrapper, not the moving
+    // track — so hovering pauses cleanly instead of resetting.
+    <div
+      className="trust-wrap"
+      style={{
+        overflow: 'hidden',
+        width: '100%',
+        WebkitMaskImage:
+          'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
+        maskImage:
+          'linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%)',
+      }}
+    >
+      <div className={trackClass} style={{ animationName: animName, animationDuration: `${duration}s` }}>
+        {renderSet(false)}
+        {renderSet(true)}
       </div>
-    </>
+    </div>
   );
 }
 
