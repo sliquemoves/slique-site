@@ -110,7 +110,7 @@ function RentalCard({ rental, index, onRequest }) {
         <h3 className="text-2xl text-white font-bold tracking-wide text-center mb-5" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{rental.name}</h3>
 
         {/* Performance spec grid */}
-        <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
+        <div className="grid grid-cols-2 gap-px mb-6" style={{ background: '#ffffff' }}>
           {specs.map(s => (
             <div key={s.label} className="bg-black px-3 py-3 text-center">
               <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-1">
