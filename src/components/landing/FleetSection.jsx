@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Users, Gauge, Timer, Wind, Cog } from 'lucide-react';
+import { Users, Gauge, Cog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RentalInquiryModal from './RentalInquiryModal';
 import ChauffeurBookingModal from './ChauffeurBookingModal';
@@ -74,8 +74,6 @@ function FleetToggle({ value, onChange }) {
 function RentalCard({ rental, index, onRequest }) {
   const specs = [
     { icon: Gauge, label: 'Horsepower', value: `${rental.hp}` },
-    { icon: Timer, label: '0–60 mph',   value: rental.zeroToSixty },
-    { icon: Wind,  label: 'Top Speed',  value: `${rental.topSpeed} mph` },
     { icon: Cog,   label: 'Drivetrain', value: rental.drive },
   ];
   return (
