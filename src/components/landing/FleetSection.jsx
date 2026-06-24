@@ -107,7 +107,7 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-2xl text-white font-bold tracking-wide text-center mb-5" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{rental.name}</h3>
+        <h3 className="text-2xl xl:text-xl text-white font-bold tracking-wide text-center mb-5" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{rental.name}</h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -295,19 +295,17 @@ export default function FleetSection() {
                   None available
                 </p>
               ) : (
-                <div className={visibleRentals.length <= 2
-                  ? "grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto px-4 md:px-0"
-                  : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0"}>
-                  {visibleRentals.map((rental, index) => {
-                    // A lone trailing card (e.g. the 7th) gets centered in the
-                    // middle column instead of left-aligned in the last row.
-                    const orphan = visibleRentals.length % 3 === 1 && index === visibleRentals.length - 1;
-                    return (
-                      <div key={rental.type} className={orphan ? 'lg:col-start-2' : undefined}>
-                        <RentalCard rental={rental} index={index} onRequest={setActiveRental} />
-                      </div>
-                    );
-                  })}
+                {/* Flex + justify-center: 2 / 3 / 4 columns, and any partial last
+                    row (filters, lone card) auto-centers. */}
+                <div className="flex flex-wrap justify-center gap-6 px-4 md:px-0">
+                  {visibleRentals.map((rental, index) => (
+                    <div
+                      key={rental.type}
+                      className="w-full sm:w-[calc(50%_-_12px)] lg:w-[calc(33.333%_-_16px)] xl:w-[calc(25%_-_18px)]"
+                    >
+                      <RentalCard rental={rental} index={index} onRequest={setActiveRental} />
+                    </div>
+                  ))}
                 </div>
               )}
             </motion.div>
