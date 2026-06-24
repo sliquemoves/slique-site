@@ -295,8 +295,7 @@ export default function FleetSection() {
                   None available
                 </p>
               ) : (
-                {/* Flex + justify-center: 2 / 3 / 4 columns, and any partial last
-                    row (filters, lone card) auto-centers. */}
+                // Flex + justify-center: 2/3/4 columns; partial last rows auto-center.
                 <div className="flex flex-wrap justify-center gap-6 px-4 md:px-0">
                   {visibleRentals.map((rental, index) => (
                     <div
