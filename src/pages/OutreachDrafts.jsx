@@ -8,18 +8,9 @@ import { Loader2, Check, X, Pencil, Save, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import AdminTopBar from '@/components/AdminTopBar';
-
-const SHELL = {
-  minHeight: '100vh',
-  background: '#000',
-  color: '#fff',
-  fontFamily: 'system-ui, sans-serif',
-  padding: '40px 24px',
-};
+import { useIsMobile } from '@/components/ui/use-mobile';
 
 const EYEBROW = { fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 };
-const HEADER_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, letterSpacing: '0.04em', color: '#fff' };
-const PANEL = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 14, padding: '20px 22px', borderRadius: 16 };
 
 const META_LABEL = { fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' };
 const META_VALUE = { fontSize: 12, color: '#e0e0e0', fontFamily: "'Cormorant Garamond', Georgia, serif" };
@@ -58,7 +49,7 @@ function fmtDate(d) {
   return new Date(d + (d.length === 10 ? 'T00:00:00' : '')).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function DraftCard({ draft, onApprove, onReject, onSave, busy }) {
+function DraftCard({ draft, onApprove, onReject, onSave, busy, isMobile }) {
   const [editing, setEditing] = useState(false);
   const [subject, setSubject] = useState(draft.subject);
   const [body, setBody] = useState(draft.body);
@@ -72,9 +63,15 @@ function DraftCard({ draft, onApprove, onReject, onSave, busy }) {
     setEditing(false);
   };
 
+  const PANEL = {
+    background: isMobile ? 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))' : '#0a0a0a',
+    border: '1px solid rgba(255,255,255,0.08)', marginBottom: isMobile ? 12 : 14,
+    padding: isMobile ? '18px 16px' : '20px 22px', borderRadius: isMobile ? 22 : 16,
+  };
+
   return (
     <div style={PANEL}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))', gap: isMobile ? 12 : 16, marginBottom: 18 }}>
         <div>
           <div style={META_LABEL}>Venue</div>
           <div style={META_VALUE}>{venue?.name ?? '—'}</div>
@@ -110,20 +107,20 @@ function DraftCard({ draft, onApprove, onReject, onSave, busy }) {
         </>
       )}
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 18, justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 8, marginTop: 18, justifyContent: isMobile ? 'stretch' : 'flex-end' }}>
         {editing ? (
-          <button onClick={handleSave} disabled={busy} style={BTN_EDIT}>
+          <button onClick={handleSave} disabled={busy} style={{ ...BTN_EDIT, flex: isMobile ? 1 : 'none', justifyContent: 'center' }}>
             <Save size={11} /> Save
           </button>
         ) : (
-          <button onClick={() => setEditing(true)} disabled={busy} style={BTN_EDIT}>
+          <button onClick={() => setEditing(true)} disabled={busy} style={{ ...BTN_EDIT, flex: isMobile ? 1 : 'none', justifyContent: 'center' }}>
             <Pencil size={11} /> Edit
           </button>
         )}
-        <button onClick={() => onReject(draft.id)} disabled={busy} style={BTN_REJECT}>
+        <button onClick={() => onReject(draft.id)} disabled={busy} style={{ ...BTN_REJECT, flex: isMobile ? 1 : 'none', justifyContent: 'center' }}>
           <X size={11} /> Reject
         </button>
-        <button onClick={() => onApprove(draft.id)} disabled={busy || editing} style={BTN_APPROVE}>
+        <button onClick={() => onApprove(draft.id)} disabled={busy || editing} style={{ ...BTN_APPROVE, flex: isMobile ? 1 : 'none', justifyContent: 'center' }}>
           <Check size={11} /> Approve
         </button>
       </div>
@@ -132,7 +129,10 @@ function DraftCard({ draft, onApprove, onReject, onSave, busy }) {
 }
 
 function DraftsList() {
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
+  const SHELL = { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, sans-serif', padding: isMobile ? '12px 14px 48px' : '40px 24px' };
+  const HEADER_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 38 : 32, fontWeight: 300, letterSpacing: '0.04em', color: '#fff' };
 
   const { data: drafts, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['outreach-drafts', 'pending_review'],
@@ -196,13 +196,13 @@ function DraftsList() {
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
         <AdminTopBar backHref="/outreach" backLabel="Outreach" center="Drafts Queue" />
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 24, marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: isMobile ? 18 : 24, marginBottom: isMobile ? 22 : 32 }}>
           <div>
             <div style={EYEBROW}>Slique Outreach</div>
             <h1 style={HEADER_TITLE}>Drafts</h1>
           </div>
-          <button onClick={() => refetch()} style={{ ...BTN_EDIT, opacity: isFetching ? 0.5 : 1 }} disabled={isFetching}>
-            <RefreshCw size={11} /> Refresh
+          <button onClick={() => refetch()} style={{ ...BTN_EDIT, opacity: isFetching ? 0.5 : 1, whiteSpace: 'nowrap' }} disabled={isFetching}>
+            <RefreshCw size={11} /> {isMobile ? null : 'Refresh'}
           </button>
         </div>
 
@@ -223,6 +223,7 @@ function DraftsList() {
               onReject={handleReject}
               onSave={handleSave}
               busy={updateStatus.isPending || saveEdit.isPending}
+              isMobile={isMobile}
             />
           ))
         )}

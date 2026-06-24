@@ -4,42 +4,69 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, CalendarDays, Mail } from 'lucide-react';
+import { Loader2, CalendarDays, Mail, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import AdminTopBar from '@/components/AdminTopBar';
-
-// ─── tokens ───────────────────────────────────────────────────────────────────
-const SHELL = {
-  minHeight: '100vh',
-  background: '#000',
-  color: '#fff',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  display: 'flex',
-  flexDirection: 'column',
-  padding: '24px',
-};
-const WRAP = { width: '100%', maxWidth: 1080, margin: '0 auto' };
-const HEADER = { textAlign: 'center', marginBottom: 44, marginTop: 12 };
-const EYEBROW = {
-  fontSize: 9, letterSpacing: '0.6em', textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.4)', marginBottom: 16,
-};
-const TITLE = {
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
-  fontSize: 56, fontWeight: 300, letterSpacing: '0.16em',
-  color: '#fff', margin: 0, textTransform: 'uppercase',
-};
-const SUBTITLE = {
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
-  fontSize: 15, fontWeight: 300, letterSpacing: '0.45em',
-  color: 'rgba(255,255,255,0.4)', marginTop: 14,
-  textTransform: 'uppercase', fontStyle: 'italic',
-};
-const RULE = { width: 50, height: 1, background: 'rgba(255,255,255,0.25)', margin: '22px auto 0 auto' };
+import { useIsMobile } from '@/components/ui/use-mobile';
 
 // ─── tile ─────────────────────────────────────────────────────────────────────
-function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading }) {
+// Desktop: tall centered card. Mobile: a wide, bubbly "row" card — icon + label
+// on the left, the live count on the right — so the whole hub fits one thumb-scroll.
+function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading, isMobile }) {
   const [hover, setHover] = useState(false);
+
+  if (isMobile) {
+    return (
+      <Link
+        to={to}
+        style={{
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))',
+          border: '1px solid rgba(255,255,255,0.12)',
+          padding: '20px 20px',
+          borderRadius: 26,
+          boxShadow: '0 12px 30px rgba(0,0,0,0.45)',
+        }}
+      >
+        <div style={{
+          width: 52, height: 52, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: '1px solid rgba(255,255,255,0.18)', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.04)', color: '#fff',
+        }}>
+          <Icon size={20} strokeWidth={1.5} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 5 }}>
+            {eyebrow}
+          </div>
+          <div style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 28, fontWeight: 300, letterSpacing: '0.08em',
+            color: '#fff', textTransform: 'uppercase', lineHeight: 1,
+          }}>
+            {label}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 40, fontWeight: 300, color: '#fff', lineHeight: 1,
+          }}>
+            {loading ? '—' : (stat ?? 0)}
+          </div>
+          <div style={{ fontSize: 7.5, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+            {statLabel}
+          </div>
+        </div>
+        <ChevronRight size={18} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+      </Link>
+    );
+  }
+
   return (
     <Link
       to={to}
@@ -66,7 +93,7 @@ function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading }) {
       }}>
         <Icon size={18} strokeWidth={1.4} />
       </div>
-      <div style={{ ...EYEBROW, marginBottom: 14 }}>{eyebrow}</div>
+      <div style={{ fontSize: 9, letterSpacing: '0.6em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>{eyebrow}</div>
       <div style={{
         fontFamily: "'Cormorant Garamond', Georgia, serif",
         fontSize: 36, fontWeight: 300, letterSpacing: '0.14em',
@@ -90,8 +117,33 @@ function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading }) {
 
 // ─── main ─────────────────────────────────────────────────────────────────────
 export default function ManageHub() {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ pendingBookings: 0, drafts: 0 });
+
+  const SHELL = {
+    minHeight: '100vh',
+    background: '#000',
+    color: '#fff',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: isMobile ? '14px 14px 40px' : '24px',
+  };
+  const WRAP = { width: '100%', maxWidth: 1080, margin: '0 auto' };
+  const HEADER = { textAlign: 'center', marginBottom: isMobile ? 30 : 44, marginTop: isMobile ? 18 : 12 };
+  const TITLE = {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: isMobile ? 44 : 56, fontWeight: 300, letterSpacing: isMobile ? '0.1em' : '0.16em',
+    color: '#fff', margin: 0, textTransform: 'uppercase',
+  };
+  const SUBTITLE = {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: isMobile ? 12 : 15, fontWeight: 300, letterSpacing: isMobile ? '0.32em' : '0.45em',
+    color: 'rgba(255,255,255,0.4)', marginTop: 14,
+    textTransform: 'uppercase', fontStyle: 'italic',
+  };
+  const RULE = { width: 50, height: 1, background: 'rgba(255,255,255,0.25)', margin: isMobile ? '18px auto 0' : '22px auto 0' };
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -122,7 +174,7 @@ export default function ManageHub() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 16, marginTop: 8, flexWrap: 'wrap' }}>
           <HubTile
             to="/bookings"
             icon={CalendarDays}
@@ -131,6 +183,7 @@ export default function ManageHub() {
             stat={stats.pendingBookings}
             statLabel="pending bookings"
             loading={loading}
+            isMobile={isMobile}
           />
           <HubTile
             to="/outreach"
@@ -140,6 +193,7 @@ export default function ManageHub() {
             stat={stats.drafts}
             statLabel="drafts to review"
             loading={loading}
+            isMobile={isMobile}
           />
         </div>
       </div>

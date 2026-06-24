@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Plus, Loader2, Clock, Users, MapPin, Car, Phone, Mail, ChevronDown, ChevronUp, RefreshCw, X, Lock, Unlock } from 'lucide-react';
 import AdminTopBar from '@/components/AdminTopBar';
+import { useIsMobile } from '@/components/ui/use-mobile';
 
 const timeSlots = [
   '00:00','01:00','02:00','03:00','04:00','05:00',
@@ -88,11 +89,11 @@ function format12Hour(time24) {
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({ label, value }) {
+function StatCard({ label, value, isMobile }) {
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px', borderRadius: 16 }}>
-      <p style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>{label}</p>
-      <p style={{ fontSize: 32, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#ffffff' }}>{value}</p>
+    <div style={{ background: isMobile ? 'linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))' : '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: isMobile ? '14px 12px' : '24px 28px', borderRadius: isMobile ? 20 : 16, textAlign: isMobile ? 'center' : 'left' }}>
+      <p style={{ fontSize: isMobile ? 7.5 : 9, letterSpacing: isMobile ? '0.22em' : '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: isMobile ? 6 : 10 }}>{label}</p>
+      <p style={{ fontSize: isMobile ? 30 : 32, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#ffffff', lineHeight: 1 }}>{value}</p>
     </div>
   );
 }
@@ -110,30 +111,38 @@ function DetailItem({ icon, label, value }) {
 }
 
 // ─── Booking Card ─────────────────────────────────────────────────────────────
-function BookingCard({ booking, onStatusChange, updating }) {
+function BookingCard({ booking, onStatusChange, updating, isMobile }) {
   const [expanded, setExpanded] = useState(false);
   const status = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
   const ref = generateRef(booking.id);
 
   return (
-    <motion.div layout style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 8, overflow: 'hidden', borderRadius: 14 }}>
-      <div style={{ padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ width: 3, height: 36, background: status.color, flexShrink: 0 }} />
+    <motion.div layout style={{ background: isMobile ? 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))' : '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', marginBottom: isMobile ? 10 : 8, overflow: 'hidden', borderRadius: isMobile ? 20 : 14 }}>
+      <div style={{ padding: isMobile ? '15px 16px' : '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 16 }} onClick={() => setExpanded(e => !e)}>
+        <div style={{ width: 3, height: isMobile ? 40 : 36, background: status.color, borderRadius: 2, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontFamily: "'Cormorant Garamond', Georgia, serif", color: '#ffffff', fontWeight: 400, letterSpacing: '0.02em' }}>
+          <p style={{ fontSize: isMobile ? 17 : 14, fontFamily: "'Cormorant Garamond', Georgia, serif", color: '#ffffff', fontWeight: 400, letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {booking.customer_name}
           </p>
-          <p style={{ fontSize: 9, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.35)', fontFamily: "'Courier New', monospace", marginTop: 2 }}>
-            {ref}
-          </p>
+          {isMobile ? (
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 3, letterSpacing: '0.02em' }}>
+              {formatDate(booking.pickup_date)} · {format12Hour(booking.pickup_time)}
+            </p>
+          ) : (
+            <p style={{ fontSize: 9, letterSpacing: '0.3em', color: 'rgba(255,255,255,0.35)', fontFamily: "'Courier New', monospace", marginTop: 2 }}>
+              {ref}
+            </p>
+          )}
         </div>
-        <div style={{ textAlign: 'right', marginRight: 16 }}>
-          <p style={{ fontSize: 11, color: '#e0e0e0', letterSpacing: '0.04em' }}>{formatDate(booking.pickup_date)}</p>
-          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{format12Hour(booking.pickup_time)}</p>
-        </div>
+        {!isMobile && (
+          <div style={{ textAlign: 'right', marginRight: 16 }}>
+            <p style={{ fontSize: 11, color: '#e0e0e0', letterSpacing: '0.04em' }}>{formatDate(booking.pickup_date)}</p>
+            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{format12Hour(booking.pickup_time)}</p>
+          </div>
+        )}
         <span style={{
-          fontSize: 8, letterSpacing: '0.35em', textTransform: 'uppercase',
-          padding: '4px 10px', border: `1px solid ${status.border}`,
+          fontSize: 8, letterSpacing: isMobile ? '0.2em' : '0.35em', textTransform: 'uppercase',
+          padding: isMobile ? '5px 10px' : '4px 10px', border: `1px solid ${status.border}`,
           color: status.color, background: status.bg, flexShrink: 0, borderRadius: 9999,
         }}>
           {status.label}
@@ -144,7 +153,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
       </div>
 
       {expanded && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '20px 20px 20px 39px' }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: isMobile ? '18px 16px' : '20px 20px 20px 39px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
             <DetailItem icon={<Mail size={11} />} label="Email" value={booking.email} />
             <DetailItem icon={<Phone size={11} />} label="Phone" value={booking.phone} />
@@ -184,6 +193,7 @@ function BookingCard({ booking, onStatusChange, updating }) {
 
 // ─── Manual Booking Modal ─────────────────────────────────────────────────────
 function NewBookingModal({ open, onClose, onCreated }) {
+  const isMobile = useIsMobile();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     customer_name: '', email: '', phone: '',
@@ -252,19 +262,22 @@ function NewBookingModal({ open, onClose, onCreated }) {
             onClick={onClose}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }}
           />
-          {/* Modal — flex-centered so motion's transform animation doesn't clobber centering */}
-          <div style={{ position: 'fixed', inset: 0, zIndex: 101, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
+          {/* Modal — flex-centered so motion's transform animation doesn't clobber centering.
+              Mobile: slides up as a near-full-width rounded sheet anchored to the bottom. */}
+          <div style={{ position: 'fixed', inset: 0, zIndex: 101, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 16, pointerEvents: 'none' }}>
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: isMobile ? 40 : 16, scale: isMobile ? 1 : 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: isMobile ? 40 : 16, scale: isMobile ? 1 : 0.98 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
             style={{
-              width: 'min(640px, 92vw)', maxHeight: '90vh', overflow: 'auto',
-              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 14,
-              padding: 36, pointerEvents: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+              width: isMobile ? '100%' : 'min(640px, 92vw)', maxHeight: isMobile ? '94vh' : '90vh', overflow: 'auto',
+              background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.14)',
+              borderRadius: isMobile ? '28px 28px 0 0' : 14,
+              padding: isMobile ? '24px 18px calc(24px + env(safe-area-inset-bottom))' : 36, pointerEvents: 'auto', boxShadow: '0 -20px 60px rgba(0,0,0,0.7)',
             }}
           >
+            {isMobile && <div style={{ width: 40, height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.2)', margin: '0 auto 18px' }} />}
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 18 }}>
               <div>
                 <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Slique Moves</p>
                 <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 24, fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>
@@ -278,7 +291,7 @@ function NewBookingModal({ open, onClose, onCreated }) {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Guest */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <Field label="Full Name" required>
                   <input required value={form.customer_name} onChange={e => upd('customer_name', e.target.value)} style={inputStyle} placeholder="Jane Doe" />
                 </Field>
@@ -291,7 +304,7 @@ function NewBookingModal({ open, onClose, onCreated }) {
               </Field>
 
               {/* Service & vehicle */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <Field label="Service" required>
                   <Select value={form.service_type} onValueChange={v => upd('service_type', v)}>
                     <SelectTrigger style={selectStyle}><SelectValue placeholder="Select service" /></SelectTrigger>
@@ -311,7 +324,7 @@ function NewBookingModal({ open, onClose, onCreated }) {
               </div>
 
               {/* Date & time & passengers */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr', gap: 12 }}>
                 <Field label="Date" required>
                   <input required type="date" value={form.pickup_date} onChange={e => upd('pickup_date', e.target.value)} style={inputStyle} />
                 </Field>
@@ -405,7 +418,7 @@ function Field({ label, required, children }) {
 }
 
 // ─── Availability Block Manager ───────────────────────────────────────────────
-function AvailabilityPanel({ refresh }) {
+function AvailabilityPanel({ refresh, isMobile }) {
   const [date, setDate] = useState('');
   const [vehicle, setVehicle] = useState('');
   const [blockedSlots, setBlockedSlots] = useState([]);
@@ -448,7 +461,7 @@ function AvailabilityPanel({ refresh }) {
   };
 
   return (
-    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: 28, borderRadius: 16 }}>
+    <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: isMobile ? 18 : 28, borderRadius: isMobile ? 20 : 16 }}>
       <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#ffffff', letterSpacing: '0.05em', marginBottom: 6 }}>
         Block Times
       </h2>
@@ -529,6 +542,7 @@ function AvailabilityPanel({ refresh }) {
 
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 export default function Admin() {
+  const isMobile = useIsMobile();
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -578,7 +592,7 @@ export default function Admin() {
       minHeight: '100vh',
       background: '#000000',
       fontFamily: 'system-ui, sans-serif',
-      padding: '40px 24px',
+      padding: isMobile ? '12px 14px 48px' : '40px 24px',
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
@@ -587,11 +601,11 @@ export default function Admin() {
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 24 }}
+          style={{ marginBottom: isMobile ? 24 : 40, display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 16 : 8, alignItems: isMobile ? 'stretch' : 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: isMobile ? 18 : 24 }}
         >
           <div>
             <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Slique Moves</p>
-            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 38 : 32, fontWeight: 300, color: '#ffffff', letterSpacing: '0.04em' }}>
               Bookings
             </h1>
           </div>
@@ -599,44 +613,44 @@ export default function Admin() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => setNewBookingOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#ffffff', border: '1px solid #ffffff', color: '#000000', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, borderRadius: 9999 }}
+              style={{ flex: isMobile ? 2 : 'none', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, padding: isMobile ? '13px 18px' : '10px 18px', background: '#ffffff', border: '1px solid #ffffff', color: '#000000', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', fontWeight: 600, borderRadius: 9999 }}
             >
-              <Plus size={11} /> New Booking
+              <Plus size={12} /> New Booking
             </button>
             <button
               onClick={fetchBookings}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 9999 }}
+              style={{ flex: isMobile ? 1 : 'none', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, padding: isMobile ? '13px 18px' : '10px 18px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 9999 }}
             >
-              <RefreshCw size={11} /> Refresh
+              <RefreshCw size={12} /> {isMobile ? null : 'Refresh'}
             </button>
           </div>
         </motion.div>
 
         {/* Stats — total removed, 3 remain */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 40 }}>
-          <StatCard label="Pending" value={stats.pending} />
-          <StatCard label="Confirmed" value={stats.confirmed} />
-          <StatCard label="Completed" value={stats.completed} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMobile ? 8 : 12, marginBottom: isMobile ? 28 : 40 }}>
+          <StatCard label="Pending" value={stats.pending} isMobile={isMobile} />
+          <StatCard label="Confirmed" value={stats.confirmed} isMobile={isMobile} />
+          <StatCard label="Completed" value={stats.completed} isMobile={isMobile} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gap: isMobile ? 28 : 24, alignItems: 'start' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
               <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, color: '#e0e0e0', letterSpacing: '0.05em' }}>
                 Reservations
               </h2>
-              <div style={{ display: 'flex', gap: 4 }}>
+              <div style={{ display: 'flex', gap: 6, overflowX: isMobile ? 'auto' : 'visible', paddingBottom: isMobile ? 4 : 0, WebkitOverflowScrolling: 'touch' }}>
                 {['all', 'pending', 'confirmed', 'completed', 'cancelled'].map(f => (
                   <button
                     key={f}
                     onClick={() => setStatusFilter(f)}
                     style={{
-                      padding: '5px 12px', fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
+                      padding: isMobile ? '8px 14px' : '5px 12px', fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase',
                       border: '1px solid',
                       borderColor: statusFilter === f ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.06)',
                       background: statusFilter === f ? 'rgba(255,255,255,0.08)' : 'transparent',
                       color: statusFilter === f ? '#ffffff' : 'rgba(255,255,255,0.3)',
-                      cursor: 'pointer',
+                      cursor: 'pointer', borderRadius: 9999, whiteSpace: 'nowrap', flexShrink: 0,
                     }}
                   >
                     {f}
@@ -655,12 +669,12 @@ export default function Admin() {
               </div>
             ) : (
               filtered.map(b => (
-                <BookingCard key={b.id} booking={b} onStatusChange={handleStatusChange} updating={updatingId === b.id} />
+                <BookingCard key={b.id} booking={b} onStatusChange={handleStatusChange} updating={updatingId === b.id} isMobile={isMobile} />
               ))
             )}
           </div>
 
-          <AvailabilityPanel refresh={fetchBookings} />
+          <AvailabilityPanel refresh={fetchBookings} isMobile={isMobile} />
         </div>
       </div>
 

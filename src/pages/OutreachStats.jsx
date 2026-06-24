@@ -6,28 +6,34 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import AdminTopBar from '@/components/AdminTopBar';
+import { useIsMobile } from '@/components/ui/use-mobile';
 
-const SHELL = { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, sans-serif', padding: '40px 24px' };
 const EYEBROW = { fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 6 };
-const HEADER_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 32, fontWeight: 300, letterSpacing: '0.04em', color: '#fff' };
-const STAT_CARD = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', padding: '24px 28px', borderRadius: 16 };
-const STAT_LABEL = { fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 };
-const STAT_VALUE = { fontSize: 36, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#fff' };
-const STAT_SUB = { fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 4 };
 
 const STATUSES = ['discovered', 'enriched', 'drafted', 'sent', 'replied', 'rejected'];
 
-function Stat({ label, value, sub }) {
+function Stat({ label, value, sub, isMobile }) {
   return (
-    <div style={STAT_CARD}>
-      <div style={STAT_LABEL}>{label}</div>
-      <div style={STAT_VALUE}>{value}</div>
-      {sub && <div style={STAT_SUB}>{sub}</div>}
+    <div style={{
+      background: isMobile ? 'linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))' : '#0a0a0a',
+      border: '1px solid rgba(255,255,255,0.1)',
+      padding: isMobile ? '16px 16px' : '24px 28px',
+      borderRadius: isMobile ? 20 : 16,
+    }}>
+      <div style={{ fontSize: isMobile ? 8 : 9, letterSpacing: isMobile ? '0.28em' : '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: isMobile ? 8 : 10 }}>{label}</div>
+      <div style={{ fontSize: isMobile ? 30 : 36, fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, color: '#fff', lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: isMobile ? 10 : 11, color: 'rgba(255,255,255,0.45)', marginTop: 5 }}>{sub}</div>}
     </div>
   );
 }
 
 function StatsView() {
+  const isMobile = useIsMobile();
+  const SHELL = { minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, sans-serif', padding: isMobile ? '12px 14px 48px' : '40px 24px' };
+  const HEADER_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 38 : 32, fontWeight: 300, letterSpacing: '0.04em', color: '#fff' };
+  const SECTION_TITLE = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, fontSize: isMobile ? 17 : 18, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', margin: '0 0 14px 0' };
+  // Mobile collapses every funnel/pipeline grid to a clean 2-up; desktop keeps wide rows.
+  const grid = (desktopCols) => ({ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : `repeat(${desktopCols}, 1fr)`, gap: isMobile ? 10 : 10, marginBottom: isMobile ? 26 : 32 });
   const { data, isLoading, refetch, isFetching, error } = useQuery({
     queryKey: ['outreach-stats'],
     queryFn: async () => {
@@ -95,14 +101,14 @@ function StatsView() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <AdminTopBar backHref="/outreach" backLabel="Outreach" center="Performance Stats" />
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 24, marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: isMobile ? 'center' : 'flex-end', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: isMobile ? 18 : 24, marginBottom: isMobile ? 24 : 32 }}>
           <div>
             <div style={EYEBROW}>Slique Outreach</div>
             <h1 style={HEADER_TITLE}>Stats</h1>
           </div>
           <button onClick={() => refetch()} disabled={isFetching}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 9, letterSpacing: '0.35em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.25)', opacity: isFetching ? 0.5 : 1, borderRadius: 9999 }}>
-            <RefreshCw size={11} /> Refresh
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: isMobile ? '10px 14px' : '8px 14px', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', cursor: 'pointer', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.25)', opacity: isFetching ? 0.5 : 1, borderRadius: 9999, whiteSpace: 'nowrap' }}>
+            <RefreshCw size={11} /> {isMobile ? null : 'Refresh'}
           </button>
         </div>
 
@@ -114,35 +120,35 @@ function StatsView() {
           <div style={{ padding: 30, color: '#ff8a8a', fontSize: 12 }}>Error: {error.message}</div>
         ) : data && (
           <>
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, fontSize: 18, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', margin: '0 0 14px 0' }}>Pipeline</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginBottom: 32 }}>
+            <h2 style={SECTION_TITLE}>Pipeline</h2>
+            <div style={grid(6)}>
               {STATUSES.map(s => (
-                <Stat key={s} label={s} value={data.eventCountsByStatus[s] ?? 0} />
+                <Stat key={s} label={s} value={data.eventCountsByStatus[s] ?? 0} isMobile={isMobile} />
               ))}
             </div>
 
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, fontSize: 18, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', margin: '0 0 14px 0' }}>Drafts</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 32 }}>
-              <Stat label="Pending review" value={data.draftCountsByStatus.pending_review} />
-              <Stat label="Approved" value={data.draftCountsByStatus.approved} />
-              <Stat label="Sent" value={data.draftCountsByStatus.sent} />
-              <Stat label="Rejected" value={data.draftCountsByStatus.rejected} />
+            <h2 style={SECTION_TITLE}>Drafts</h2>
+            <div style={grid(4)}>
+              <Stat label="Pending review" value={data.draftCountsByStatus.pending_review} isMobile={isMobile} />
+              <Stat label="Approved" value={data.draftCountsByStatus.approved} isMobile={isMobile} />
+              <Stat label="Sent" value={data.draftCountsByStatus.sent} isMobile={isMobile} />
+              <Stat label="Rejected" value={data.draftCountsByStatus.rejected} isMobile={isMobile} />
             </div>
 
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, fontSize: 18, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', margin: '0 0 14px 0' }}>Send funnel</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 32 }}>
-              <Stat label="Sent" value={data.sends} />
-              <Stat label="Delivered" value={data.delivered} sub={data.rates.deliveryRate} />
-              <Stat label="Opened" value={data.opened} sub={data.rates.openRate} />
-              <Stat label="Clicked" value={data.clicked} sub={data.rates.clickRate} />
-              <Stat label="Bounced" value={data.bounced} sub={data.rates.bounceRate} />
+            <h2 style={SECTION_TITLE}>Send funnel</h2>
+            <div style={grid(5)}>
+              <Stat label="Sent" value={data.sends} isMobile={isMobile} />
+              <Stat label="Delivered" value={data.delivered} sub={data.rates.deliveryRate} isMobile={isMobile} />
+              <Stat label="Opened" value={data.opened} sub={data.rates.openRate} isMobile={isMobile} />
+              <Stat label="Clicked" value={data.clicked} sub={data.rates.clickRate} isMobile={isMobile} />
+              <Stat label="Bounced" value={data.bounced} sub={data.rates.bounceRate} isMobile={isMobile} />
             </div>
 
-            <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, fontSize: 18, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em', margin: '0 0 14px 0' }}>Quality</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-              <Stat label="Bounce rate" value={data.rates.bounceRate} sub={`${data.bounced} bounces / ${data.sends} sends`} />
-              <Stat label="Complaint rate" value={data.rates.complaintRate} sub={`${data.complained} complaints / ${data.sends} sends`} />
-              <Stat label="Reply rate" value="—" sub="Reply tracking pending Zoho ingest" />
+            <h2 style={SECTION_TITLE}>Quality</h2>
+            <div style={{ ...grid(3), marginBottom: 0 }}>
+              <Stat label="Bounce rate" value={data.rates.bounceRate} sub={`${data.bounced} bounces / ${data.sends} sends`} isMobile={isMobile} />
+              <Stat label="Complaint rate" value={data.rates.complaintRate} sub={`${data.complained} complaints / ${data.sends} sends`} isMobile={isMobile} />
+              <Stat label="Reply rate" value="—" sub="Reply tracking pending Zoho ingest" isMobile={isMobile} />
             </div>
           </>
         )}

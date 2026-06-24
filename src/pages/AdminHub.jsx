@@ -23,6 +23,7 @@ import { insertBooking } from '@/lib/insertBooking';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AdminTopBar from '@/components/AdminTopBar';
+import { useIsMobile } from '@/components/ui/use-mobile';
 import ZelleIcon from '@/components/ZelleIcon';
 import DateRangePicker from '@/components/landing/DateRangePicker';
 import {
@@ -107,6 +108,7 @@ const STATUS_LABEL = { ...Object.fromEntries(Object.entries(STATUS).map(([k, v])
 // motion's own transform, dropping the panel into the bottom-right corner).
 // ══════════════════════════════════════════════════════════════════════════════
 function ModalShell({ open, onClose, width = 560, children }) {
+  const isMobile = useIsMobile();
   return (
     <AnimatePresence>
       {open && (
@@ -114,15 +116,18 @@ function ModalShell({ open, onClose, width = 560, children }) {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 100 }} />
-          <div style={{ position: 'fixed', inset: 0, zIndex: 101, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, pointerEvents: 'none' }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 101, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 16, pointerEvents: 'none' }}>
             <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: isMobile ? 40 : 16, scale: isMobile ? 1 : 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: isMobile ? 40 : 16, scale: isMobile ? 1 : 0.98 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
               style={{
-                width: `min(${width}px, 94vw)`, maxHeight: '92vh', overflow: 'auto',
-                background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 14,
-                padding: 30, pointerEvents: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+                width: isMobile ? '100%' : `min(${width}px, 94vw)`, maxHeight: isMobile ? '94vh' : '92vh', overflow: 'auto',
+                background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.14)',
+                borderRadius: isMobile ? '28px 28px 0 0' : 14,
+                padding: isMobile ? '24px 18px calc(24px + env(safe-area-inset-bottom))' : 30, pointerEvents: 'auto',
+                boxShadow: isMobile ? '0 -20px 60px rgba(0,0,0,0.7)' : '0 30px 80px rgba(0,0,0,0.6)',
               }}>
+              {isMobile && <div style={{ width: 40, height: 4, borderRadius: 9999, background: 'rgba(255,255,255,0.2)', margin: '0 auto 18px' }} />}
               {children}
             </motion.div>
           </div>
@@ -142,6 +147,7 @@ const EMPTY = {
 };
 
 function NewBookingModal({ open, prefill, onClose, onCreated }) {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
 
@@ -229,7 +235,7 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
                 </Select>
               </Field>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
                 <Field label="Customer Name" required>
                   <input value={form.customer_name} onChange={(e) => upd('customer_name', e.target.value)} style={inputStyle} placeholder="Jane Doe" />
                 </Field>
@@ -271,6 +277,7 @@ function NewBookingModal({ open, prefill, onClose, onCreated }) {
                     </SelectContent>
                   </Select>
                 </Field>
+                {/* est-total block follows; on its own it sits beside Status */}
                 {subtotal != null && (
                   <div style={{ textAlign: 'right', paddingBottom: 8 }}>
                     <p style={{ fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
@@ -524,9 +531,118 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// Mobile weekly view — no horizontal scroll. One shared 7-day header, then a
+// bubbly card per vehicle whose 7 cells line up under that header. Tap an open
+// cell to book; tap a filled one to edit. Built for one-thumb scanning.
+// ══════════════════════════════════════════════════════════════════════════════
+function MobileScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
+  const todayStr = ymd(new Date());
+
+  const cellMap = useMemo(() => {
+    const map = {};
+    const first = weekDays[0];
+    const last = weekDays[6];
+    for (const b of bookings) {
+      const start = parseYmd(b.pickup_date);
+      const end = parseYmd(bookingEnd(b)) || start;
+      if (!start) continue;
+      let d = start < first ? new Date(first) : new Date(start);
+      const stop = end > last ? last : end;
+      while (d <= stop) {
+        map[`${b.vehicle_type}|${ymd(d)}`] = b;
+        d = addDays(d, 1);
+      }
+    }
+    return map;
+  }, [bookings, weekDays]);
+
+  const COLS = { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 };
+
+  return (
+    <div>
+      {/* Shared day header */}
+      <div style={{ ...COLS, marginBottom: 10, padding: '0 2px' }}>
+        {weekDays.map((dateObj) => {
+          const dStr = ymd(dateObj);
+          const isToday = dStr === todayStr;
+          const dow = dateObj.getDay();
+          return (
+            <div key={dStr} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                {WEEKDAY[dow][0]}
+              </div>
+              <div style={{
+                margin: '3px auto 0', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
+                background: isToday ? '#fff' : 'transparent', color: isToday ? '#000' : 'rgba(255,255,255,0.7)',
+                fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 15, fontWeight: isToday ? 600 : 400,
+              }}>{dateObj.getDate()}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* One card per vehicle */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {ALL_VEHICLES.map((v) => (
+          <div key={v.type} style={{
+            background: 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '12px 12px 14px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
+              <span style={{ fontSize: 13, color: '#fff', letterSpacing: '0.01em' }}>{v.shortName}</span>
+              <span style={{ fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+                {v.category === 'rental' ? `$${v.rate}/day` : 'Chauffeur'}
+              </span>
+            </div>
+            <div style={COLS}>
+              {weekDays.map((dateObj) => {
+                const dateStr = ymd(dateObj);
+                const b = cellMap[`${v.type}|${dateStr}`];
+                const isToday = dateStr === todayStr;
+                if (b) {
+                  const st = STATUS[b.status] || STATUS.pending;
+                  const isStart = b.pickup_date === dateStr;
+                  return (
+                    <button key={dateStr} type="button" onClick={() => onPickBooking(b)}
+                      title={`${b.customer_name} · ${STATUS_LABEL[b.status]}`}
+                      style={{
+                        aspectRatio: '1 / 1', border: `1px solid ${st.cellBorder}`, background: st.cell,
+                        borderRadius: 9, cursor: 'pointer', padding: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: st.text, fontSize: 13, fontWeight: 600,
+                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                      }}>
+                      {isStart ? b.customer_name.trim().charAt(0).toUpperCase() : ''}
+                    </button>
+                  );
+                }
+                return (
+                  <button key={dateStr} type="button" onClick={() => onPickEmpty(v.type, dateStr)}
+                    title={`${v.shortName} · open`}
+                    style={{
+                      aspectRatio: '1 / 1', border: '1px solid rgba(255,255,255,0.08)',
+                      background: isToday ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
+                      borderRadius: 9, cursor: 'pointer', padding: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'rgba(255,255,255,0.25)',
+                    }}>
+                    <Plus size={12} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // Main page
 // ══════════════════════════════════════════════════════════════════════════════
 export default function AdminHub() {
+  const isMobile = useIsMobile();
   // Land on the current week (Sunday-anchored).
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [bookings, setBookings] = useState([]);
@@ -593,110 +709,184 @@ export default function AdminHub() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: '28px 20px 80px' }}>
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: isMobile ? '12px 14px 90px' : '28px 20px 80px' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <AdminTopBar
           backHref="/manage"
           backLabel="Admin"
           center="Slique Moves"
-          leftExtra={<NavLink to="/outreach" label="Outreach" badge={counts.drafts} />}
+          leftExtra={<NavLink to="/outreach" label="Outreach" badge={counts.drafts} compact={isMobile} />}
         />
 
         {/* Title + secondary nav */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: isMobile ? 'center' : 'flex-end', justifyContent: 'space-between', marginBottom: isMobile ? 18 : 22 }}>
           <div>
             <p style={{ fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Fleet Schedule</p>
-            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 40, fontWeight: 300, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: isMobile ? 38 : 40, fontWeight: 300, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
               Bookings
             </h1>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <NavLink to="/bookings/list" label="List View" badge={counts.pendingBookings} />
+            <NavLink to="/bookings/list" label="List View" badge={counts.pendingBookings} compact={isMobile} />
           </div>
         </div>
 
         {/* Week bar + New Booking */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={goPrev} style={iconBtn} title="Previous week"><ChevronLeft size={16} /></button>
-            <div style={{ minWidth: 220, textAlign: 'center' }}>
-              <div style={{ fontSize: 8, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 2 }}>
-                {isThisWeek ? 'This Week' : 'Week of'}
+        {isMobile ? (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9999, padding: '6px 6px',
+            }}>
+              <button onClick={goPrev} style={iconBtn} title="Previous week"><ChevronLeft size={16} /></button>
+              <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 7.5, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>
+                  {isThisWeek ? 'This Week' : 'Week of'}
+                </div>
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, letterSpacing: '0.04em' }}>
+                  {weekRangeLabel(weekStart)}
+                </span>
               </div>
-              <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, letterSpacing: '0.05em' }}>
-                {weekRangeLabel(weekStart)}
-              </span>
+              <button onClick={goNext} style={iconBtn} title="Next week"><ChevronRight size={16} /></button>
             </div>
-            <button onClick={goNext} style={iconBtn} title="Next week"><ChevronRight size={16} /></button>
-            <button onClick={goThisWeek} disabled={isThisWeek}
-              style={{ ...ghostBtn, flex: 'none', padding: '8px 14px', opacity: isThisWeek ? 0.4 : 1, cursor: isThisWeek ? 'default' : 'pointer' }}>
-              This Week
+            {!isThisWeek && (
+              <button onClick={goThisWeek} style={{ ...ghostBtn, width: '100%', padding: '10px', marginBottom: 12 }}>
+                Jump to This Week
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={goPrev} style={iconBtn} title="Previous week"><ChevronLeft size={16} /></button>
+              <div style={{ minWidth: 220, textAlign: 'center' }}>
+                <div style={{ fontSize: 8, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 2 }}>
+                  {isThisWeek ? 'This Week' : 'Week of'}
+                </div>
+                <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 22, letterSpacing: '0.05em' }}>
+                  {weekRangeLabel(weekStart)}
+                </span>
+              </div>
+              <button onClick={goNext} style={iconBtn} title="Next week"><ChevronRight size={16} /></button>
+              <button onClick={goThisWeek} disabled={isThisWeek}
+                style={{ ...ghostBtn, flex: 'none', padding: '8px 14px', opacity: isThisWeek ? 0.4 : 1, cursor: isThisWeek ? 'default' : 'pointer' }}>
+                This Week
+              </button>
+            </div>
+            <button onClick={openNew} style={{ ...solidBtn, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px' }}>
+              <Plus size={13} /> New Booking
             </button>
           </div>
-          <button onClick={openNew} style={{ ...solidBtn, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px' }}>
-            <Plus size={13} /> New Booking
-          </button>
-        </div>
+        )}
 
         {/* Legend */}
-        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 12, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+        <div style={{ display: 'flex', gap: isMobile ? 14 : 18, flexWrap: 'wrap', marginBottom: 12, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
           <Legend swatch={STATUS.confirmed.cell} border={STATUS.confirmed.cellBorder} label="Confirmed" />
           <Legend swatch={STATUS.pending.cell} border={STATUS.pending.cellBorder} label="Pending" />
           <Legend swatch={STATUS.completed.cell} border={STATUS.completed.cellBorder} label="Completed" />
-          <span style={{ color: 'rgba(255,255,255,0.3)' }}>Tap an open day to book · tap a booking to edit</span>
+          {!isMobile && <span style={{ color: 'rgba(255,255,255,0.3)' }}>Tap an open day to book · tap a booking to edit</span>}
         </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: 80, border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14 }}>
             <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)' }} />
           </div>
+        ) : isMobile ? (
+          <MobileScheduleGrid weekDays={weekDays} bookings={bookings}
+            onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
         ) : (
           <ScheduleGrid weekDays={weekDays} bookings={bookings}
             onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
         )}
 
         {/* Text schedule list */}
-        <section style={{ marginTop: 32 }}>
+        <section style={{ marginTop: isMobile ? 26 : 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <CalendarDays size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
             <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
               {isThisWeek ? 'This Week' : 'Week'} Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({weekList.length})</span>
             </h2>
           </div>
-          <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14, overflow: 'hidden' }}>
-            {weekList.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '48px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                No bookings this week
-              </div>
-            ) : weekList.map((b, i) => {
-              const st = STATUS[b.status] || STATUS.pending;
-              const end = bookingEnd(b);
-              const range = end && end !== b.pickup_date;
-              return (
-                <button key={b.id} type="button" onClick={() => setDetail(b)}
-                  style={{
-                    width: '100%', textAlign: 'left', display: 'grid',
-                    gridTemplateColumns: '130px 1fr auto', gap: 16, alignItems: 'center',
-                    padding: '14px 18px', cursor: 'pointer', background: 'transparent', border: 'none',
-                    borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
-                  }}>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: "'Courier New', monospace", letterSpacing: '0.03em' }}>
-                    {range ? `${prettyShort(b.pickup_date)}–${prettyShort(end)}` : prettyShort(b.pickup_date)}
-                  </span>
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, color: '#fff', fontStyle: 'italic', marginRight: 10 }}>{b.customer_name}</span>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em' }}>{vehicleLabel(b.vehicle_type)}</span>
-                  </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: st.dot, display: 'inline-block' }} />
-                    <span style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>{STATUS_LABEL[b.status]}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {weekList.length === 0 ? (
+            <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14, textAlign: 'center', padding: '48px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+              No bookings this week
+            </div>
+          ) : isMobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {weekList.map((b) => {
+                const st = STATUS[b.status] || STATUS.pending;
+                const end = bookingEnd(b);
+                const range = end && end !== b.pickup_date;
+                return (
+                  <button key={b.id} type="button" onClick={() => setDetail(b)}
+                    style={{
+                      width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '14px 16px', cursor: 'pointer',
+                      background: 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))',
+                      border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18,
+                    }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'block', fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, color: '#fff', fontStyle: 'italic', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {b.customer_name}
+                      </span>
+                      <span style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.03em', marginTop: 2 }}>
+                        {vehicleLabel(b.vehicle_type)}
+                      </span>
+                    </span>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: "'Courier New', monospace", whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {range ? `${prettyShort(b.pickup_date)}–${prettyShort(end)}` : prettyShort(b.pickup_date)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14, overflow: 'hidden' }}>
+              {weekList.map((b, i) => {
+                const st = STATUS[b.status] || STATUS.pending;
+                const end = bookingEnd(b);
+                const range = end && end !== b.pickup_date;
+                return (
+                  <button key={b.id} type="button" onClick={() => setDetail(b)}
+                    style={{
+                      width: '100%', textAlign: 'left', display: 'grid',
+                      gridTemplateColumns: '130px 1fr auto', gap: 16, alignItems: 'center',
+                      padding: '14px 18px', cursor: 'pointer', background: 'transparent', border: 'none',
+                      borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: "'Courier New', monospace", letterSpacing: '0.03em' }}>
+                      {range ? `${prettyShort(b.pickup_date)}–${prettyShort(end)}` : prettyShort(b.pickup_date)}
+                    </span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 17, color: '#fff', fontStyle: 'italic', marginRight: 10 }}>{b.customer_name}</span>
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.04em' }}>{vehicleLabel(b.vehicle_type)}</span>
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: st.dot, display: 'inline-block' }} />
+                      <span style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>{STATUS_LABEL[b.status]}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
+
+      {/* Mobile floating "New Booking" button */}
+      {isMobile && (
+        <button onClick={openNew} aria-label="New Booking"
+          style={{
+            position: 'fixed', right: 18, bottom: 'calc(20px + env(safe-area-inset-bottom))', zIndex: 50,
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '15px 22px',
+            background: '#fff', color: '#000', border: 'none', borderRadius: 9999, fontWeight: 600,
+            fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', cursor: 'pointer',
+            boxShadow: '0 10px 34px rgba(0,0,0,0.6)',
+          }}>
+          <Plus size={15} /> New
+        </button>
+      )}
 
       <NewBookingModal open={addOpen} prefill={prefill} onClose={() => setAddOpen(false)} onCreated={fetchWeek} />
       <BookingDetail booking={detail} onClose={() => setDetail(null)} onChanged={fetchWeek} />
@@ -705,13 +895,14 @@ export default function AdminHub() {
 }
 
 // ─── small pieces ─────────────────────────────────────────────────────────────
-function NavLink({ to, label, badge }) {
+function NavLink({ to, label, badge, compact }) {
   return (
     <Link to={to} style={{
       display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none',
-      padding: '9px 16px', border: '1px solid rgba(255,255,255,0.18)', background: 'transparent',
-      fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)',
-      borderRadius: 9999,
+      padding: compact ? '9px 14px' : '9px 16px', border: '1px solid rgba(255,255,255,0.18)',
+      background: compact ? 'rgba(255,255,255,0.04)' : 'transparent',
+      fontSize: 9, letterSpacing: compact ? '0.2em' : '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)',
+      borderRadius: 9999, whiteSpace: 'nowrap',
     }}>
       {label}
       {badge > 0 && (

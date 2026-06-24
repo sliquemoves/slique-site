@@ -4,51 +4,57 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import AdminTopBar from '@/components/AdminTopBar';
-
-// ─── tokens ───────────────────────────────────────────────────────────────────
-const SHELL = {
-  minHeight: '100vh',
-  background: '#000',
-  color: '#fff',
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  display: 'flex',
-  flexDirection: 'column',
-  padding: '24px',
-};
-
-const WRAP = { width: '100%', maxWidth: 1080, margin: '0 auto' };
-
-const HEADER = { textAlign: 'center', marginBottom: 36 };
-
-const TITLE = {
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
-  fontSize: 48,
-  fontWeight: 300,
-  letterSpacing: '0.14em',
-  color: '#fff',
-  margin: 0,
-  textTransform: 'uppercase',
-};
-
-const SUBTITLE = {
-  fontFamily: "'Cormorant Garamond', Georgia, serif",
-  fontSize: 14,
-  fontWeight: 300,
-  letterSpacing: '0.5em',
-  color: 'rgba(255,255,255,0.45)',
-  marginTop: 12,
-  textTransform: 'uppercase',
-  fontStyle: 'italic',
-};
-
-const RULE = { width: 50, height: 1, background: 'rgba(255,255,255,0.25)', margin: '20px auto 0 auto' };
+import { useIsMobile } from '@/components/ui/use-mobile';
 
 // ─── tile ─────────────────────────────────────────────────────────────────────
-function HubTile({ to, eyebrow, label, stat, statLabel, loading }) {
+function HubTile({ to, eyebrow, label, stat, statLabel, loading, isMobile }) {
   const [hover, setHover] = useState(false);
+
+  if (isMobile) {
+    return (
+      <Link
+        to={to}
+        style={{
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))',
+          border: '1px solid rgba(255,255,255,0.12)',
+          padding: '18px 20px',
+          borderRadius: 26,
+          boxShadow: '0 12px 30px rgba(0,0,0,0.45)',
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 5 }}>
+            {eyebrow}
+          </div>
+          <div style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontSize: 28, fontWeight: 300, letterSpacing: '0.08em',
+            color: '#fff', textTransform: 'uppercase', lineHeight: 1,
+          }}>
+            {label}
+          </div>
+          <div style={{ fontSize: 7.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
+            {statLabel}
+          </div>
+        </div>
+        <div style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 44, fontWeight: 300, color: '#fff', lineHeight: 1, flexShrink: 0,
+        }}>
+          {loading ? '—' : (stat ?? 0)}
+        </div>
+        <ChevronRight size={18} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+      </Link>
+    );
+  }
+
   return (
     <Link
       to={to}
@@ -105,7 +111,30 @@ function HubTile({ to, eyebrow, label, stat, statLabel, loading }) {
 
 // ─── main ─────────────────────────────────────────────────────────────────────
 export default function OutreachHub() {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
+
+  const SHELL = {
+    minHeight: '100vh',
+    background: '#000',
+    color: '#fff',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: isMobile ? '14px 14px 40px' : '24px',
+  };
+  const WRAP = { width: '100%', maxWidth: 1080, margin: '0 auto' };
+  const HEADER = { textAlign: 'center', marginBottom: isMobile ? 28 : 36 };
+  const TITLE = {
+    fontFamily: "'Cormorant Garamond', Georgia, serif",
+    fontSize: isMobile ? 40 : 48,
+    fontWeight: 300,
+    letterSpacing: isMobile ? '0.1em' : '0.14em',
+    color: '#fff',
+    margin: 0,
+    textTransform: 'uppercase',
+  };
+  const RULE = { width: 50, height: 1, background: 'rgba(255,255,255,0.25)', margin: isMobile ? '16px auto 0' : '20px auto 0' };
   const [stats, setStats] = useState({ drafts: 0, discovered: 0, sentThisWeek: 0 });
 
   const fetchStats = useCallback(async () => {
@@ -153,7 +182,7 @@ export default function OutreachHub() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 16, marginTop: 8 }}>
           <HubTile
             to="/outreach/drafts"
             eyebrow="Review"
@@ -161,6 +190,7 @@ export default function OutreachHub() {
             stat={stats.drafts}
             statLabel="pending review"
             loading={loading}
+            isMobile={isMobile}
           />
           <HubTile
             to="/outreach/leads"
@@ -169,6 +199,7 @@ export default function OutreachHub() {
             stat={stats.discovered}
             statLabel="events discovered"
             loading={loading}
+            isMobile={isMobile}
           />
           <HubTile
             to="/outreach/stats"
@@ -177,6 +208,7 @@ export default function OutreachHub() {
             stat={stats.sentThisWeek}
             statLabel="emails sent this week"
             loading={loading}
+            isMobile={isMobile}
           />
         </div>
       </div>
