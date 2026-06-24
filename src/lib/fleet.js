@@ -118,6 +118,15 @@ export const DAILY_RENTALS = [
     type: "g_wagon",
     body: "suv", brand: "mercedes",
   },
+  {
+    name: "Mercedes-AMG GLS 63",
+    tagline: "Performance SUV",
+    image: "/slique_gls.png",
+    hp: 603, zeroToSixty: "4.1s", topSpeed: "174", drive: "AWD",
+    rate: 399,
+    type: "amg_gls63",
+    body: "suv", brand: "mercedes",
+  },
 ];
 
 // ── Combined views ───────────────────────────────────────────────────────────

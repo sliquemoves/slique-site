@@ -20,6 +20,7 @@ const RENTAL_RATES = {
   amg_cle53:         499,
   corvette_c8_z06:   699,
   g_wagon:           649,
+  amg_gls63:         399,
 };
 
 // Customer-facing processing surcharge (matches the rental modal's displayed total).

@@ -49,6 +49,7 @@ const VEHICLE_LABELS = {
   corvette_c8_z06: 'Corvette C8 Z06',
   cadillac_escalade: 'Cadillac Escalade',
   g_wagon: 'Mercedes-Benz G-Wagon',
+  amg_gls63: 'Mercedes-AMG GLS 63',
 };
 
 const VEHICLE_OPTIONS = [
