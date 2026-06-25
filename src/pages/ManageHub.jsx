@@ -131,7 +131,7 @@ export default function ManageHub() {
     width: '100%', maxWidth: 1080, margin: '0 auto',
     ...(isMobile ? { flex: 1, display: 'flex', flexDirection: 'column' } : {}),
   };
-  const HEADER = { textAlign: 'center', marginBottom: isMobile ? 30 : 44, marginTop: isMobile ? 18 : 12 };
+  const HEADER = { textAlign: 'center', marginBottom: isMobile ? 8 : 44, marginTop: isMobile ? 0 : 12 };
   const TITLE = {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
     fontSize: isMobile ? 44 : 56, fontWeight: 300, letterSpacing: isMobile ? '0.1em' : '0.16em',
@@ -176,7 +176,7 @@ export default function ManageHub() {
 
         <div style={{
           display: 'flex', flexDirection: isMobile ? 'column' : 'row',
-          gap: isMobile ? 14 : 16, marginTop: isMobile ? 14 : 8,
+          gap: isMobile ? 14 : 16, marginTop: isMobile ? 2 : 8,
           flexWrap: isMobile ? 'nowrap' : 'wrap',
           flex: isMobile ? 1 : 'none',
         }}>
