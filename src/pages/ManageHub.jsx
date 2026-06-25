@@ -24,40 +24,40 @@ function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading, isM
           flex: 1,
           textDecoration: 'none',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: 16, textAlign: 'center',
+          gap: 11, textAlign: 'center',
           background: 'linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
           border: '1px solid rgba(255,255,255,0.14)',
-          padding: 24,
-          borderRadius: 32,
+          padding: 16,
+          borderRadius: 28,
           boxShadow: '0 14px 34px rgba(0,0,0,0.5)',
         }}
       >
         <div style={{
-          width: 66, height: 66, flexShrink: 0,
+          width: 50, height: 50, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%',
           background: 'rgba(255,255,255,0.04)', color: '#fff',
         }}>
-          <Icon size={28} strokeWidth={1.4} />
+          <Icon size={22} strokeWidth={1.4} />
         </div>
-        <div style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+        <div style={{ fontSize: 8.5, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
           {eyebrow}
         </div>
         <div style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: 42, fontWeight: 300, letterSpacing: '0.12em',
+          fontSize: 32, fontWeight: 300, letterSpacing: '0.12em',
           color: '#fff', textTransform: 'uppercase', lineHeight: 1,
         }}>
           {label}
         </div>
-        <div style={{ width: 28, height: 1, background: 'rgba(255,255,255,0.22)' }} />
+        <div style={{ width: 26, height: 1, background: 'rgba(255,255,255,0.22)' }} />
         <div style={{
           fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontSize: 52, fontWeight: 300, color: '#fff', lineHeight: 1,
+          fontSize: 40, fontWeight: 300, color: '#fff', lineHeight: 1,
         }}>
           {loading ? '—' : (stat ?? 0)}
         </div>
-        <div style={{ fontSize: 8.5, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+        <div style={{ fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
           {statLabel}
         </div>
       </Link>
