@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, CalendarDays, Mail, ChevronRight } from 'lucide-react';
+import { Loader2, CalendarDays, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import AdminTopBar from '@/components/AdminTopBar';
 import { useIsMobile } from '@/components/ui/use-mobile';
@@ -16,53 +16,50 @@ function HubTile({ to, icon: Icon, eyebrow, label, stat, statLabel, loading, isM
   const [hover, setHover] = useState(false);
 
   if (isMobile) {
+    // Large bubbly square button that flex-grows to fill its share of the page.
     return (
       <Link
         to={to}
         style={{
+          flex: 1,
           textDecoration: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          background: 'linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))',
-          border: '1px solid rgba(255,255,255,0.12)',
-          padding: '20px 20px',
-          borderRadius: 26,
-          boxShadow: '0 12px 30px rgba(0,0,0,0.45)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 16, textAlign: 'center',
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
+          border: '1px solid rgba(255,255,255,0.14)',
+          padding: 24,
+          borderRadius: 32,
+          boxShadow: '0 14px 34px rgba(0,0,0,0.5)',
         }}
       >
         <div style={{
-          width: 52, height: 52, flexShrink: 0,
+          width: 66, height: 66, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: '1px solid rgba(255,255,255,0.18)', borderRadius: '50%',
+          border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%',
           background: 'rgba(255,255,255,0.04)', color: '#fff',
         }}>
-          <Icon size={20} strokeWidth={1.5} />
+          <Icon size={28} strokeWidth={1.4} />
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 5 }}>
-            {eyebrow}
-          </div>
-          <div style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
-            fontSize: 28, fontWeight: 300, letterSpacing: '0.08em',
-            color: '#fff', textTransform: 'uppercase', lineHeight: 1,
-          }}>
-            {label}
-          </div>
+        <div style={{ fontSize: 9, letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+          {eyebrow}
         </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
-            fontSize: 40, fontWeight: 300, color: '#fff', lineHeight: 1,
-          }}>
-            {loading ? '—' : (stat ?? 0)}
-          </div>
-          <div style={{ fontSize: 7.5, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
-            {statLabel}
-          </div>
+        <div style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 42, fontWeight: 300, letterSpacing: '0.12em',
+          color: '#fff', textTransform: 'uppercase', lineHeight: 1,
+        }}>
+          {label}
         </div>
-        <ChevronRight size={18} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+        <div style={{ width: 28, height: 1, background: 'rgba(255,255,255,0.22)' }} />
+        <div style={{
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontSize: 52, fontWeight: 300, color: '#fff', lineHeight: 1,
+        }}>
+          {loading ? '—' : (stat ?? 0)}
+        </div>
+        <div style={{ fontSize: 8.5, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
+          {statLabel}
+        </div>
       </Link>
     );
   }
@@ -130,7 +127,10 @@ export default function ManageHub() {
     flexDirection: 'column',
     padding: isMobile ? '14px 14px 40px' : '24px',
   };
-  const WRAP = { width: '100%', maxWidth: 1080, margin: '0 auto' };
+  const WRAP = {
+    width: '100%', maxWidth: 1080, margin: '0 auto',
+    ...(isMobile ? { flex: 1, display: 'flex', flexDirection: 'column' } : {}),
+  };
   const HEADER = { textAlign: 'center', marginBottom: isMobile ? 30 : 44, marginTop: isMobile ? 18 : 12 };
   const TITLE = {
     fontFamily: "'Cormorant Garamond', Georgia, serif",
@@ -174,7 +174,12 @@ export default function ManageHub() {
           </div>
         )}
 
-        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 12 : 16, marginTop: 8, flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? 14 : 16, marginTop: isMobile ? 14 : 8,
+          flexWrap: isMobile ? 'nowrap' : 'wrap',
+          flex: isMobile ? 1 : 'none',
+        }}>
           <HubTile
             to="/bookings"
             icon={CalendarDays}

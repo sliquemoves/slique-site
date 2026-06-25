@@ -16,7 +16,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Loader2, Plus, ChevronLeft, ChevronRight, X, Phone, Trash2, CalendarDays,
+  Loader2, Plus, ChevronLeft, ChevronRight, ChevronDown, X, Phone, Trash2, CalendarDays,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { insertBooking } from '@/lib/insertBooking';
@@ -395,7 +395,7 @@ function BookingDetail({ booking, onClose, onChanged }) {
 // ══════════════════════════════════════════════════════════════════════════════
 // Weekly availability grid — 7 days across, one row per vehicle
 // ══════════════════════════════════════════════════════════════════════════════
-function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
+function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking, vehicles = ALL_VEHICLES }) {
   const todayStr = ymd(new Date());
 
   // Build `${type}|${dateStr}` → booking for each of the 7 visible days.
@@ -452,8 +452,8 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
         </div>
 
         {/* Vehicle rows */}
-        {ALL_VEHICLES.map((v, rowIdx) => (
-          <div key={v.type} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: rowIdx === ALL_VEHICLES.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
+        {vehicles.map((v, rowIdx) => (
+          <div key={v.type} style={{ display: 'grid', gridTemplateColumns: cols, borderBottom: rowIdx === vehicles.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{
               position: 'sticky', left: 0, zIndex: 1, background: '#0b0b0b',
               borderRight: '1px solid rgba(255,255,255,0.1)', padding: '0 14px',
@@ -535,7 +535,7 @@ function ScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
 // bubbly card per vehicle whose 7 cells line up under that header. Tap an open
 // cell to book; tap a filled one to edit. Built for one-thumb scanning.
 // ══════════════════════════════════════════════════════════════════════════════
-function MobileScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) {
+function MobileScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking, vehicles = ALL_VEHICLES }) {
   const todayStr = ymd(new Date());
 
   const cellMap = useMemo(() => {
@@ -583,7 +583,7 @@ function MobileScheduleGrid({ weekDays, bookings, onPickEmpty, onPickBooking }) 
 
       {/* One card per vehicle */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {ALL_VEHICLES.map((v) => (
+        {vehicles.map((v) => (
           <div key={v.type} style={{
             background: 'linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015))',
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '12px 12px 14px',
@@ -708,6 +708,13 @@ export default function AdminHub() {
     [bookings],
   );
 
+  // Split the fleet: cars with a booking this week stay in the calendar; cars
+  // with none collapse into a dropdown below it.
+  const [showFree, setShowFree] = useState(false);
+  const bookedTypes = useMemo(() => new Set(bookings.map(b => b.vehicle_type)), [bookings]);
+  const bookedVehicles = useMemo(() => ALL_VEHICLES.filter(v => bookedTypes.has(v.type)), [bookedTypes]);
+  const freeVehicles = useMemo(() => ALL_VEHICLES.filter(v => !bookedTypes.has(v.type)), [bookedTypes]);
+
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: 'system-ui, -apple-system, sans-serif', padding: isMobile ? '12px 14px 90px' : '28px 20px 80px' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
@@ -792,11 +799,41 @@ export default function AdminHub() {
             <Loader2 size={20} className="animate-spin" style={{ color: 'rgba(255,255,255,0.4)' }} />
           </div>
         ) : isMobile ? (
-          <MobileScheduleGrid weekDays={weekDays} bookings={bookings}
+          <MobileScheduleGrid weekDays={weekDays} bookings={bookings} vehicles={bookedVehicles}
             onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
         ) : (
-          <ScheduleGrid weekDays={weekDays} bookings={bookings}
+          <ScheduleGrid weekDays={weekDays} bookings={bookings} vehicles={bookedVehicles}
             onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
+        )}
+
+        {/* Cars with no bookings this week — collapsed into a dropdown */}
+        {!loading && freeVehicles.length > 0 && (
+          <div style={{ marginTop: isMobile ? 14 : 18 }}>
+            <button
+              type="button"
+              onClick={() => setShowFree((s) => !s)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '14px 18px', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 14, color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 10, letterSpacing: '0.3em', textTransform: 'uppercase',
+              }}
+            >
+              <span>{freeVehicles.length} car{freeVehicles.length === 1 ? '' : 's'} with no bookings</span>
+              <ChevronDown size={16} style={{ transform: showFree ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+            </button>
+            {showFree && (
+              <div style={{ marginTop: 10 }}>
+                {isMobile ? (
+                  <MobileScheduleGrid weekDays={weekDays} bookings={bookings} vehicles={freeVehicles}
+                    onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
+                ) : (
+                  <ScheduleGrid weekDays={weekDays} bookings={bookings} vehicles={freeVehicles}
+                    onPickEmpty={openEmpty} onPickBooking={(b) => setDetail(b)} />
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* Text schedule list */}
