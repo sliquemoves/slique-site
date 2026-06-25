@@ -668,7 +668,7 @@ export default function AdminHub() {
     const windowEnd = ymd(weekEnd);
 
     try {
-      const [bRes, pendRes, draftRes] = await Promise.all([
+      const [bRes, pendRes, draftRes, uRes] = await Promise.all([
         supabase.from('bookings').select('*')
           .neq('status', 'cancelled')
           .gte('pickup_date', windowStart)
@@ -676,6 +676,13 @@ export default function AdminHub() {
           .order('pickup_date', { ascending: true }),
         supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('email_drafts').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
+        // Upcoming list — today-relative, not week-scoped. Look back 45 days so
+        // an in-progress multi-day rental still counts, then filter by end date.
+        supabase.from('bookings').select('*')
+          .neq('status', 'cancelled')
+          .gte('pickup_date', ymd(addDays(new Date(), -45)))
+          .order('pickup_date', { ascending: true })
+          .limit(200),
       ]);
 
       const overlapping = (bRes.data || []).filter((b) => {
@@ -684,6 +691,13 @@ export default function AdminHub() {
         return s && e >= weekStart && s <= weekEnd;
       });
       setBookings(overlapping);
+
+      // Upcoming = anything that hasn't ended yet, today onward.
+      const todayD = parseYmd(ymd(new Date()));
+      setUpcoming((uRes.data || []).filter((b) => {
+        const e = parseYmd(bookingEnd(b)) || parseYmd(b.pickup_date);
+        return e && e >= todayD;
+      }));
       setCounts({ pendingBookings: pendRes.count ?? 0, drafts: draftRes.count ?? 0 });
     } catch (err) {
       console.error('[AdminHub] fetch failed', err);
@@ -702,11 +716,9 @@ export default function AdminHub() {
   const openEmpty = (vehicle_type, pickup_date) => { setPrefill({ vehicle_type, pickup_date }); setAddOpen(true); };
   const openNew = () => { setPrefill(null); setAddOpen(true); };
 
-  // Sorted list of this week's bookings for the text schedule below the grid.
-  const weekList = useMemo(
-    () => [...bookings].sort((a, b) => (a.pickup_date < b.pickup_date ? -1 : 1)),
-    [bookings],
-  );
+  // Upcoming bookings (today onward), independent of the viewed week — so a
+  // booking made for a future week is still visible in the list below the grid.
+  const [upcoming, setUpcoming] = useState([]);
 
   // Split the fleet: cars with a booking this week stay in the calendar; cars
   // with none collapse into a dropdown below it.
@@ -841,16 +853,16 @@ export default function AdminHub() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <CalendarDays size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
             <h2 style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 18, fontWeight: 300, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
-              {isThisWeek ? 'This Week' : 'Week'} Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({weekList.length})</span>
+              Upcoming Bookings <span style={{ color: 'rgba(255,255,255,0.4)' }}>({upcoming.length})</span>
             </h2>
           </div>
-          {weekList.length === 0 ? (
+          {upcoming.length === 0 ? (
             <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14, textAlign: 'center', padding: '48px 20px', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-              No bookings this week
+              No upcoming bookings
             </div>
           ) : isMobile ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {weekList.map((b) => {
+              {upcoming.map((b) => {
                 const st = STATUS[b.status] || STATUS.pending;
                 const end = bookingEnd(b);
                 const range = end && end !== b.pickup_date;
@@ -880,7 +892,7 @@ export default function AdminHub() {
             </div>
           ) : (
             <div style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0a0a0a', borderRadius: 14, overflow: 'hidden' }}>
-              {weekList.map((b, i) => {
+              {upcoming.map((b, i) => {
                 const st = STATUS[b.status] || STATUS.pending;
                 const end = bookingEnd(b);
                 const range = end && end !== b.pickup_date;
