@@ -197,8 +197,9 @@ export default function RentalInquiryModal({ car, onClose }) {
 
   // With payments on, create/refresh the PaymentIntent as soon as valid dates
   // are chosen, so the Apple Pay / card buttons can render inline (no extra step).
+  // Inquiry-only cars (car.inquiryOnly) skip payment entirely — request-only.
   useEffect(() => {
-    if (!stripeEnabled || !car) return;
+    if (!stripeEnabled || !car || car.inquiryOnly) return;
     if (!form.pickup_date || !form.return_date || days < 1) { setClientSecret(null); return; }
     let cancelled = false;
     (async () => {
@@ -375,7 +376,7 @@ export default function RentalInquiryModal({ car, onClose }) {
                     </div>
                   )}
 
-                  {stripeEnabled ? (
+                  {stripeEnabled && !car.inquiryOnly ? (
                     formReady && clientSecret ? (
                       <StripeCheckout
                         key={clientSecret}
@@ -400,7 +401,7 @@ export default function RentalInquiryModal({ car, onClose }) {
                         disabled={isSubmitting}
                         className="w-full bg-black text-white hover:bg-gray-900 py-6 text-sm tracking-widest uppercase font-medium rounded-none transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : 'Book'}
+                        {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : (car.inquiryOnly ? 'Request' : 'Book')}
                       </Button>
                       <p className="text-center text-[11px] text-gray-400">
                         This is an inquiry — we'll confirm availability before any charge.

@@ -63,6 +63,7 @@ export const DAILY_RENTALS = [
     rate: 399,
     type: "amg_gls63",
     body: "suv", brand: "mercedes",
+    inquiryOnly: true,
   },
   {
     name: "Corvette C8 Z06",
@@ -72,6 +73,7 @@ export const DAILY_RENTALS = [
     rate: 699,
     type: "corvette_c8_z06",
     body: "coupe", brand: "corvette",
+    inquiryOnly: true,
   },
   {
     name: "Mercedes-AMG C43",
@@ -108,6 +110,7 @@ export const DAILY_RENTALS = [
     rate: 499,
     type: "amg_cle53",
     body: "coupe", brand: "mercedes",
+    inquiryOnly: true,
   },
   {
     name: "Mercedes-Benz G-Wagon",
@@ -117,6 +120,7 @@ export const DAILY_RENTALS = [
     rate: 649,
     type: "g_wagon",
     body: "suv", brand: "mercedes",
+    inquiryOnly: true,
   },
   {
     name: "Corvette C8",
@@ -126,6 +130,7 @@ export const DAILY_RENTALS = [
     rate: 429,
     type: "corvette_c8",
     body: "coupe", brand: "corvette",
+    inquiryOnly: true,
   },
 ];
 
