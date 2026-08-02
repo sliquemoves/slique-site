@@ -56,9 +56,9 @@ export const CHAUFFEUR_VEHICLES = [
 // Cars without a `city` field are Minneapolis ('msp'). Atlanta cars carry
 // city: 'atl' and a distinct `type` so admin schedules never mix markets.
 export const RENTAL_CITIES = [
-  { id: 'msp', label: 'Minneapolis' },
+  { id: 'msp', label: 'Minnesota' },
   { id: 'atl', label: 'Atlanta' },
-  { id: 'phx', label: 'Phoenix' },
+  { id: 'phx', label: 'Arizona' },
 ];
 
 // ── Daily rentals (the new self-drive performance line) ──────────────────────

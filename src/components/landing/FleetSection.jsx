@@ -71,11 +71,13 @@ function FleetToggle({ value, onChange }) {
 }
 
 // ── City toggle ──────────────────────────────────────────────────────────────
-// Sits between the big Chauffeur/Rentals toggle and the tiny text filters in
-// visual weight: a small pill pair with a pin, echoing the main toggle's idiom.
+// Sits above the Chauffeur/Rentals toggle: a small pill row with a pin,
+// echoing the main toggle's idiom at a smaller size. Chauffeur service only
+// exists in Minnesota, so the Chauffeur/Rentals toggle renders below this
+// only when Minnesota is selected — other cities go straight to rentals.
 function CityToggle({ value, onChange }) {
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center mb-6 md:mb-8">
       <div
         className="relative inline-flex p-1"
         style={{ border: '1px solid rgba(255,255,255,0.18)', borderRadius: 9999 }}
@@ -186,7 +188,12 @@ export default function FleetSection({ showCityFilter = false }) {
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'start start'] });
   const fleetOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
-  // City first (no `city` field = Minneapolis), then the category filter.
+  // Chauffeur service is Minnesota-only: other cities hide the
+  // Chauffeur/Rentals toggle and force the rentals panel.
+  const chauffeurAvailable = !showCityFilter || city === 'msp';
+  const effectiveTab = chauffeurAvailable ? tab : 'rentals';
+
+  // City first (no `city` field = Minnesota), then the category filter.
   const cityRentals = rentals.filter(r => (r.city ?? 'msp') === city);
   // A car matches the active filter by body type OR brand. No filter = all.
   const filtered = filter
@@ -214,10 +221,13 @@ export default function FleetSection({ showCityFilter = false }) {
           </h2>
         </motion.div>
 
-        <FleetToggle value={tab} onChange={setTab} />
+        {showCityFilter && (
+          <CityToggle value={city} onChange={c => { setCity(c); setFilter(null); }} />
+        )}
+        {chauffeurAvailable && <FleetToggle value={tab} onChange={setTab} />}
 
         <AnimatePresence mode="wait">
-          {tab === 'chauffeur' ? (
+          {effectiveTab === 'chauffeur' ? (
             <motion.div
               key="chauffeur"
               initial={{ opacity: 0 }}
@@ -295,11 +305,10 @@ export default function FleetSection({ showCityFilter = false }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {/* City toggle (prominent) → category filters → price sort. */}
-              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-4">
-                {showCityFilter && (
-                  <CityToggle value={city} onChange={c => { setCity(c); setFilter(null); }} />
-                )}
+              {/* Minimal filters (one line) + price sort — click an active one to clear it.
+                  The negative top margin tucks the filters under the Chauffeur/Rentals
+                  toggle's bottom margin — only when that toggle is actually rendered. */}
+              <div className={`${chauffeurAvailable ? '-mt-6 md:-mt-8 ' : ''}mb-8 md:mb-10 flex flex-col items-center gap-3`}>
                 <div className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap">
                   {FILTERS.map(opt => {
                     const active = filter === opt;
