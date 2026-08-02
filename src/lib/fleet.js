@@ -146,7 +146,7 @@ export const DAILY_RENTALS = [
   {
     name: "Mercedes-Maybach GLS 600",
     tagline: "Ultra-Luxury SUV",
-    image: "/slique_maybach_gls600.png",
+    image: "/slique_gls600.png",
     hp: 550, zeroToSixty: "4.8s", topSpeed: "155", drive: "AWD",
     rate: 1499,
     type: "maybach_gls600_atl",
@@ -170,7 +170,7 @@ export const DAILY_RENTALS = [
   {
     name: "Tesla Model Y",
     tagline: "Electric",
-    image: "/slique_tesla.png",
+    image: "/slique_newtesla.png",
     hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
     rate: 149,
     type: "tesla_model_y_phx",
