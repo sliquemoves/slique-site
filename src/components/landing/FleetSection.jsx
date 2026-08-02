@@ -305,10 +305,14 @@ export default function FleetSection({ showCityFilter = false }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Minimal filters (one line) + price sort — click an active one to clear it.
-                  The negative top margin tucks the filters under the Chauffeur/Rentals
-                  toggle's bottom margin — only when that toggle is actually rendered. */}
-              <div className={`${chauffeurAvailable ? '-mt-6 md:-mt-8 ' : ''}mb-8 md:mb-10 flex flex-col items-center gap-3`}>
+              {/* Minimal filters (one line) + price sort — click an active one to
+                  clear it. Only rendered for the Minnesota fleet (chauffeurAvailable
+                  is also "Minnesota selected or main site"): Atlanta and Arizona
+                  stock so few cars that category filters would be redundant. The
+                  negative top margin tucks the filters under the Chauffeur/Rentals
+                  toggle's bottom margin. */}
+              {chauffeurAvailable && (
+              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-3">
                 <div className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap">
                   {FILTERS.map(opt => {
                     const active = filter === opt;
@@ -342,6 +346,7 @@ export default function FleetSection({ showCityFilter = false }) {
                   </div>
                 )}
               </div>
+              )}
 
               {visibleRentals.length === 0 ? (
                 <p className="text-center text-gray-600 text-[11px] tracking-[0.25em] uppercase py-16">
