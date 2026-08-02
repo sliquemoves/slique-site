@@ -78,10 +78,9 @@ function RentalCard({ rental, index, onRequest }) {
   ];
   return (
     <motion.div
-      className="group w-full overflow-hidden flex flex-col"
+      className="group w-full overflow-hidden flex flex-col border border-white/15 hover:border-white/35 transition-colors duration-300"
       style={{
-        border: '1px solid #ffffff',
-        borderRadius: '18px',
+        borderRadius: '20px',
         background: 'rgba(255,255,255,0.02)',
       }}
       initial={{ opacity: 0, y: 30 }}
@@ -96,8 +95,8 @@ function RentalCard({ rental, index, onRequest }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
         {/* Rate badge */}
         <div
-          className="absolute top-3 right-3 px-3 py-1.5 text-xs text-white"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', border: '1px solid #ffffff' }}
+          className="absolute top-3 right-3 px-3 py-1.5 text-xs text-white rounded-full border border-white/25"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
         >
           <span className="font-semibold">${rental.rate}</span>
           <span className="text-white/60">/day</span>
@@ -105,7 +104,7 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-2xl xl:text-xl text-white font-bold tracking-wide text-center mb-5" style={{ fontFamily: "'Times New Roman', Times, serif" }}>{rental.name}</h3>
+        <h3 className="font-display text-2xl xl:text-xl text-white font-bold tracking-wide text-center mb-5">{rental.name}</h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -185,11 +184,10 @@ export default function FleetSection() {
               {vehicles.map((vehicle, index) => (
                 <motion.div
                   key={vehicle.name}
-                  className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full"
+                  className="group mx-auto w-full lg:mx-0 lg:max-w-none lg:w-full border border-white/15 hover:border-white/35 transition-colors duration-300"
                   style={{
                     maxWidth: '88%',
-                    border: '1px solid #ffffff',
-                    borderRadius: '24px',
+                    borderRadius: '20px',
                     background: 'rgba(255,255,255,0.02)',
                     padding: '0 0 28px 0',
                     overflow: 'hidden',
@@ -236,7 +234,7 @@ export default function FleetSection() {
 
                     <Button
                       onClick={() => setActiveVehicle(vehicle)}
-                      className="w-full mt-6 bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-6"
+                      className="w-full mt-6 bg-white text-black hover:bg-gray-100 tracking-[0.15em] uppercase text-xs py-6 rounded-full"
                     >
                       Reserve
                     </Button>

@@ -140,7 +140,7 @@ export default function HeroSection() {
           WebkitBackdropFilter: 'blur(14px)',
         }}>
         {/* Logo — left */}
-        <a href="#" style={{ fontFamily: 'Georgia,serif', fontWeight: 900, fontSize: 20, letterSpacing: '-0.04em', color: '#fff', textDecoration: 'none', textTransform: 'uppercase' }}>
+        <a href="#" style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 700, fontSize: 21, letterSpacing: '-0.02em', color: '#fff', textDecoration: 'none', textTransform: 'uppercase' }}>
           SLIQUE
         </a>
         {/* Fleet — center, scroll-aware */}
