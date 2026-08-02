@@ -58,6 +58,7 @@ export const CHAUFFEUR_VEHICLES = [
 export const RENTAL_CITIES = [
   { id: 'msp', label: 'Minneapolis' },
   { id: 'atl', label: 'Atlanta' },
+  { id: 'phx', label: 'Phoenix' },
 ];
 
 // ── Daily rentals (the new self-drive performance line) ──────────────────────
@@ -164,6 +165,19 @@ export const DAILY_RENTALS = [
     inquiryOnly: true,
     city: "atl",
   },
+
+  // ── Phoenix ────────────────────────────────────────────────────────────────
+  {
+    name: "Tesla Model Y",
+    tagline: "Electric",
+    image: "/slique_tesla.png",
+    hp: 456, zeroToSixty: "3.5s", topSpeed: "155", drive: "AWD · EV",
+    rate: 149,
+    type: "tesla_model_y_phx",
+    body: "suv", brand: "tesla",
+    inquiryOnly: true,
+    city: "phx",
+  },
 ];
 
 // ── Combined views ───────────────────────────────────────────────────────────
@@ -176,7 +190,7 @@ export const ALL_VEHICLES = [
     name: v.name,
     // Tag non-Minneapolis cars so admin schedules distinguish the markets
     // (the ATL Z06 would otherwise be indistinguishable from the MSP one).
-    shortName: v.city === 'atl' ? `${v.name} (ATL)` : v.name,
+    shortName: v.city ? `${v.name} (${v.city.toUpperCase()})` : v.name,
     image: v.image,
     rate: v.rate,
     category: 'rental',
