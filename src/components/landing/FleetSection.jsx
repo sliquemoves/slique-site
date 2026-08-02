@@ -144,7 +144,7 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-2xl xl:text-xl text-white font-semibold tracking-tight uppercase text-center mb-5">{rental.name}</h3>
+        <h3 className="text-sm text-gray-200 tracking-[0.4em] uppercase font-medium text-center mb-5">{rental.name}</h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>
@@ -266,7 +266,7 @@ export default function FleetSection({ showCityFilter = false }) {
                   <div className="space-y-4 text-center px-6">
                     <div>
                       <p className="text-gray-500 text-xs tracking-[0.2em] uppercase mb-2">{vehicle.subtitle}</p>
-                      <h3 className="text-3xl md:text-4xl text-white font-semibold tracking-tight uppercase">{vehicle.name}</h3>
+                      <h3 className="text-sm md:text-base text-gray-200 tracking-[0.4em] uppercase font-medium">{vehicle.name}</h3>
                     </div>
 
                     <div className="flex text-sm justify-center">
