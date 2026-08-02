@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Users, Gauge, Cog } from 'lucide-react';
+import { Users, Gauge, Cog, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import RentalInquiryModal from './RentalInquiryModal';
 import ChauffeurBookingModal from './ChauffeurBookingModal';
-import { CHAUFFEUR_VEHICLES as vehicles, DAILY_RENTALS as rentals } from '@/lib/fleet';
+import { CHAUFFEUR_VEHICLES as vehicles, DAILY_RENTALS as rentals, RENTAL_CITIES } from '@/lib/fleet';
 
 // Daily-rental filters — matched against each car's `body` / `brand` tag.
 const FILTERS = ['coupe', 'suv', 'mercedes', 'corvette'];
@@ -62,6 +62,44 @@ function FleetToggle({ value, onChange }) {
                 />
               )}
               {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── City toggle ──────────────────────────────────────────────────────────────
+// Sits between the big Chauffeur/Rentals toggle and the tiny text filters in
+// visual weight: a small pill pair with a pin, echoing the main toggle's idiom.
+function CityToggle({ value, onChange }) {
+  return (
+    <div className="flex justify-center">
+      <div
+        className="relative inline-flex p-1"
+        style={{ border: '1px solid rgba(255,255,255,0.18)', borderRadius: 9999 }}
+      >
+        {RENTAL_CITIES.map(cityOpt => {
+          const active = value === cityOpt.id;
+          return (
+            <button
+              key={cityOpt.id}
+              type="button"
+              onClick={() => onChange(cityOpt.id)}
+              className="relative inline-flex items-center gap-1.5 px-4 py-2 text-[10px] tracking-[0.2em] uppercase font-medium transition-colors duration-300"
+              style={{ borderRadius: 9999, color: active ? '#000' : 'rgba(255,255,255,0.6)', zIndex: 1 }}
+            >
+              {active && (
+                <motion.span
+                  layoutId="city-toggle-pill"
+                  className="absolute inset-0"
+                  style={{ background: '#fff', borderRadius: 9999, zIndex: -1 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                />
+              )}
+              <MapPin className="w-3 h-3" />
+              {cityOpt.label}
             </button>
           );
         })}
@@ -130,10 +168,15 @@ function RentalCard({ rental, index, onRequest }) {
   );
 }
 
-export default function FleetSection() {
+// `showCityFilter` gates the Atlanta expansion: false (the default, used by the
+// main site) hides the city toggle and shows only Minneapolis cars; true (the
+// /atl preview page) adds the Minneapolis/Atlanta toggle. To launch the
+// expansion site-wide, pass showCityFilter on the main Home page.
+export default function FleetSection({ showCityFilter = false }) {
   const [tab, setTab] = useState('chauffeur');
   const [activeRental, setActiveRental] = useState(null);
   const [activeVehicle, setActiveVehicle] = useState(null);
+  const [city, setCity] = useState('msp');
   const [filter, setFilter] = useState(null);
   const [sort, setSort] = useState(null);
 
@@ -143,10 +186,12 @@ export default function FleetSection() {
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'start start'] });
   const fleetOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
+  // City first (no `city` field = Minneapolis), then the category filter.
+  const cityRentals = rentals.filter(r => (r.city ?? 'msp') === city);
   // A car matches the active filter by body type OR brand. No filter = all.
   const filtered = filter
-    ? rentals.filter(r => r.body === filter || r.brand === filter)
-    : rentals;
+    ? cityRentals.filter(r => r.body === filter || r.brand === filter)
+    : cityRentals;
   // A category filter auto-sorts low→high; the manual sort buttons only apply
   // (and only show) when no category filter is active.
   const effectiveSort = filter ? 'asc' : sort;
@@ -250,8 +295,11 @@ export default function FleetSection() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Minimal filters (one line) + price sort — click an active one to clear it. */}
-              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-3">
+              {/* City toggle (prominent) → category filters → price sort. */}
+              <div className="-mt-6 md:-mt-8 mb-8 md:mb-10 flex flex-col items-center gap-4">
+                {showCityFilter && (
+                  <CityToggle value={city} onChange={c => { setCity(c); setFilter(null); }} />
+                )}
                 <div className="flex items-center justify-center gap-x-5 gap-y-2 flex-wrap">
                   {FILTERS.map(opt => {
                     const active = filter === opt;

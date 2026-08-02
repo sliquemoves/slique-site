@@ -52,6 +52,14 @@ export const CHAUFFEUR_VEHICLES = [
   },
 ];
 
+// ── Rental cities ────────────────────────────────────────────────────────────
+// Cars without a `city` field are Minneapolis ('msp'). Atlanta cars carry
+// city: 'atl' and a distinct `type` so admin schedules never mix markets.
+export const RENTAL_CITIES = [
+  { id: 'msp', label: 'Minneapolis' },
+  { id: 'atl', label: 'Atlanta' },
+];
+
 // ── Daily rentals (the new self-drive performance line) ──────────────────────
 // Specs are real-world figures; `rate` is the daily price — edit freely.
 export const DAILY_RENTALS = [
@@ -132,6 +140,30 @@ export const DAILY_RENTALS = [
     body: "coupe", brand: "corvette",
     inquiryOnly: true,
   },
+
+  // ── Atlanta ────────────────────────────────────────────────────────────────
+  {
+    name: "Mercedes-Maybach GLS 600",
+    tagline: "Ultra-Luxury SUV",
+    image: "/slique_maybach_gls600.png",
+    hp: 550, zeroToSixty: "4.8s", topSpeed: "155", drive: "AWD",
+    rate: 1499,
+    type: "maybach_gls600_atl",
+    body: "suv", brand: "mercedes",
+    inquiryOnly: true,
+    city: "atl",
+  },
+  {
+    name: "Corvette C8 Z06",
+    tagline: "Track-Bred Supercar",
+    image: "/slique_z06.png",
+    hp: 670, zeroToSixty: "2.6s", topSpeed: "195", drive: "RWD",
+    rate: 699,
+    type: "corvette_c8_z06_atl",
+    body: "coupe", brand: "corvette",
+    inquiryOnly: true,
+    city: "atl",
+  },
 ];
 
 // ── Combined views ───────────────────────────────────────────────────────────
@@ -142,7 +174,9 @@ export const ALL_VEHICLES = [
   ...DAILY_RENTALS.map(v => ({
     type: v.type,
     name: v.name,
-    shortName: v.name,
+    // Tag non-Minneapolis cars so admin schedules distinguish the markets
+    // (the ATL Z06 would otherwise be indistinguishable from the MSP one).
+    shortName: v.city === 'atl' ? `${v.name} (ATL)` : v.name,
     image: v.image,
     rate: v.rate,
     category: 'rental',

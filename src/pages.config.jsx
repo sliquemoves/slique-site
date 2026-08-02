@@ -16,6 +16,7 @@ import AdminHub from './pages/AdminHub';
 import ManageHub from './pages/ManageHub';
 import BookingConfirmation from './pages/BookingConfirmation';
 import Home from './pages/Home';
+import HomeAtl from './pages/HomeAtl';
 import Login from './pages/Login';
 import OutreachDrafts from './pages/OutreachDrafts';
 import OutreachHub from './pages/OutreachHub';
@@ -33,6 +34,10 @@ export const ROUTES = [
   // Public site
   { path: '/',                    component: Home,                showNav: true,  gated: false },
   { path: '/Home',                component: Home,                showNav: true,  gated: false },
+
+  // Atlanta-expansion preview — the main site plus the city filter. Unlinked
+  // from navigation; promote by moving showCityFilter to Home, then retire.
+  { path: '/atl',                 component: HomeAtl,             showNav: true,  gated: false },
   { path: '/BookingConfirmation', component: BookingConfirmation, showNav: false, gated: false },
 
   // Phoenix driver-recruitment landing page (paid-ad destination).
