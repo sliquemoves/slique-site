@@ -116,6 +116,9 @@ function RentalCard({ rental, index, onRequest }) {
     { icon: Gauge, label: 'Horsepower', value: `${rental.hp}` },
     { icon: Cog,   label: 'Drivetrain', value: rental.drive },
   ];
+  // Two-line title: split names (fleet.js `nameLines`) put the model on line 2;
+  // single-line names get a blank second line so all card titles match height.
+  const [titleLine1, titleLine2] = rental.nameLines ?? [rental.name];
   return (
     <motion.div
       className="group w-full overflow-hidden flex flex-col border border-white/15 hover:border-white/35 transition-colors duration-300"
@@ -144,7 +147,10 @@ function RentalCard({ rental, index, onRequest }) {
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-sm text-gray-200 tracking-[0.4em] uppercase font-medium text-center mb-5">{rental.name}</h3>
+        <h3 className="text-sm text-gray-200 tracking-[0.4em] uppercase font-medium text-center mb-5">
+          <span className="block whitespace-nowrap">{titleLine1}</span>
+          <span className="block whitespace-nowrap">{titleLine2 ?? ' '}</span>
+        </h3>
 
         {/* Performance spec grid */}
         <div className="grid grid-cols-2 gap-px mb-6" style={{ background: 'rgba(255,255,255,0.08)' }}>

@@ -64,8 +64,12 @@ export const RENTAL_CITIES = [
 // ── Daily rentals (the new self-drive performance line) ──────────────────────
 // Specs are real-world figures; `rate` is the daily price — edit freely.
 export const DAILY_RENTALS = [
+  // `nameLines` (optional) controls the two-line title split on rental cards:
+  // brand on line 1, model on line 2. Cards without it show the name on one
+  // line plus a blank second line so every card title occupies equal height.
   {
     name: "Mercedes-AMG GLS 63",
+    nameLines: ["Mercedes-AMG", "GLS 63"],
     tagline: "Performance SUV",
     image: "/slique_gls.png",
     hp: 603, zeroToSixty: "4.1s", topSpeed: "174", drive: "AWD",
@@ -86,6 +90,7 @@ export const DAILY_RENTALS = [
   },
   {
     name: "Mercedes-AMG C43",
+    nameLines: ["Mercedes-AMG", "C43"],
     tagline: "Sport Sedan",
     image: "/slique_amg.png",
     hp: 402, zeroToSixty: "4.6s", topSpeed: "155", drive: "AWD",
@@ -113,6 +118,7 @@ export const DAILY_RENTALS = [
   },
   {
     name: "Mercedes-AMG CLE 53",
+    nameLines: ["Mercedes-AMG", "CLE 53"],
     tagline: "Sport Coupe",
     image: "/slique_cle.png",
     hp: 443, zeroToSixty: "4.2s", topSpeed: "155", drive: "AWD",
@@ -123,6 +129,7 @@ export const DAILY_RENTALS = [
   },
   {
     name: "Mercedes-Benz G-Wagon",
+    nameLines: ["Mercedes-Benz", "G-Wagon"],
     tagline: "Luxury SUV",
     image: "/slique_wagon.png",
     hp: 577, zeroToSixty: "4.5s", topSpeed: "149", drive: "AWD",
@@ -145,6 +152,7 @@ export const DAILY_RENTALS = [
   // ── Atlanta ────────────────────────────────────────────────────────────────
   {
     name: "Mercedes-Maybach GLS 600",
+    nameLines: ["Mercedes-Maybach", "GLS 600"],
     tagline: "Ultra-Luxury SUV",
     image: "/slique_gls600.png",
     hp: 550, zeroToSixty: "4.8s", topSpeed: "155", drive: "AWD",
