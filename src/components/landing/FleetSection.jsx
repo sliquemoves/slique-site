@@ -198,6 +198,8 @@ export default function FleetSection({ showCityFilter = false }) {
   // Chauffeur/Rentals toggle and force the rentals panel.
   const chauffeurAvailable = !showCityFilter || city === 'msp';
   const effectiveTab = chauffeurAvailable ? tab : 'rentals';
+  // City metadata — e.g. Boston carries a required-deposit note.
+  const activeCity = RENTAL_CITIES.find(c => c.id === city);
 
   // City first (no `city` field = Minnesota), then the category filter.
   const cityRentals = rentals.filter(r => (r.city ?? 'msp') === city);
@@ -352,6 +354,14 @@ export default function FleetSection({ showCityFilter = false }) {
                   </div>
                 )}
               </div>
+              )}
+
+              {/* Minimal deposit note (e.g. Boston) — sits between the city
+                  toggle and the cards, in the site's micro-label voice. */}
+              {showCityFilter && activeCity?.deposit && (
+                <p className="text-center text-[10px] tracking-[0.25em] uppercase text-gray-500 mb-8 md:mb-10">
+                  ${activeCity.deposit} deposit required
+                </p>
               )}
 
               {visibleRentals.length === 0 ? (

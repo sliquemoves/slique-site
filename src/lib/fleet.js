@@ -53,12 +53,14 @@ export const CHAUFFEUR_VEHICLES = [
 ];
 
 // ── Rental cities ────────────────────────────────────────────────────────────
-// Cars without a `city` field are Minneapolis ('msp'). Atlanta cars carry
-// city: 'atl' and a distinct `type` so admin schedules never mix markets.
+// Cars without a `city` field are Minneapolis ('msp'). Expansion cars carry a
+// `city` id and a distinct `type` so admin schedules never mix markets.
+// `deposit` (optional) renders a required-deposit note above that city's cars.
 export const RENTAL_CITIES = [
   { id: 'msp', label: 'Minnesota' },
   { id: 'atl', label: 'Atlanta' },
   { id: 'phx', label: 'Arizona' },
+  { id: 'bos', label: 'Boston', deposit: 999 },
 ];
 
 // ── Daily rentals (the new self-drive performance line) ──────────────────────
@@ -185,6 +187,53 @@ export const DAILY_RENTALS = [
     body: "suv", brand: "tesla",
     inquiryOnly: true,
     city: "phx",
+  },
+
+  // ── Boston ─────────────────────────────────────────────────────────────────
+  {
+    name: "Cadillac Escalade",
+    tagline: "Full-Size Luxury SUV",
+    image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695c5a13600f408b85ae7545/3a79fb852_sliqueescalade.png",
+    hp: 420, zeroToSixty: "5.8s", topSpeed: "112", drive: "AWD",
+    rate: 349,
+    type: "cadillac_escalade_bos",
+    body: "suv", brand: "cadillac",
+    inquiryOnly: true,
+    city: "bos",
+  },
+  {
+    name: "Corvette C8",
+    tagline: "Mid-Engine Supercar",
+    image: "/slique_corvette.png",
+    hp: 495, zeroToSixty: "2.9s", topSpeed: "194", drive: "RWD",
+    rate: 529,
+    type: "corvette_c8_bos",
+    body: "coupe", brand: "corvette",
+    inquiryOnly: true,
+    city: "bos",
+  },
+  {
+    name: "Porsche 911",
+    tagline: "Sports Car Icon",
+    image: "/slique_porsche.png",
+    hp: 379, zeroToSixty: "4.0s", topSpeed: "182", drive: "RWD",
+    rate: 499,
+    type: "porsche_911_bos",
+    body: "coupe", brand: "porsche",
+    inquiryOnly: true,
+    city: "bos",
+  },
+  {
+    name: "Mercedes G-Wagon Brabus",
+    nameLines: ["Mercedes-Benz", "G-Wagon Brabus"],
+    tagline: "Tuned Luxury SUV",
+    image: "/slique_wagon.png",
+    hp: 788, zeroToSixty: "3.9s", topSpeed: "149", drive: "AWD",
+    rate: 799,
+    type: "g_wagon_brabus_bos",
+    body: "suv", brand: "mercedes",
+    inquiryOnly: true,
+    city: "bos",
   },
 ];
 
